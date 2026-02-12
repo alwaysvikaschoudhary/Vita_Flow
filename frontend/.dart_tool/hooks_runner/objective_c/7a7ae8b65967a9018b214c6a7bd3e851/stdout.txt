@@ -1,0 +1,60 @@
+Running `(cd /Users/vikaschoudhary/.pub-cache/hosted/pub.dev/objective_c-9.2.4/; TMPDIR=/var/folders/30/fj2wd4kx4hdg2hcggx76qscr0000gn/T/ PATH=/Applications/Xcode.app/Contents/SharedFrameworks/SwiftBuild.framework/Versions/A/PlugIns/SWBBuildService.bundle/Contents/PlugIns/SWBUniversalPlatformPlugin.bundle/Contents/Frameworks/SWBUniversalPlatform.framework/Resources:/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin:/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/local/bin:/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/libexec:/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/usr/bin:/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/usr/local/bin:/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin:/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/local/bin:/Applications/Xcode.app/Contents/Developer/usr/bin:/Applications/Xcode.app/Contents/Developer/usr/local/bin:/Users/vikaschoudhary/Library/Application Support/Code/User/globalStorage/github.copilot-chat/debugCommand:/Users/vikaschoudhary/Library/Application Support/Code/User/globalStorage/github.copilot-chat/copilotCli:/Users/vikaschoudhary/Document/Flutter/Sdk/flutter/bin/:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/opt/pmk/env/global/bin:/Library/Apple/usr/bin:/opt/homebrew/bin:/Users/vikaschoudhary/.pub-cache/bin:/Users/vikaschoudhary/.vscode/extensions/vscjava.vscode-java-debug-0.58.5/bundled/scripts/noConfigScripts HOME=/Users/vikaschoudhary /Users/vikaschoudhary/Document/Flutter/Sdk/flutter/bin/cache/dart-sdk/bin/dart '--packages=/Users/vikaschoudhary/Document/Projects/Vita Flow/vita_flow/.dart_tool/package_config.json' '/Users/vikaschoudhary/Document/Projects/Vita Flow/vita_flow/.dart_tool/hooks_runner/objective_c/7a7ae8b65967a9018b214c6a7bd3e851/hook.dill' '--config=/Users/vikaschoudhary/Document/Projects/Vita Flow/vita_flow/.dart_tool/hooks_runner/objective_c/7a7ae8b65967a9018b214c6a7bd3e851/input.json' )`.
+INFO: 2026-01-23 21:09:17.941054: Running `/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang --version`.
+
+INFO: 2026-01-23 21:09:17.957711: Running `/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang --version`.
+
+INFO: 2026-01-23 21:09:17.969882: Running: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.0.sdk -target arm64-apple-ios -c /Users/vikaschoudhary/.pub-cache/hosted/pub.dev/objective_c-9.2.4/src/objective_c.c -fpic -I src -o /Users/vikaschoudhary/Document/Projects/Vita Flow/vita_flow/.dart_tool/hooks_runner/shared/objective_c/build/7a7ae8b659/obj/src/objective_c.c.o
+
+art_api_dl.c.o
+
+INFO: 2026-01-23 21:09:17.970219: Running: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.0.sdk -target arm64-apple-ios -x objective-c -fobjc-arc -c /Users/vikaschoudhary/.pub-cache/hosted/pub.dev/objective_c-9.2.4/src/observer.m -fpic -I src -o /Users/vikaschoudhary/Document/Projects/Vita Flow/vita_flow/.dart_tool/hooks_runner/shared/objective_c/build/7a7ae8b659/obj/src/observer.m.o
+
+put_stream_adapter.m.o
+INFO: 2026-01-23 21:09:17.970138: Running: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.0.sdk -target arm64-apple-ios -x objective-c -fobjc-arc -c /Users/vikaschoudhary/.pub-cache/hosted/pub.dev/objective_c-9.2.4/src/objective_c.m -fpic -I src -o /Users/vikaschoudhary/Document/Projects/Vita Flow/vita_flow/.dart_tool/hooks_runner/shared/objective_c/build/7a7ae8b659/obj/src/objective_c.m.o
+
+INFO: 2026-01-23 21:09:17.970578: Running: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.0.sdk -target arm64-apple-ios -x objective-c -fobjc-arc -c /Users/vikaschoudhary/.pub-cache/hosted/pub.dev/objective_c-9.2.4/src/objective_c_bindings_generated.m -fpic -I src -o /Users/vikaschoudhary/Document/Projects/Vita Flow/vita_flow/.dart_tool/hooks_runner/shared/objective_c/build/7a7ae8b659/obj/src/objective_c_bindings_generated.m.o
+
+INFO: 2026-01-23 21:09:18.040783: Generated /Users/vikaschoudhary/Document/Projects/Vita Flow/vita_flow/.dart_tool/hooks_runner/shared/objective_c/build/7a7ae8b659/obj/src/objective_c.c.o
+
+INFO: 2026-01-23 21:09:18.041089: 
+INFO: 2026-01-23 21:09:18.041138: 
+INFO: 2026-01-23 21:09:18.041159: Generated /Users/vikaschoudhary/Document/Projects/Vita Flow/vita_flow/.dart_tool/hooks_runner/shared/objective_c/build/7a7ae8b659/obj/src/include/dart_api_dl.c.o
+
+INFO: 2026-01-23 21:09:18.053984: 
+INFO: 2026-01-23 21:09:18.054041: 
+INFO: 2026-01-23 21:09:18.054134: Generated /Users/vikaschoudhary/Document/Projects/Vita Flow/vita_flow/.dart_tool/hooks_runner/shared/objective_c/build/7a7ae8b659/obj/src/observer.m.o
+
+INFO: 2026-01-23 21:09:18.060262: 
+INFO: 2026-01-23 21:09:18.060320: 
+INFO: 2026-01-23 21:09:18.060339: Generated /Users/vikaschoudhary/Document/Projects/Vita Flow/vita_flow/.dart_tool/hooks_runner/shared/objective_c/build/7a7ae8b659/obj/src/protocol.m.o
+
+INFO: 2026-01-23 21:09:18.122869: 
+INFO: 2026-01-23 21:09:18.122905: 
+INFO: 2026-01-23 21:09:18.122916: Generated /Users/vikaschoudhary/Document/Projects/Vita Flow/vita_flow/.dart_tool/hooks_runner/shared/objective_c/build/7a7ae8b659/obj/src/ns_number.m.o
+
+INFO: 2026-01-23 21:09:18.135969: 
+INFO: 2026-01-23 21:09:18.136031: 
+INFO: 2026-01-23 21:09:18.136052: Generated /Users/vikaschoudhary/Document/Projects/Vita Flow/vita_flow/.dart_tool/hooks_runner/shared/objective_c/build/7a7ae8b659/obj/src/input_stream_adapter.m.o
+
+INFO: 2026-01-23 21:09:18.141010: 
+INFO: 2026-01-23 21:09:18.141044: 
+INFO: 2026-01-23 21:09:18.141053: Generated /Users/vikaschoudhary/Document/Projects/Vita Flow/vita_flow/.dart_tool/hooks_runner/shared/objective_c/build/7a7ae8b659/obj/src/objective_c.m.o
+
+INFO: 2026-01-23 21:09:18.148795: Running: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -shared -Wl,-encryptable -undefined dynamic_lookup -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.0.sdk -target arm64-apple-ios /Users/vikaschoudhary/Document/Projects/Vita Flow/vita_flow/.dart_tool/hooks_runner/shared/objective_c/build/7a7ae8b659/obj/src/include/dart_api_dl.c.o /Users/vikaschoudhary/Document/Projects/Vita Flow/vita_flow/.dart_tool/hooks_runner/shared/objective_c/build/7a7ae8b659/obj/src/objective_c.c.o /Users/vikaschoudhary/Document/Projects/Vita Flow/vita_flow/.dart_tool/hooks_runner/shared/objective_c/build/7a7ae8b659/obj/src/input_stream_adapter.m.o /Users/vikaschoudhary/Document/Projects/Vita Flow/vita_flow/.dart_tool/hooks_runner/shared/objective_c/build/7a7ae8b659/obj/src/objective_c.m.o /Users/vikaschoudhary/Document/Projects/Vita Flow/vita_flow/.dart_tool/hooks_runner/shared/objective_c/build/7a7ae8b659/obj/src/observer.m.o /Users/vikaschoudhary/Document/Projects/Vita Flow/vita_flow/.dart_tool/hooks_runner/shared/objective_c/build/7a7ae8b659/obj/src/ns_number.m.o /Users/vikaschoudhary/Document/Projects/Vita Flow/vita_flow/.dart_tool/hooks_runner/shared/objective_c/build/7a7ae8b659/obj/src/protocol.m.o /Users/vikaschoudhary/Document/Projects/Vita Flow/vita_flow/.dart_tool/hooks_runner/shared/objective_c/build/7a7ae8b659/obj/src/objective_c_bindings_generated.m.o -o /Users/vikaschoudhary/Document/Projects/Vita Flow/vita_flow/.dart_tool/hooks_runner/shared/objective_c/build/7a7ae8b659/objective_c.dylib
+
+orm/Developer/SDKs/iPhoneOS26.0.sdk/System/Library/Frameworks/Foundation.framework/Headers/NSItemProvider.h:16:28: note: 'NSItemProviderRepresentationVisibility' has been marked as being introduced in iOS 11.0 here, but the deployment target is iOS 7.0.0
+   16 | typedef NS_ENUM(NSInteger, NSItemProviderRepresentationVisibility) {
+      |                            ^
+/Users/vikaschoudhary/.pub-cache/hosted/pub.dev/objective_c-9.2.4/src/objective_c_bindings_generated.m:84:41: note: annotate '_1wx624s_protocolTrampoline_1ldqghh' with an availability attribute to silence this warning
+   83 | __attribute__((visibility("default"))) __attribute__((used))
+   84 | NSItemProviderRepresentationVisibility  _1wx624s_protocolTrampoline_1ldqghh(id target, void * sel, id arg1) {
+      |                                         ^
+2 warnings generated.
+
+INFO: 2026-01-23 21:09:18.148571: Generated /Users/vikaschoudhary/Document/Projects/Vita Flow/vita_flow/.dart_tool/hooks_runner/shared/objective_c/build/7a7ae8b659/obj/src/objective_c_bindings_generated.m.o
+
+INFO: 2026-01-23 21:09:18.177315: 
+INFO: 2026-01-23 21:09:18.177370: ld: warning: -undefined dynamic_lookup is deprecated on iOS
+
+INFO: 2026-01-23 21:09:18.177382: Generated /Users/vikaschoudhary/Document/Projects/Vita Flow/vita_flow/.dart_tool/hooks_runner/shared/objective_c/build/7a7ae8b659/objective_c.dylib
+
