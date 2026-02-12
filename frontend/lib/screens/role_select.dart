@@ -1,12 +1,11 @@
-import 'package:vita_flow/screens/Doctor/navbar.dart';
-import 'package:vita_flow/screens/Donar/donor_navbar.dart';
-import 'package:vita_flow/screens/Rider/navbar.dart';
+import 'package:vita_flow/screens/register_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:vita_flow/constants/app_colors.dart';
 import 'package:vita_flow/constants/app_constants.dart';
 
 class RoleSelectScreen extends StatefulWidget {
-  const RoleSelectScreen({super.key});
+  final String phoneNumber;
+  const RoleSelectScreen({super.key, required this.phoneNumber});
 
   @override
   State<RoleSelectScreen> createState() => _RoleSelectScreenState();
@@ -21,34 +20,40 @@ class _RoleSelectScreenState extends State<RoleSelectScreen> {
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 80),
-
-              CircleAvatar(
-                radius: 45,
-                backgroundColor: AppColors.primary.withOpacity(0.15),
-                child: const Icon(Icons.person, color: AppColors.primary, size: 65),
+               const SizedBox(height: 40),
+               Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 28),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "Choose your role",
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      "Select how you want to contribute to VitaFlow",
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: AppColors.grey.withOpacity(0.8),
+                      ),
+                    ),
+                  ],
+                ),
               ),
 
               const SizedBox(height: 30),
 
-              const Text(
-                "Welcome to VitaFlow",
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
-              ),
-
-              const SizedBox(height: 8),
-
-              Text(
-                "Select your role",
-                style: TextStyle(fontSize: 16, color: AppColors.grey.withOpacity(0.7)),
-              ),
-
-              const SizedBox(height: 30),
-
-              roleTile("Donor"),
-              roleTile("Doctor"),
-              roleTile("Rider"),
+              // Roles
+              roleTile("Blood Donor", "DONOR", Icons.favorite),
+              roleTile("Hospital / Doctor", "DOCTOR", Icons.local_hospital),
+              roleTile("Rider / Volunteer", "RIDER", Icons.delivery_dining),
 
               const SizedBox(height: 40),
 
@@ -65,27 +70,21 @@ class _RoleSelectScreenState extends State<RoleSelectScreen> {
                       ),
                     ),
                     onPressed: selectedRole == null ? null : () {
-                      if (selectedRole == "Donor") {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (c) => const DonorNavBar()),
-                        );
-                      } else if (selectedRole == "Doctor") {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (c) => const DoctorNavBar()),
-                        );
-                      } else if (selectedRole == "Rider") {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (c) => const RiderNavBar()),
-                        );
-                      }
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (c) => Register(
+                            phoneNumber: widget.phoneNumber,
+                            role: selectedRole!,
+                          ),
+                        ),
+                      );
                     },
                     child: const Text("Continue", style: TextStyle(color: AppColors.white, fontSize: 18)),
                   ),
                 ),
               )
+
             ],
           ),
         ),
@@ -93,14 +92,14 @@ class _RoleSelectScreenState extends State<RoleSelectScreen> {
     );
   }
 
-  Widget roleTile(String text) {
-    final isSelected = selectedRole == text;
+  Widget roleTile(String text, String value, IconData icon) {
+    final isSelected = selectedRole == value;
     return GestureDetector(
-      onTap: () => setState(() => selectedRole = text),
+      onTap: () => setState(() => selectedRole = value),
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 28, vertical: 8),
         padding: const EdgeInsets.symmetric(horizontal: 16),
-        height: 70,
+        height: 80,
         decoration: BoxDecoration(
           border: Border.all(
             color: isSelected ? AppColors.primary : AppColors.grey.withOpacity(0.3),
@@ -113,24 +112,27 @@ class _RoleSelectScreenState extends State<RoleSelectScreen> {
         ),
         child: Row(
           children: [
-            Radio<String>(
-              value: text,
-              groupValue: selectedRole,
-              fillColor: WidgetStateProperty.resolveWith<Color>(
-                (Set<WidgetState> states) {
-                  return isSelected ? AppColors.primary : AppColors.grey;
-                },
+            CircleAvatar(
+              backgroundColor: isSelected ? AppColors.primary : AppColors.grey.withOpacity(0.1),
+              child: Icon(icon, color: isSelected ? Colors.white : Colors.grey),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                text,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  color: isSelected ? AppColors.primary : AppColors.black,
+                ),
               ),
+            ),
+            Radio<String>(
+              value: value,
+              groupValue: selectedRole,
+              activeColor: AppColors.primary,
               onChanged: (v) => setState(() => selectedRole = v),
             ),
-            Text(
-              text,
-              style: TextStyle(
-                fontSize: 17,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                color: isSelected ? AppColors.primary : AppColors.black,
-              ),
-            )
           ],
         ),
       ),

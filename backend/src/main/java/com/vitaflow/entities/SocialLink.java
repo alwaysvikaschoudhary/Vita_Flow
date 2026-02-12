@@ -1,4 +1,4 @@
-package com.vitaflow.backend.entities;
+package com.vitaflow.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -18,5 +18,5 @@ public class SocialLink {
     private String title;
 
     @ManyToOne
-    private Contact contact;
+    private com.vitaflow.entities.User user;
 }

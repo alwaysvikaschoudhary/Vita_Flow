@@ -2,7 +2,8 @@ import 'package:vita_flow/screens/Rider/pickup_screen.dart';
 import 'package:flutter/material.dart'; // ← ADD THIS IMPORT
 
 class RiderHomeScreen extends StatelessWidget {
-  const RiderHomeScreen({super.key});
+  final Map<String, dynamic> currentUser;
+  const RiderHomeScreen({super.key, required this.currentUser});
 
   @override
   Widget build(BuildContext context) {
@@ -71,14 +72,14 @@ class RiderHomeScreen extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("Hi, Rahul 👋",
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
-                Text("Ready for deliveries?",
-                    style: TextStyle(fontSize: 15, color: Colors.grey)),
+                Text("Hi, ${currentUser['name']} 👋",
+                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
+                Text("Vehicle: ${currentUser['bikeNumber'] ?? 'N/A'}",
+                    style: const TextStyle(fontSize: 15, color: Colors.grey)),
               ],
             ),
           ),

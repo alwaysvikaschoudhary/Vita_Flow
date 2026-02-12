@@ -5,7 +5,8 @@ import 'history_screen.dart';
 import 'profile_screen.dart';
 
 class RiderNavBar extends StatefulWidget {
-  const RiderNavBar({super.key});
+  final Map<String, dynamic> currentUser;
+  const RiderNavBar({super.key, required this.currentUser});
 
   @override
   State<RiderNavBar> createState() => _DonorNavBarState();
@@ -44,7 +45,7 @@ class _DonorNavBarState extends State<RiderNavBar> {
         body: IndexedStack(
           index: selectedIndex,
           children: [
-            _buildNavigator(homeNavKey, const RiderHomeScreen()),
+            _buildNavigator(homeNavKey, RiderHomeScreen(currentUser: widget.currentUser)),
             _buildNavigator(requestsNavKey, const RiderTasksScreen()),
             _buildNavigator(historyNavKey, const RiderHistoryScreen()),
             _buildNavigator(profileNavKey, const RiderProfileScreen()),

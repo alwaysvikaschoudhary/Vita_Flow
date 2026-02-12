@@ -1,4 +1,4 @@
-package com.vitaflow.backend.helper;
+package com.vitaflow.helper;
 
 public class helper {
 }

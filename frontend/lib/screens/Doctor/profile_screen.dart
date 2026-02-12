@@ -1,5 +1,7 @@
 import 'package:vita_flow/screens/role_select.dart';
+import 'package:vita_flow/screens/login_screen.dart';
 import 'package:flutter/material.dart';
+
 
 class DoctorProfileScreen extends StatefulWidget {
   const DoctorProfileScreen({super.key});
@@ -166,9 +168,10 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                       rootNavigator: true,
                     ).pushAndRemoveUntil(
                       MaterialPageRoute(
-                        builder: (_) => const RoleSelectScreen(),
+                        builder: (_) => const Login(),
                       ),
                       (route) => false,
+
                     );
                   },
 

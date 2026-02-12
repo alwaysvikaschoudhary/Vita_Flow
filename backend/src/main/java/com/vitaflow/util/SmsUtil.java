@@ -1,4 +1,4 @@
-package com.vitaflow.backend.util;
+package com.vitaflow.util;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.net.URL;

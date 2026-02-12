@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'nearby_requests_screen.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+  final Map<String, dynamic> currentUser;
+  const HomeScreen({super.key, required this.currentUser});
 
   @override
   Widget build(BuildContext context) {
@@ -29,18 +30,18 @@ class HomeScreen extends StatelessWidget {
                   children: [
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         Text(
-                          "Hi, Jitesh 👋",
-                          style: TextStyle(
+                          "Hi, ${currentUser['name']} 👋",
+                          style: const TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
 
                         Text(
-                          "Ready to save a life?",
-                          style: TextStyle(fontSize: 16, color: Colors.grey),
+                          "Blood Group: ${currentUser['bloodGroup'] ?? 'N/A'}",
+                          style: const TextStyle(fontSize: 16, color: Colors.grey),
                         ),
                       ],
                     ),

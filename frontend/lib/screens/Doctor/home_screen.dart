@@ -2,7 +2,8 @@ import 'package:vita_flow/screens/Doctor/create_request_screen.dart';
 import 'package:flutter/material.dart';
 
 class DoctorHomeScreen extends StatelessWidget {
-  const DoctorHomeScreen({super.key});
+  final Map<String, dynamic> currentUser;
+  const DoctorHomeScreen({super.key, required this.currentUser});
 
   @override
   Widget build(BuildContext context) {
@@ -30,17 +31,17 @@ class DoctorHomeScreen extends StatelessWidget {
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
+                        children: [
                           Text(
-                            "City General Hospital",
-                            style: TextStyle(
+                            currentUser['hospitalName'] ?? "Hospital",
+                            style: const TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
                           Text(
-                            "Emergency Requests",
-                            style: TextStyle(
+                            "Dr. ${currentUser['name']}",
+                            style: const TextStyle(
                               fontSize: 15,
                               color: Colors.grey,
                             ),

@@ -4,8 +4,8 @@
     "build_asset_types": [],
     "linking_enabled": false
   },
-  "out_dir_shared": "/Users/vikaschoudhary/Document/Projects/Vita Flow/vita_flow/.dart_tool/hooks_runner/shared/objective_c/build/",
-  "out_file": "/Users/vikaschoudhary/Document/Projects/Vita Flow/vita_flow/.dart_tool/hooks_runner/objective_c/337ce265dcc475d72fd7c043591321ec/output.json",
+  "out_dir_shared": "/Users/vikaschoudhary/Document/Projects/Vita Flow/Vita_Flow/frontend/.dart_tool/hooks_runner/shared/objective_c/build/",
+  "out_file": "/Users/vikaschoudhary/Document/Projects/Vita Flow/Vita_Flow/frontend/.dart_tool/hooks_runner/objective_c/337ce265dcc475d72fd7c043591321ec/output.json",
   "package_name": "objective_c",
   "package_root": "/Users/vikaschoudhary/.pub-cache/hosted/pub.dev/objective_c-9.2.4/",
   "user_defines": {}

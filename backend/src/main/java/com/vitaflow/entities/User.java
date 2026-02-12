@@ -1,4 +1,4 @@
-package com.vitaflow.backend.entities;
+package com.vitaflow.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -16,28 +16,42 @@ public class User {
 
     @Id
     private String userId;
-    @Column(name = "user_name", nullable = false)
+
+    @Column(name = "user_name")
     private String name;
-    @Column(unique = true, nullable = false)
+    
+    // Email is now optional
     private String email;
-    private String password;
+    
+    private String password; // Optional if using OTP only
+    
     @Lob
     private String about;
+    
     @Column(length = 1000)
     private String profilePic;
+    
+    @Column(unique = true, nullable = false)
     private String phoneNumber;
 
-    private boolean enabled = false;
-    private boolean emailVerified = false;
-    private boolean phoneVerified = false;
+    @Builder.Default
+    private Boolean emailVerified = false;
+
+
 
     @Enumerated(value = EnumType.STRING)
-    // SELF, GOOGLE, FACEBOOK, TWITTER, LINKEDIN, GITHUB
-    private Providers provider = Providers.SELF;
+    private Role role;
 
-    private String emailToken;
+    // Role Specific Fields
+    private String bloodGroup; // For Donor
+    private String dob;        // For All (Donor/Rider/Doctor)
+    private String hospitalName; // For Doctor/Hospital
+    private String specialization; // For Doctor
+    private String bikeNumber; // For Rider
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Contact>  contacts = new LinkedHashSet<>();
-
+    @PrePersist
+    public void prePersist() {
+        if (emailVerified == null) emailVerified = false;
+    }
 }
+

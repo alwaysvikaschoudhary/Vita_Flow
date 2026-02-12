@@ -1,6 +1,6 @@
-package com.vitaflow.backend.services;
+package com.vitaflow.services;
 
-import com.vitaflow.backend.entities.User;
+import com.vitaflow.entities.User;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,4 +14,10 @@ public interface UserService {
     List<User> getAllUsers();
     void deleteUser(String userId);
 
+    // Auth
+    com.vitaflow.payload.AuthResponse verifyOtp(String phoneNumber, String otp);
+    boolean sendOtp(String phoneNumber);
+
 }
+
+

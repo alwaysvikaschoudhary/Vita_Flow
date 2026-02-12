@@ -1,7 +1,9 @@
 import 'package:vita_flow/screens/Donar/personal_info_screen.dart';
 import 'package:vita_flow/screens/Donar/verification_complete_screen.dart';
 import 'package:vita_flow/screens/role_select.dart';
+import 'package:vita_flow/screens/login_screen.dart';
 import 'package:flutter/material.dart';
+
 import 'profile_verification_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -219,9 +221,10 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 onPressed: () {
                   Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (_) => const RoleSelectScreen()),
+                    MaterialPageRoute(builder: (_) => const Login()),
                     (route) => false,
                   );
+
                 },
 
                 child: const Text(

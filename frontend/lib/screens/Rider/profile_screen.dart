@@ -1,5 +1,7 @@
 import 'package:vita_flow/screens/role_select.dart';
+import 'package:vita_flow/screens/login_screen.dart';
 import 'package:flutter/material.dart';
+
 
 class RiderProfileScreen extends StatelessWidget {
   const RiderProfileScreen({super.key});
@@ -164,9 +166,10 @@ class RiderProfileScreen extends StatelessWidget {
           ),
           onPressed: () {
   Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
-    MaterialPageRoute(builder: (_) => const RoleSelectScreen()),
+    MaterialPageRoute(builder: (_) => const Login()),
     (route) => false,
   );
+
 },
 
           child: const Text(

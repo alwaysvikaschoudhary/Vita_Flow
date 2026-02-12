@@ -5,7 +5,8 @@ import 'package:vita_flow/screens/Doctor/profile_screen.dart';
 import 'package:flutter/material.dart';
 
 class DoctorNavBar extends StatefulWidget {
-  const DoctorNavBar({super.key});
+  final Map<String, dynamic> currentUser;
+  const DoctorNavBar({super.key, required this.currentUser});
 
   @override
   State<DoctorNavBar> createState() => _DoctorNavBarState();
@@ -25,7 +26,7 @@ class _DoctorNavBarState extends State<DoctorNavBar> {
       body: IndexedStack(
         index: selectedIndex,
         children: [
-          _buildNav(homeKey, const DoctorHomeScreen()),
+          _buildNav(homeKey, DoctorHomeScreen(currentUser: widget.currentUser)),
           _buildNav(requestKey, const DoctorRequestsScreen()),
           _buildNav(historyKey, const DoctorHistoryScreen()),
           _buildNav(profileKey, const DoctorProfileScreen()),

@@ -1,73 +1,56 @@
-package com.vitaflow.backend.services;
+package com.vitaflow.services;
 
-import com.vitaflow.backend.entities.User;
-import com.vitaflow.backend.repositories.UserRepo;
-import com.vitaflow.backend.util.SmsUtil;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
-import java.util.UUID;
 
 @Service
 public class OtpService {
 
-    private final UserRepo userRepo;
+    // Simulating OTP storage (Phone -> OTP)
+    // In production, use Redis or Database with expiration
+    private final Map<String, String> otpStorage = new HashMap<>();
 
-    // phone -> otp
-    private final Map<String, Integer> otpStore = new HashMap<>();
-    private final Map<String, Long> otpExpiry = new HashMap<>();
-
-    public OtpService(UserRepo userRepo) {
-        this.userRepo = userRepo;
+    public String generateOtp(String phoneNumber) {
+        Random random = new Random();
+        String otp = String.format("%04d", random.nextInt(10000));
+        otpStorage.put(phoneNumber, otp);
+        
+        System.out.println("OTP for " + phoneNumber + ": " + otp); 
+        
+        // Fast2SMS Integration
+        sendFast2SmsOtp(phoneNumber, otp);
+        
+        return otp;
     }
 
-    public void sendOtp(String phone) {
-
-        int otp = 100000 + new Random().nextInt(900000);
-
-        otpStore.put(phone, otp);
-        otpExpiry.put(phone, System.currentTimeMillis() + 5 * 60 * 1000);
-
-        String message = "Your OTP is " + otp + ". Valid for 5 minutes.";
-        SmsUtil.sendSms(message, phone);
-    }
-
-    public String verifyOtpAndLogin(String phone, int otp) {
-
-        if (!verifyOtp(phone, otp)) {
-            throw new RuntimeException("Invalid OTP");
+    private void sendFast2SmsOtp(String phoneNumber, String otp) {
+        try {
+            String apiKey = "YOUR_FAST2SMS_API_KEY"; // Replace with actual API Key
+            String url = "https://www.fast2sms.com/dev/bulkV2?authorization=" + apiKey + 
+                         "&route=otp&variables_values=" + otp + 
+                         "&flash=0&numbers=" + phoneNumber;
+            
+            org.springframework.web.client.RestTemplate restTemplate = new org.springframework.web.client.RestTemplate();
+            String response = restTemplate.getForObject(url, String.class);
+            System.out.println("Fast2SMS Response: " + response);
+        } catch (Exception e) {
+            System.err.println("Error sending OTP via Fast2SMS: " + e.getMessage());
+            // Don't block flow if SMS fails, rely on console log for dev
         }
-
-        User user = userRepo.findByPhone(phone)
-                .orElseGet(() -> {
-                    User u = new User();
-                    u.setUserId(UUID.randomUUID().toString());
-                    u.setPhone(phone);
-                    return userRepo.save(u);
-                });
-
-        return user.getUserId();
     }
 
-    private boolean verifyOtp(String phone, int otp) {
+    public boolean validateOtp(String phoneNumber, String otp) {
 
-        Integer storedOtp = otpStore.get(phone);
-        Long expiry = otpExpiry.get(phone);
-
-        if (storedOtp == null || expiry == null) return false;
-
-        if (System.currentTimeMillis() > expiry) {
-            otpStore.remove(phone);
-            otpExpiry.remove(phone);
-            return false;
+        if (otpStorage.containsKey(phoneNumber)) {
+            String storedOtp = otpStorage.get(phoneNumber);
+            if (storedOtp.equals(otp)) {
+                otpStorage.remove(phoneNumber); // OTP used once
+                return true;
+            }
         }
-
-        if (storedOtp != otp) return false;
-
-        otpStore.remove(phone);
-        otpExpiry.remove(phone);
-        return true;
+        return false;
     }
 }
