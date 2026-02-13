@@ -1,10 +1,11 @@
 import 'package:vita_flow/screens/role_select.dart';
 import 'package:vita_flow/screens/login_screen.dart';
 import 'package:flutter/material.dart';
-
+import 'package:vita_flow/screens/Doctor/edit_profile_screen.dart';
 
 class DoctorProfileScreen extends StatefulWidget {
-  const DoctorProfileScreen({super.key});
+  final Map<String, dynamic> currentUser;
+  const DoctorProfileScreen({super.key, required this.currentUser});
 
   @override
   State<DoctorProfileScreen> createState() => _DoctorProfileScreenState();
@@ -14,6 +15,14 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
   bool notifyDonorMatches = true;
   bool notifyDeliveryUpdates = false;
   bool notifyEmergencyAlerts = true;
+  
+  late Map<String, dynamic> user;
+
+  @override
+  void initState() {
+    super.initState();
+    user = widget.currentUser;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,21 +74,21 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                         const SizedBox(width: 10),
 
                         // Hospital name + dept
-                        const Expanded(
+                        Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                "Gitanjali Hospital",
-                                style: TextStyle(
+                                user['name'] ?? "Unknown Name",
+                                style: const TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
-                              SizedBox(height: 4),
+                              const SizedBox(height: 4),
                               Text(
-                                "Emergency Department",
-                                style: TextStyle(
+                                user['specialization'] ?? "General",
+                                style: const TextStyle(
                                   fontSize: 15,
                                   color: Colors.black54,
                                 ),
@@ -89,9 +98,22 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                         ),
 
                         // Edit button
-                        CircleAvatar(
-                          backgroundColor: Colors.white,
-                          child: Icon(Icons.edit, color: Colors.black),
+                        GestureDetector(
+                          onTap: () async {
+                              final updated = await Navigator.push(
+                                context, 
+                                MaterialPageRoute(builder: (_) => EditDoctorProfileScreen(currentUser: user)),
+                              );
+                              if (updated != null) {
+                                setState(() {
+                                  user = updated;
+                                });
+                              }
+                          },
+                          child: CircleAvatar(
+                            backgroundColor: Colors.white,
+                            child: Icon(Icons.edit, color: Colors.black),
+                          ),
                         ),
                       ],
                     ),
@@ -102,8 +124,8 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        _statsBox("106", "Total Requests"),
-                        _statsBox("98%", "Success Rate"),
+                        _statsBox(user['experience'] ?? "--", "Experience"),
+                        _statsBox(user['gender'] ?? "--", "Gender"),
                       ],
                     ),
                   ],
@@ -118,10 +140,16 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
               _infoSection(
                 title: "Hospital Information",
                 children: [
-                  _infoItem("Hospital ID", "GT-J-001"),
-                  _infoItem("Contact", "+91 1800-100-100"),
-                  _infoItem("Email", "gitanjalihostelcare.com"),
-                  _infoItem("Address", "Gitanjali Hostel\nBhankrota Jaipur"),
+                  _infoItem("Hospital Name", user['hospitalName'] ?? "--"),
+                  _infoItem("Contact", user['phoneNumber'] ?? "--"),
+                  _infoItem("Email", user['email'] ?? "--"),
+                  _infoItem("Address", user['address'] ?? "--"),
+                  _infoItem("Degree", user['degree'] ?? "--"),
+                  if (user['about'] != null) ...[
+                     const SizedBox(height: 10),
+                     const Text("About", style: TextStyle(color: Colors.black54)),
+                     Text(user['about'], style: const TextStyle(fontWeight: FontWeight.w500)),
+                  ]
                 ],
               ),
 
@@ -130,26 +158,17 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
               // ------------------------------
               // NOTIFICATION SETTINGS
               // ------------------------------
-              _infoSection(
-                title: "Notification Preferences",
-                children: [
-                  _toggleItem(
-                    "Donor Matches",
-                    notifyDonorMatches,
-                    (v) => setState(() => notifyDonorMatches = v),
-                  ),
-                  _toggleItem(
-                    "Delivery Updates",
-                    notifyDeliveryUpdates,
-                    (v) => setState(() => notifyDeliveryUpdates = v),
-                  ),
-                  _toggleItem(
-                    "Emergency Alerts",
-                    notifyEmergencyAlerts,
-                    (v) => setState(() => notifyEmergencyAlerts = v),
-                  ),
-                ],
-              ),
+//               _infoSection(
+//                 title: "Notification Preferences",
+//                 children: [
+//                   _toggleItem(
+//                     "Donor Matches",
+//                     notifyDonorMatches,
+//                     (v) => setState(() => notifyDonorMatches = v),
+//                   ),
+//                   // ... other toggles
+//                 ],
+//               ),
 
               const SizedBox(height: 10),
 

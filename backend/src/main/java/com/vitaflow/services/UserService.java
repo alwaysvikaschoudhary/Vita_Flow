@@ -1,6 +1,6 @@
 package com.vitaflow.services;
 
-import com.vitaflow.entities.User;
+
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -8,15 +8,19 @@ import java.util.List;
 @Service
 public interface UserService {
 
-    User saveUser(User user);
-    User updateUser(String userId, User user);
-    User getUserById(String userId);
-    List<User> getAllUsers();
-    void deleteUser(String userId);
-
     // Auth
-    com.vitaflow.payload.AuthResponse verifyOtp(String phoneNumber, String otp);
+    java.util.Map<String, Object> verifyOtp(String phoneNumber, String otp);
     boolean sendOtp(String phoneNumber);
+    
+    // Role Specific Save Methods
+    com.vitaflow.entities.user.Doctor saveDoctor(com.vitaflow.entities.user.Doctor doctor);
+    com.vitaflow.entities.user.Donor saveDonor(com.vitaflow.entities.user.Donor donor);
+    com.vitaflow.entities.user.Rider saveRider(com.vitaflow.entities.user.Rider rider);
+    
+    // Role Specific Get Methods
+    com.vitaflow.entities.user.Doctor getDoctorById(String userId);
+    com.vitaflow.entities.user.Donor getDonorById(String userId);
+    com.vitaflow.entities.user.Rider getRiderById(String userId);
 
 }
 

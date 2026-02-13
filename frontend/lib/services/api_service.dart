@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 class ApiService {
   // Use 10.0.2.2 for Android Emulator, localhost for iOS Simulator
   // static const String baseUrl = "http://10.0.2.2:8080"; 
-  static const String baseUrl = "http://localhost:8080"; 
+  static const String baseUrl = "http://localhost:8081"; 
 
   static Future<Map<String, dynamic>> login(String email, String password) async {
     final url = Uri.parse("$baseUrl/user/login");
@@ -61,36 +61,19 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> completeProfile(
-      String name, String email, String role, String phone, String about,
-      {String? bloodGroup, String? dob, String? hospitalName, String? specialization, String? bikeNumber}) async {
+  static Future<Map<String, dynamic>> completeProfile(Map<String, dynamic> data) async {
     final url = Uri.parse("$baseUrl/user/complete-profile");
     try {
-      final body = {
-        "name": name,
-        "email": email, // Optional
-        "role": role,
-        "phoneNumber": phone,
-        "about": about,
-        "about": about,
-        // Role Specific
-        "bloodGroup": bloodGroup,
-        "dob": dob,
-        "hospitalName": hospitalName,
-        "specialization": specialization,
-        "bikeNumber": bikeNumber,
-      };
-      
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(body),
+        body: jsonEncode(data),
       );
 
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       } else {
-        throw Exception("Profile completion failed: ${response.body}");
+        throw Exception("Profile update failed: ${response.body}");
       }
     } catch (e) {
       throw Exception("Error connecting to server: $e");

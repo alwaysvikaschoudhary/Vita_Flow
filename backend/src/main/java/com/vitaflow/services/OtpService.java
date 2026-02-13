@@ -20,26 +20,7 @@ public class OtpService {
         
         System.out.println("OTP for " + phoneNumber + ": " + otp); 
         
-        // Fast2SMS Integration
-        sendFast2SmsOtp(phoneNumber, otp);
-        
         return otp;
-    }
-
-    private void sendFast2SmsOtp(String phoneNumber, String otp) {
-        try {
-            String apiKey = "YOUR_FAST2SMS_API_KEY"; // Replace with actual API Key
-            String url = "https://www.fast2sms.com/dev/bulkV2?authorization=" + apiKey + 
-                         "&route=otp&variables_values=" + otp + 
-                         "&flash=0&numbers=" + phoneNumber;
-            
-            org.springframework.web.client.RestTemplate restTemplate = new org.springframework.web.client.RestTemplate();
-            String response = restTemplate.getForObject(url, String.class);
-            System.out.println("Fast2SMS Response: " + response);
-        } catch (Exception e) {
-            System.err.println("Error sending OTP via Fast2SMS: " + e.getMessage());
-            // Don't block flow if SMS fails, rely on console log for dev
-        }
     }
 
     public boolean validateOtp(String phoneNumber, String otp) {
@@ -47,7 +28,7 @@ public class OtpService {
         if (otpStorage.containsKey(phoneNumber)) {
             String storedOtp = otpStorage.get(phoneNumber);
             if (storedOtp.equals(otp)) {
-                otpStorage.remove(phoneNumber); // OTP used once
+                // otpStorage.remove(phoneNumber); // OTP used once -- Commented out to handle double requests from frontend
                 return true;
             }
         }

@@ -1,28 +1,37 @@
 package com.vitaflow.services.impl;
 
-import com.vitaflow.entities.User;
-import com.vitaflow.payload.AuthResponse;
-import com.vitaflow.repositories.UserRepository;
+import com.vitaflow.entities.Role;
+import com.vitaflow.entities.user.Doctor;
+import com.vitaflow.entities.user.Donor;
+import com.vitaflow.entities.user.Rider;
+import com.vitaflow.repositories.DoctorRepository;
+import com.vitaflow.repositories.DonorRepository;
+import com.vitaflow.repositories.RiderRepository;
 import com.vitaflow.services.OtpService;
 import com.vitaflow.services.UserService;
-import com.vitaflow.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
 public class UserServiceImpl implements UserService {
 
     @Autowired
-    private UserRepository userRepository;
+    private DoctorRepository doctorRepository;
+    
+    @Autowired
+    private DonorRepository donorRepository;
+    
+    @Autowired
+    private RiderRepository riderRepository;
 
     @Autowired
     private OtpService otpService;
 
-    @Autowired
-    private JwtUtil jwtUtil;
+    // @Autowired
+    // private JwtUtil jwtUtil; // Not using JWT anymore
 
     @Override
     public boolean sendOtp(String phoneNumber) {
@@ -31,87 +40,152 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public AuthResponse verifyOtp(String phoneNumber, String otp) {
+    public java.util.Map<String, Object> verifyOtp(String phoneNumberInput, String otp) {
+        String phoneNumber = phoneNumberInput.trim();
+        System.out.println("Verifying OTP for: '" + phoneNumber + "' with OTP: '" + otp + "'");
+        
         if (!otpService.validateOtp(phoneNumber, otp)) {
+            System.out.println("OTP Validation Failed for: " + phoneNumber);
             throw new RuntimeException("Invalid OTP");
         }
 
-        // Check if user exists
-        User user = userRepository.findByPhoneNumber(phoneNumber)
-                .orElse(null);
+        System.out.println("OTP Validated. Checking repositories...");
 
-        // If user is new, return null user but valid token (or special flag)
-        // For simplicity, we'll create a temporary placeholder or handle NEW_USER logic in frontend
-        // Here, we will Return AuthResponse with User=null if new, User=obj if existing
-        
-        String token = "";
-        if (user != null) {
-             token = jwtUtil.generateToken(user.getPhoneNumber(), user.getRole().name());
-        } else {
-             // For new users, we might issue a temporary registration token or just return null flag
-             // Let's assume frontend proceeds to registration screen
-             return AuthResponse.builder().token(null).user(null).build();
+        // Check if user exists in any of the repositories
+        Optional<Doctor> doctor = doctorRepository.findByPhoneNumber(phoneNumber);
+        if (doctor.isPresent()) {
+            System.out.println("Found Doctor: " + doctor.get().getUserId());
+            java.util.Map<String, Object> response = new java.util.HashMap<>();
+            response.put("token", "dummy-token");
+            response.put("user", doctor.get());
+            return response;
         }
 
-        return AuthResponse.builder()
-                .token(token)
-                .user(user)
-                .build();
+        Optional<Donor> donor = donorRepository.findByPhoneNumber(phoneNumber);
+        if (donor.isPresent()) {
+             System.out.println("Found Donor: " + donor.get().getUserId());
+            java.util.Map<String, Object> response = new java.util.HashMap<>();
+            response.put("token", "dummy-token");
+            response.put("user", donor.get());
+            return response;
+        }
+
+        Optional<Rider> rider = riderRepository.findByPhoneNumber(phoneNumber);
+        if (rider.isPresent()) {
+             System.out.println("Found Rider: " + rider.get().getUserId());
+            java.util.Map<String, Object> response = new java.util.HashMap<>();
+            response.put("token", "dummy-token");
+            response.put("user", rider.get());
+            return response;
+        }
+
+        System.out.println("User not found in any repository. Returning new user response.");
+        // If user is new
+        java.util.Map<String, Object> response = new java.util.HashMap<>();
+        response.put("token", null);
+        response.put("user", null);
+        return response;
     }
     
-    // Used for completing registration after OTP
     @Override
-    public User saveUser(User user) {
-        if (userRepository.findByPhoneNumber(user.getPhoneNumber()).isPresent()) {
-             // Update existing if needed, or throw error
-             // For now, assume this is for completing profile
-        } else {
-            user.setUserId(UUID.randomUUID().toString());
+    public Doctor saveDoctor(Doctor doctor) {
+        String phoneNumber = doctor.getPhoneNumber().trim();
+        doctor.setPhoneNumber(phoneNumber);
+        Optional<Doctor> existing = doctorRepository.findByPhoneNumber(phoneNumber);
+        if (existing.isPresent()) {
+            Doctor dbDoctor = existing.get();
+            // Update fields only if they are not null
+            if (doctor.getName() != null) dbDoctor.setName(doctor.getName());
+            if (doctor.getEmail() != null) dbDoctor.setEmail(doctor.getEmail());
+            if (doctor.getHospitalName() != null) dbDoctor.setHospitalName(doctor.getHospitalName());
+            if (doctor.getSpecialization() != null) dbDoctor.setSpecialization(doctor.getSpecialization());
+            if (doctor.getAbout() != null) dbDoctor.setAbout(doctor.getAbout());
+            if (doctor.getProfilePic() != null) dbDoctor.setProfilePic(doctor.getProfilePic());
+            if (doctor.getGender() != null) dbDoctor.setGender(doctor.getGender());
+            if (doctor.getAddress() != null) dbDoctor.setAddress(doctor.getAddress());
+            if (doctor.getHospitalId() != null) dbDoctor.setHospitalId(doctor.getHospitalId());
+            if (doctor.getDegree() != null) dbDoctor.setDegree(doctor.getDegree());
+            if (doctor.getExperience() != null) dbDoctor.setExperience(doctor.getExperience());
+            
+            return doctorRepository.save(dbDoctor);
         }
-        return userRepository.save(user);
-    }
-
-
-    @Override
-    public User updateUser(String userId, User updatedUser) {
-        User existingUser = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        existingUser.setName(updatedUser.getName());
-        existingUser.setEmail(updatedUser.getEmail());
-        existingUser.setAbout(updatedUser.getAbout());
-        existingUser.setProfilePic(updatedUser.getProfilePic());
-        existingUser.setPhoneNumber(updatedUser.getPhoneNumber());
-        existingUser.setEmailVerified(updatedUser.getEmailVerified() != null ? updatedUser.getEmailVerified() : existingUser.getEmailVerified());
-        existingUser.setRole(updatedUser.getRole());
-
-        // Update Role Specific Fields if present
-        if(updatedUser.getBloodGroup() != null) existingUser.setBloodGroup(updatedUser.getBloodGroup());
-        if(updatedUser.getDob() != null) existingUser.setDob(updatedUser.getDob());
-        if(updatedUser.getHospitalName() != null) existingUser.setHospitalName(updatedUser.getHospitalName());
-        if(updatedUser.getSpecialization() != null) existingUser.setSpecialization(updatedUser.getSpecialization());
-        if(updatedUser.getBikeNumber() != null) existingUser.setBikeNumber(updatedUser.getBikeNumber());
-
-
-        return userRepository.save(existingUser);
-    }
-
-    @Override
-    public User getUserById(String userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-    }
-
-    @Override
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
-    }
-
-    @Override
-    public void deleteUser(String userId) {
-        if (!userRepository.existsById(userId)) {
-            throw new RuntimeException("User is not found");
+        
+        if (doctor.getUserId() == null) {
+            doctor.setUserId(UUID.randomUUID().toString());
         }
-        userRepository.deleteById(userId);
+        return doctorRepository.save(doctor);
+    }
+
+    @Override
+    public Donor saveDonor(Donor donor) {
+        String phoneNumber = donor.getPhoneNumber().trim();
+        donor.setPhoneNumber(phoneNumber);
+        Optional<Donor> existing = donorRepository.findByPhoneNumber(phoneNumber);
+        if (existing.isPresent()) {
+            Donor dbDonor = existing.get();
+            if (donor.getName() != null) dbDonor.setName(donor.getName());
+            if (donor.getEmail() != null) dbDonor.setEmail(donor.getEmail());
+            if (donor.getBloodGroup() != null) dbDonor.setBloodGroup(donor.getBloodGroup());
+            if (donor.getAbout() != null) dbDonor.setAbout(donor.getAbout());
+            if (donor.getProfilePic() != null) dbDonor.setProfilePic(donor.getProfilePic());
+            if (donor.getAddress() != null) dbDonor.setAddress(donor.getAddress());
+            if (donor.getAge() != null) dbDonor.setAge(donor.getAge());
+            if (donor.getGender() != null) dbDonor.setGender(donor.getGender());
+            if (donor.getWeight() != null) dbDonor.setWeight(donor.getWeight());
+            if (donor.getHeight() != null) dbDonor.setHeight(donor.getHeight());
+            if (donor.getMedicalHistory() != null) dbDonor.setMedicalHistory(donor.getMedicalHistory());
+            if (donor.getNumberOfDonation() != null) dbDonor.setNumberOfDonation(donor.getNumberOfDonation());
+            if (donor.getLastDonationDate() != null) dbDonor.setLastDonationDate(donor.getLastDonationDate());
+            
+            return donorRepository.save(dbDonor);
+        }
+
+        if (donor.getUserId() == null) {
+            donor.setUserId(UUID.randomUUID().toString());
+        }
+        return donorRepository.save(donor);
+    }
+
+    @Override
+    public Rider saveRider(Rider rider) {
+        String phoneNumber = rider.getPhoneNumber().trim();
+        rider.setPhoneNumber(phoneNumber);
+        Optional<Rider> existing = riderRepository.findByPhoneNumber(phoneNumber);
+        if (existing.isPresent()) {
+            Rider dbRider = existing.get();
+            if (rider.getName() != null) dbRider.setName(rider.getName());
+            if (rider.getEmail() != null) dbRider.setEmail(rider.getEmail());
+            if (rider.getBikeNumber() != null) dbRider.setBikeNumber(rider.getBikeNumber());
+            if (rider.getAbout() != null) dbRider.setAbout(rider.getAbout());
+            if (rider.getProfilePic() != null) dbRider.setProfilePic(rider.getProfilePic());
+            if (rider.getGender() != null) dbRider.setGender(rider.getGender());
+            if (rider.getAddress() != null) dbRider.setAddress(rider.getAddress());
+            if (rider.getLicense() != null) dbRider.setLicense(rider.getLicense());
+            if (rider.getTotalDeliveries() != null) dbRider.setTotalDeliveries(rider.getTotalDeliveries());
+            if (rider.getRating() != null) dbRider.setRating(rider.getRating());
+            if (rider.getVehicleType() != null) dbRider.setVehicleType(rider.getVehicleType());
+            
+            return riderRepository.save(dbRider);
+        }
+
+        if (rider.getUserId() == null) {
+            rider.setUserId(UUID.randomUUID().toString());
+        }
+        return riderRepository.save(rider);
+    }
+
+    @Override
+    public Doctor getDoctorById(String userId) {
+        return doctorRepository.findById(userId).orElseThrow(() -> new RuntimeException("Doctor not found"));
+    }
+
+    @Override
+    public Donor getDonorById(String userId) {
+        return donorRepository.findById(userId).orElseThrow(() -> new RuntimeException("Donor not found"));
+    }
+
+    @Override
+    public Rider getRiderById(String userId) {
+        return riderRepository.findById(userId).orElseThrow(() -> new RuntimeException("Rider not found"));
     }
 }

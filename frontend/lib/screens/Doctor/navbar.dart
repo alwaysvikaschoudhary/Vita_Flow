@@ -29,7 +29,7 @@ class _DoctorNavBarState extends State<DoctorNavBar> {
           _buildNav(homeKey, DoctorHomeScreen(currentUser: widget.currentUser)),
           _buildNav(requestKey, const DoctorRequestsScreen()),
           _buildNav(historyKey, const DoctorHistoryScreen()),
-          _buildNav(profileKey, const DoctorProfileScreen()),
+          _buildNav(profileKey, DoctorProfileScreen(currentUser: widget.currentUser)),
         ],
       ),
 

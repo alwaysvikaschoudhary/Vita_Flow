@@ -37,19 +37,19 @@ class _RegisterState extends State<Register> {
     setState(() => isLoading = true);
 
     try {
-      final data = await ApiService.completeProfile(
-        nameController.text.trim(),
-        emailController.text.trim(),
-        widget.role,
-        widget.phoneNumber,
-        aboutController.text.trim(),
+      final data = await ApiService.completeProfile({
+        "name": nameController.text.trim(),
+        "email": emailController.text.trim(),
+        "role": widget.role,
+        "phoneNumber": widget.phoneNumber,
+        "about": aboutController.text.trim(),
         // Role Params
-        bloodGroup: selectedBloodGroup,
-        dob: dobController.text.trim(),
-        hospitalName: hospitalNameController.text.trim(),
-        specialization: selectedSpecialization,
-        bikeNumber: bikeNumberController.text.trim(),
-      );
+        "bloodGroup": selectedBloodGroup,
+        "dob": dobController.text.trim(),
+        "hospitalName": hospitalNameController.text.trim(),
+        "specialization": selectedSpecialization,
+        "bikeNumber": bikeNumberController.text.trim(),
+      });
 
       setState(() => isLoading = false);
 

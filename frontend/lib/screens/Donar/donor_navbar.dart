@@ -48,7 +48,7 @@ class _DonorNavBarState extends State<DonorNavBar> {
             _buildNavigator(homeNavKey, HomeScreen(currentUser: widget.currentUser)),
             _buildNavigator(requestsNavKey, const RequestsScreen()),
             _buildNavigator(historyNavKey, const HistoryScreen()),
-            _buildNavigator(profileNavKey, const ProfileScreen()),
+            _buildNavigator(profileNavKey, ProfileScreen(currentUser: widget.currentUser)),
           ],
         ),
 
