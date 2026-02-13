@@ -48,7 +48,7 @@ class _DonorNavBarState extends State<RiderNavBar> {
             _buildNavigator(homeNavKey, RiderHomeScreen(currentUser: widget.currentUser)),
             _buildNavigator(requestsNavKey, const RiderTasksScreen()),
             _buildNavigator(historyNavKey, const RiderHistoryScreen()),
-            _buildNavigator(profileNavKey, const RiderProfileScreen()),
+            _buildNavigator(profileNavKey, RiderProfileScreen(currentUser: widget.currentUser)),
           ],
         ),
 

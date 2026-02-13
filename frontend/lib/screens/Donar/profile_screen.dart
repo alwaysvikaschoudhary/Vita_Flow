@@ -1,11 +1,7 @@
-import 'package:vita_flow/screens/Donar/personal_info_screen.dart';
-import 'package:vita_flow/screens/Donar/verification_complete_screen.dart';
 import 'package:vita_flow/screens/role_select.dart';
 import 'package:vita_flow/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:vita_flow/screens/Donar/edit_donor_profile_screen.dart';
-
-import 'profile_verification_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final Map<String, dynamic> currentUser;
@@ -182,16 +178,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 10),
-                  InfoRow("Phone", user['phoneNumber'] ?? "--"),
-                  InfoRow("Email", user['email'] ?? "--"),
-                  InfoRow("Age", user['age'] ?? "--"),
-                  InfoRow("Weight(kg)", user['weight'] ?? "--"),
-                  InfoRow("Height(cm)", user['height'] ?? "--"),
-                  InfoRow("Address", user['address'] ?? "--"),
-                  if (user['gender'] != null) InfoRow("Gender", user['gender']),
+                  InfoRow(Icons.phone, "Phone", user['phoneNumber'] ?? "--"),
+                  InfoRow(Icons.email, "Email", user['email'] ?? "--"),
+                  InfoRow(Icons.calendar_today, "Age", user['age'] ?? "--"),
+                  InfoRow(Icons.monitor_weight, "Weight(kg)", user['weight'] ?? "--"),
+                  InfoRow(Icons.height, "Height(cm)", user['height'] ?? "--"),
+                  InfoRow(Icons.location_on, "Address", user['address'] ?? "--"),
+                  if (user['gender'] != null) InfoRow(Icons.person, "Gender", user['gender']),
                   if (user['medicalHistory'] != null) ...[
-                      const SizedBox(height: 6),
-                      Text("Medical History: ${user['medicalHistory']}", style: const TextStyle(color: Colors.black54)),
+                      const SizedBox(height: 10),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                           const Icon(Icons.history, size: 20, color: Colors.blue),
+                           const SizedBox(width: 12),
+                           Expanded(
+                             child: Column(
+                               crossAxisAlignment: CrossAxisAlignment.start,
+                               children: [
+                                 const Text("Medical History", style: TextStyle(color: Colors.black54)),
+                                 Text("${user['medicalHistory']}", style: const TextStyle(fontWeight: FontWeight.w600)),
+                               ],
+                             ),
+                           ),
+                        ],
+                      )
                   ]
                 ],
               ),
@@ -202,25 +213,48 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 10),
 
             Container(
-              margin: EdgeInsets.symmetric(horizontal: 120),
-              child: ElevatedButton(
+              alignment: Alignment.center,
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.logout, color: Colors.white),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red,
+                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(30),
                   ),
+                  elevation: 5,
                 ),
                 onPressed: () {
-                  Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (_) => const Login()),
-                    (route) => false,
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: const Text("Logout"),
+                        content: const Text("Are you sure you want to logout?"),
+                        actions: [
+                          TextButton(
+                            child: const Text("Cancel"),
+                            onPressed: () => Navigator.of(context).pop(),
+                          ),
+                          TextButton(
+                            child: const Text("Logout", style: TextStyle(color: Colors.red)),
+                            onPressed: () {
+                              Navigator.of(context).pop(); // Close dialog
+                              Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+                                MaterialPageRoute(builder: (_) => const Login()),
+                                (route) => false,
+                              );
+                            },
+                          ),
+                        ],
+                      );
+                    },
                   );
-
                 },
-
-                child: const Text(
+                label: const Text(
                   "Logout",
-                  style: TextStyle(color: Colors.white, fontSize: 18),
+                  style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ),
             ),
@@ -281,17 +315,21 @@ class StatBox extends StatelessWidget {
 }
 
 class InfoRow extends StatelessWidget {
+  final IconData icon;
   final String label, value;
-  const InfoRow(this.label, this.value, {super.key});
+  const InfoRow(this.icon, this.label, this.value, {super.key});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Expanded(child: Text(label)),
-          Text(value, style: const TextStyle(color: Colors.black)),
+          Icon(icon, size: 20, color: Colors.blue),
+          const SizedBox(width: 12),
+          Expanded(child: Text(label, style: const TextStyle(color: Colors.black54))),
+          Text(value, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w600)),
         ],
       ),
     );

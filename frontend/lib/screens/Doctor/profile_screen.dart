@@ -135,16 +135,70 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
               const SizedBox(height: 10),
 
               // ------------------------------
+              // VERIFICATION STATUS
+              // ------------------------------
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Builder(
+                  builder: (context) {
+                    double percentage = _calculateCompletion();
+                    int percentInt = (percentage * 100).toInt();
+                    bool isComplete = percentage == 1.0;
+                    
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Verification Status",
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            Text("$percentInt%", style: TextStyle(color: _getColor(percentage))),
+                            const Spacer(),
+                            Text(
+                              isComplete ? "Complete" : "Incomplete", 
+                              style: TextStyle(color: isComplete ? Colors.green : Colors.red),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        LinearProgressIndicator(
+                          value: percentage,
+                          color: _getColor(percentage),
+                          backgroundColor: Colors.grey.shade300,
+                        ),
+                        if (!isComplete) ...[
+                          const SizedBox(height: 10),
+                           const Text(
+                            "⚠ Complete your profile to get faster verification",
+                            style: TextStyle(color: Color.fromARGB(255, 65, 63, 63)),
+                          ),
+                        ]
+                      ],
+                    );
+                  }
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              // ------------------------------
               // HOSPITAL INFO CARD
               // ------------------------------
               _infoSection(
                 title: "Hospital Information",
                 children: [
-                  _infoItem("Hospital Name", user['hospitalName'] ?? "--"),
-                  _infoItem("Contact", user['phoneNumber'] ?? "--"),
-                  _infoItem("Email", user['email'] ?? "--"),
-                  _infoItem("Address", user['address'] ?? "--"),
-                  _infoItem("Degree", user['degree'] ?? "--"),
+                  _infoItem(Icons.local_hospital, "Hospital Name", user['hospitalName'] ?? "--"),
+                  _infoItem(Icons.phone, "Contact", user['phoneNumber'] ?? "--"),
+                  _infoItem(Icons.email, "Email", user['email'] ?? "--"),
+                  _infoItem(Icons.location_on, "Address", user['address'] ?? "--"),
+                  _infoItem(Icons.school, "Degree", user['degree'] ?? "--"),
                   if (user['about'] != null) ...[
                      const SizedBox(height: 10),
                      const Text("About", style: TextStyle(color: Colors.black54)),
@@ -173,30 +227,48 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
               const SizedBox(height: 10),
 
               Container(
-                margin: EdgeInsets.symmetric(horizontal: 120),
-                child: ElevatedButton(
+                alignment: Alignment.center,
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.logout, color: Colors.white),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red,
+                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(30),
                     ),
+                    elevation: 5,
                   ),
                   onPressed: () {
-                    Navigator.of(
-                      context,
-                      rootNavigator: true,
-                    ).pushAndRemoveUntil(
-                      MaterialPageRoute(
-                        builder: (_) => const Login(),
-                      ),
-                      (route) => false,
-
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: const Text("Logout"),
+                          content: const Text("Are you sure you want to logout?"),
+                          actions: [
+                            TextButton(
+                              child: const Text("Cancel"),
+                              onPressed: () => Navigator.of(context).pop(),
+                            ),
+                            TextButton(
+                              child: const Text("Logout", style: TextStyle(color: Colors.red)),
+                              onPressed: () {
+                                Navigator.of(context).pop(); // Close dialog
+                                Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+                                  MaterialPageRoute(builder: (_) => const Login()),
+                                  (route) => false,
+                                );
+                              },
+                            ),
+                          ],
+                        );
+                      },
                     );
                   },
-
-                  child: const Text(
+                  label: const Text(
                     "Logout",
-                    style: TextStyle(color: Colors.white, fontSize: 18),
+                    style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
@@ -205,6 +277,34 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
         ),
       ),
     );
+  }
+
+  double _calculateCompletion() {
+    int total = 9;
+    int filled = 0;
+    
+    if (_hasValue('name')) filled++;
+    if (_hasValue('phoneNumber')) filled++;
+    if (_hasValue('email')) filled++;
+    if (_hasValue('hospitalName')) filled++;
+    if (_hasValue('specialization')) filled++;
+    if (_hasValue('experience')) filled++;
+    if (_hasValue('gender')) filled++;
+    if (_hasValue('address')) filled++;
+    if (_hasValue('degree')) filled++;
+
+    return filled / total;
+  }
+
+  bool _hasValue(String key) {
+    var val = user[key];
+    return val != null && val.toString().trim().isNotEmpty;
+  }
+
+  Color _getColor(double percentage) {
+    if (percentage < 0.3) return Colors.red;
+    if (percentage < 0.7) return Colors.orange;
+    return Colors.green;
   }
 
   // ------------------------------------------
@@ -258,12 +358,14 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
   // ------------------------------------------
   // INFO ROW
   // ------------------------------------------
-  Widget _infoItem(String label, String value) {
+  Widget _infoItem(IconData icon, String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          Icon(icon, size: 20, color: Colors.blue),
+          const SizedBox(width: 12),
           Expanded(
             child: Text(label, style: const TextStyle(color: Colors.black54)),
           ),

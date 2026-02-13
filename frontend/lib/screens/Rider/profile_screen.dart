@@ -1,10 +1,23 @@
-import 'package:vita_flow/screens/role_select.dart';
-import 'package:vita_flow/screens/login_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:vita_flow/screens/login_screen.dart';
+import 'package:vita_flow/screens/Rider/edit_rider_profile_screen.dart';
 
+class RiderProfileScreen extends StatefulWidget {
+  final Map<String, dynamic> currentUser;
+  const RiderProfileScreen({super.key, required this.currentUser});
 
-class RiderProfileScreen extends StatelessWidget {
-  const RiderProfileScreen({super.key});
+  @override
+  State<RiderProfileScreen> createState() => _RiderProfileScreenState();
+}
+
+class _RiderProfileScreenState extends State<RiderProfileScreen> {
+  late Map<String, dynamic> user;
+
+  @override
+  void initState() {
+    super.initState();
+    user = widget.currentUser;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -16,27 +29,228 @@ class RiderProfileScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
+              // ------------------------------
+              // PAGE HEADER
+              // ------------------------------
               const Text(
-                "Profile",
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
+                "Rider Profile",
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 10),
+
+              // ------------------------------
+              // RIDER TITLE CARD
+              // ------------------------------
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Icon
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.blue,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Icon(
+                            Icons.delivery_dining,
+                            color: Colors.white,
+                            size: 35,
+                          ),
+                        ),
+
+                        const SizedBox(width: 10),
+
+                        // Rider name + Vehicle Type
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                user['name'] ?? "Unknown Name",
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                user['vehicleType'] ?? "Vehicle",
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  color: Colors.black54,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Edit button
+                        GestureDetector(
+                          onTap: () async {
+                              final updated = await Navigator.push(
+                                context, 
+                                MaterialPageRoute(builder: (_) => EditRiderProfileScreen(currentUser: user)),
+                              );
+                              if (updated != null) {
+                                setState(() {
+                                  user = updated;
+                                });
+                              }
+                          },
+                          child: const CircleAvatar(
+                            backgroundColor: Colors.white,
+                            child: Icon(Icons.edit, color: Colors.black),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    // Stats row
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _statsBox(user['totalDeliveries'] ?? "0", "Deliveries"),
+                        _statsBox(user['rating'] ?? "N/A", "Rating"),
+                      ],
+                    ),
+                  ],
+                ),
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 10),
 
-              _profileHeader(),
+              // ------------------------------
+              // VERIFICATION STATUS
+              // ------------------------------
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Builder(
+                  builder: (context) {
+                    double percentage = _calculateCompletion();
+                    int percentInt = (percentage * 100).toInt();
+                    bool isComplete = percentage == 1.0;
+                    
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Verification Status",
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            Text("$percentInt%", style: TextStyle(color: _getColor(percentage))),
+                            const Spacer(),
+                            Text(
+                              isComplete ? "Complete" : "Incomplete", 
+                              style: TextStyle(color: isComplete ? Colors.green : Colors.red),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        LinearProgressIndicator(
+                          value: percentage,
+                          color: _getColor(percentage),
+                          backgroundColor: Colors.grey.shade300,
+                        ),
+                        if (!isComplete) ...[
+                          const SizedBox(height: 10),
+                           const Text(
+                            "⚠ Complete your profile to get faster verification",
+                            style: TextStyle(color: Color.fromARGB(255, 65, 63, 63)),
+                          ),
+                        ]
+                      ],
+                    );
+                  }
+                ),
+              ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 10),
 
-              _infoSection(),
+              // ------------------------------
+              // RIDER INFO CARD
+              // ------------------------------
+              _infoSection(
+                title: "Rider Information",
+                children: [
+                  _infoItem(Icons.phone, "Phone", user['phoneNumber'] ?? "--"),
+                  _infoItem(Icons.email, "Email", user['email'] ?? "--"),
+                  _infoItem(Icons.location_on, "Address", user['address'] ?? "--"),
+                  _infoItem(Icons.pedal_bike, "Bike Number", user['bikeNumber'] ?? "--"),
+                  _infoItem(Icons.card_membership, "License", user['license'] ?? "--"),
+                  if (user['gender'] != null) _infoItem(Icons.person, "Gender", user['gender']),
+                  if (user['about'] != null) ...[
+                     const SizedBox(height: 10),
+                     const Text("About", style: TextStyle(color: Colors.black54)),
+                     Text(user['about'], style: const TextStyle(fontWeight: FontWeight.w500)),
+                  ]
+                ],
+              ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 10),
 
-              _badgesSection(),
-
-              const SizedBox(height: 20),
-
-              _logoutButton(context),
+              Container(
+                alignment: Alignment.center,
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.logout, color: Colors.white),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    elevation: 5,
+                  ),
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: const Text("Logout"),
+                          content: const Text("Are you sure you want to logout?"),
+                          actions: [
+                            TextButton(
+                              child: const Text("Cancel"),
+                              onPressed: () => Navigator.of(context).pop(),
+                            ),
+                            TextButton(
+                              child: const Text("Logout", style: TextStyle(color: Colors.red)),
+                              onPressed: () {
+                                Navigator.of(context).pop(); // Close dialog
+                                Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+                                  MaterialPageRoute(builder: (_) => const Login()),
+                                  (route) => false,
+                                );
+                              },
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                  label: const Text(
+                    "Logout",
+                    style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -44,139 +258,104 @@ class RiderProfileScreen extends StatelessWidget {
     );
   }
 
-  // HEADER SECTION
-  Widget _profileHeader() {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 28,
-            backgroundColor: Colors.blue.shade100,
-            child: const Text("RS",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
-          ),
-          const SizedBox(width: 16),
+  double _calculateCompletion() {
+    int total = 9;
+    int filled = 0;
+    
+    if (_hasValue('name')) filled++;
+    if (_hasValue('phoneNumber')) filled++;
+    if (_hasValue('email')) filled++;
+    if (_hasValue('vehicleType')) filled++;
+    if (_hasValue('bikeNumber')) filled++;
+    if (_hasValue('license')) filled++;
+    if (_hasValue('address')) filled++;
+    if (_hasValue('gender')) filled++;
+    if (_hasValue('about')) filled++;
 
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
-              Text("Rahul Singh",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-              Text("Rider ID: VF-R-2341",
-                  style: TextStyle(color: Colors.grey)),
-            ],
-          ),
-        ],
-      ),
-    );
+    return filled / total;
   }
 
-  // INFO SECTION
-  Widget _infoSection() {
+  bool _hasValue(String key) {
+    var val = user[key];
+    return val != null && val.toString().trim().isNotEmpty;
+  }
+
+  Color _getColor(double percentage) {
+    if (percentage < 0.3) return Colors.red;
+    if (percentage < 0.7) return Colors.orange;
+    return Colors.green;
+  }
+
+  // ------------------------------------------
+  // SMALL STAT BOX
+  // ------------------------------------------
+  Widget _statsBox(String value, String label) {
     return Container(
-      padding: const EdgeInsets.all(18),
+      width: 120,
+      padding: const EdgeInsets.symmetric(vertical: 14),
       decoration: BoxDecoration(
-          color: Colors.white, borderRadius: BorderRadius.circular(20)),
+        // color: Colors.white.withOpacity(.6),
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: Column(
         children: [
-          _infoRow("Phone", "+91 9876543210"),
-          _infoRow("Email", "rahul123@gmail.com"),
-          _infoRow("Vehicle", "RJ-14-AB-1234"),
-          _infoRow("License", "DL-1234567890"),
-        ],
-      ),
-    );
-  }
-
-  Widget _infoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(
-        children: [
-          Text(label, style: const TextStyle(color: Colors.grey)),
-          const Spacer(),
           Text(
             value,
-            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
           ),
+          Text(label, style: const TextStyle(color: Colors.black54)),
         ],
       ),
     );
   }
 
-  // BADGES
-  Widget _badgesSection() {
+  // ------------------------------------------
+  // SECTION WRAPPER
+  // ------------------------------------------
+  Widget _infoSection({required String title, required List<Widget> children}) {
     return Container(
-      padding: const EdgeInsets.all(18),
-      decoration:
-          BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text("Badges & Achievements",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+          Text(
+            title,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+          ),
           const SizedBox(height: 12),
 
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _badge("Top Performer", Icons.emoji_events, Colors.orange),
-              _badge("Speed Demon", Icons.flash_on, Colors.blue),
-              _badge("100 Deliveries", Icons.whatshot, Colors.red),
-            ],
-          ),
+          ...children,
         ],
       ),
     );
   }
 
-  Widget _badge(String label, IconData icon, Color color) {
-    return Column(
-      children: [
-        CircleAvatar(
-          radius: 26,
-          backgroundColor: color.withOpacity(.15),
-          child: Icon(icon, color: color, size: 26),
-        ),
-        const SizedBox(height: 6),
-        Text(label,
-            style: const TextStyle(
-                fontSize: 13, fontWeight: FontWeight.w500)),
-      ],
-    );
-  }
-
-  // LOGOUT BUTTON — FIXED & CORRECT
-  Widget _logoutButton(BuildContext context) {
-    return Center(
-      child: SizedBox(
-        width: 180,
-        child: ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.red,
-            padding: const EdgeInsets.symmetric(vertical: 14),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+  // ------------------------------------------
+  // INFO ROW
+  // ------------------------------------------
+  Widget _infoItem(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Icon(icon, size: 20, color: Colors.blue),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(label, style: const TextStyle(color: Colors.black54)),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ),
-          onPressed: () {
-  Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
-    MaterialPageRoute(builder: (_) => const Login()),
-    (route) => false,
-  );
-
-},
-
-          child: const Text(
-            "Logout",
-            style: TextStyle(color: Colors.white, fontSize: 18),
-          ),
-        ),
+        ],
       ),
     );
   }

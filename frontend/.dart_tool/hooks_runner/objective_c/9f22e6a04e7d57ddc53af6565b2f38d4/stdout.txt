@@ -1,0 +1,74 @@
+Running `(cd /Users/vikaschoudhary/.pub-cache/hosted/pub.dev/objective_c-9.2.4/; TMPDIR=/var/folders/30/fj2wd4kx4hdg2hcggx76qscr0000gn/T/ PATH=/Applications/Xcode.app/Contents/SharedFrameworks/SwiftBuild.framework/Versions/A/PlugIns/SWBBuildService.bundle/Contents/PlugIns/SWBUniversalPlatformPlugin.bundle/Contents/Frameworks/SWBUniversalPlatform.framework/Resources:/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin:/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/local/bin:/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/libexec:/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/usr/bin:/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/usr/local/bin:/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/bin:/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/usr/local/bin:/Applications/Xcode.app/Contents/Developer/usr/bin:/Applications/Xcode.app/Contents/Developer/usr/local/bin:/opt/homebrew/Cellar/openjdk/25.0.2/libexec/openjdk.jdk/Contents/Home/bin:/Users/vikaschoudhary/.antigravity/antigravity/bin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/opt/pmk/env/global/bin:/Library/Apple/usr/bin:/opt/homebrew/bin:/Users/vikaschoudhary/.pub-cache/bin:/Users/vikaschoudhary/.antigravity/extensions/vscjava.vscode-java-debug-0.58.5-universal/bundled/scripts/noConfigScripts HOME=/Users/vikaschoudhary /Users/vikaschoudhary/Document/Flutter/Sdk/flutter/bin/cache/dart-sdk/bin/dart '--packages=/Users/vikaschoudhary/Document/Projects/Vita Flow/Vita_Flow/frontend/.dart_tool/package_config.json' '/Users/vikaschoudhary/Document/Projects/Vita Flow/Vita_Flow/frontend/.dart_tool/hooks_runner/objective_c/9f22e6a04e7d57ddc53af6565b2f38d4/hook.dill' '--config=/Users/vikaschoudhary/Document/Projects/Vita Flow/Vita_Flow/frontend/.dart_tool/hooks_runner/objective_c/9f22e6a04e7d57ddc53af6565b2f38d4/input.json' )`.
+INFO: 2026-02-13 19:00:43.653374: Running `/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang --version`.
+
+INFO: 2026-02-13 19:00:43.666361: Running `/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang --version`.
+
+INFO: 2026-02-13 19:00:43.677314: Running: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.0.sdk -target arm64-apple-ios-simulator -c /Users/vikaschoudhary/.pub-cache/hosted/pub.dev/objective_c-9.2.4/src/objective_c.c -fpic -I src -o /Users/vikaschoudhary/Document/Projects/Vita Flow/Vita_Flow/frontend/.dart_tool/hooks_runner/shared/objective_c/build/9f22e6a04e/obj/src/objective_c.c.o
+
+art_api_dl.c.o
+
+INFO: 2026-02-13 19:00:43.677425: Running: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.0.sdk -target arm64-apple-ios-simulator -x objective-c -fobjc-arc -c /Users/vikaschoudhary/.pub-cache/hosted/pub.dev/objective_c-9.2.4/src/input_stream_adapter.m -fpic -I src -o /Users/vikaschoudhary/Document/Projects/Vita Flow/Vita_Flow/frontend/.dart_tool/hooks_runner/shared/objective_c/build/9f22e6a04e/obj/src/input_stream_adapter.m.o
+
+INFO: 2026-02-13 19:00:43.677593: Running: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.0.sdk -target arm64-apple-ios-simulator -x objective-c -fobjc-arc -c /Users/vikaschoudhary/.pub-cache/hosted/pub.dev/objective_c-9.2.4/src/objective_c.m -fpic -I src -o /Users/vikaschoudhary/Document/Projects/Vita Flow/Vita_Flow/frontend/.dart_tool/hooks_runner/shared/objective_c/build/9f22e6a04e/obj/src/objective_c.m.o
+
+INFO: 2026-02-13 19:00:43.677704: Running: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.0.sdk -target arm64-apple-ios-simulator -x objective-c -fobjc-arc -c /Users/vikaschoudhary/.pub-cache/hosted/pub.dev/objective_c-9.2.4/src/observer.m -fpic -I src -o /Users/vikaschoudhary/Document/Projects/Vita Flow/Vita_Flow/frontend/.dart_tool/hooks_runner/shared/objective_c/build/9f22e6a04e/obj/src/observer.m.o
+
+INFO: 2026-02-13 19:00:43.677786: Running: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.0.sdk -target arm64-apple-ios-simulator -x objective-c -fobjc-arc -c /Users/vikaschoudhary/.pub-cache/hosted/pub.dev/objective_c-9.2.4/src/ns_number.m -fpic -I src -o /Users/vikaschoudhary/Document/Projects/Vita Flow/Vita_Flow/frontend/.dart_tool/hooks_runner/shared/objective_c/build/9f22e6a04e/obj/src/ns_number.m.o
+
+INFO: 2026-02-13 19:00:43.677942: Running: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.0.sdk -target arm64-apple-ios-simulator -x objective-c -fobjc-arc -c /Users/vikaschoudhary/.pub-cache/hosted/pub.dev/objective_c-9.2.4/src/objective_c_bindings_generated.m -fpic -I src -o /Users/vikaschoudhary/Document/Projects/Vita Flow/Vita_Flow/frontend/.dart_tool/hooks_runner/shared/objective_c/build/9f22e6a04e/obj/src/objective_c_bindings_generated.m.o
+
+INFO: 2026-02-13 19:00:43.732160: 
+INFO: 2026-02-13 19:00:43.732170: 
+INFO: 2026-02-13 19:00:43.732178: Generated /Users/vikaschoudhary/Document/Projects/Vita Flow/Vita_Flow/frontend/.dart_tool/hooks_runner/shared/objective_c/build/9f22e6a04e/obj/src/include/dart_api_dl.c.o
+
+INFO: 2026-02-13 19:00:43.739619: 
+INFO: 2026-02-13 19:00:43.739662: 
+INFO: 2026-02-13 19:00:43.739672: Generated /Users/vikaschoudhary/Document/Projects/Vita Flow/Vita_Flow/frontend/.dart_tool/hooks_runner/shared/objective_c/build/9f22e6a04e/obj/src/observer.m.o
+
+INFO: 2026-02-13 19:00:43.743139: 
+INFO: 2026-02-13 19:00:43.743188: 
+INFO: 2026-02-13 19:00:43.743210: Generated /Users/vikaschoudhary/Document/Projects/Vita Flow/Vita_Flow/frontend/.dart_tool/hooks_runner/shared/objective_c/build/9f22e6a04e/obj/src/protocol.m.o
+
+INFO: 2026-02-13 19:00:43.807964: 
+INFO: 2026-02-13 19:00:43.808025: 
+INFO: 2026-02-13 19:00:43.808047: Generated /Users/vikaschoudhary/Document/Projects/Vita Flow/Vita_Flow/frontend/.dart_tool/hooks_runner/shared/objective_c/build/9f22e6a04e/obj/src/ns_number.m.o
+
+INFO: 2026-02-13 19:00:43.811996: 
+INFO: 2026-02-13 19:00:43.812029: 
+INFO: 2026-02-13 19:00:43.812040: Generated /Users/vikaschoudhary/Document/Projects/Vita Flow/Vita_Flow/frontend/.dart_tool/hooks_runner/shared/objective_c/build/9f22e6a04e/obj/src/objective_c.m.o
+
+INFO: 2026-02-13 19:00:43.813591: 
+INFO: 2026-02-13 19:00:43.813612: 
+INFO: 2026-02-13 19:00:43.813622: Generated /Users/vikaschoudhary/Document/Projects/Vita Flow/Vita_Flow/frontend/.dart_tool/hooks_runner/shared/objective_c/build/9f22e6a04e/obj/src/input_stream_adapter.m.o
+
+INFO: 2026-02-13 19:00:43.834587: 
+INFO: 2026-02-13 19:00:43.834618: /Users/vikaschoudhary/.pub-cache/hosted/pub.dev/objective_c-9.2.4/src/objective_c_bindings_generated.m:82:9: warning: 'NSItemProviderRepresentationVisibility' is only available on iOS 11.0 or newer [-Wunguarded-availability-new]
+   82 | typedef NSItemProviderRepresentationVisibility  (^_ProtocolTrampoline_1)(void * sel, id arg1);
+      |         ^
+/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.0.sdk/System/Library/Frameworks/Foundation.framework/Headers/NSItemProvider.h:16:28: note: 'NSItemProviderRepresentationVisibility' has been marked as being introduced in iOS 11.0 here, but the deployment target is iOS 7.0.0
+   16 | typedef NS_ENUM(NSInteger, NSItemProviderRepresentationVisibility) {
+      |                            ^
+/Users/vikaschoudhary/.pub-cache/hosted/pub.dev/objective_c-9.2.4/src/objective_c_bindings_generated.m:82:51: note: annotate '_ProtocolTrampoline_1' with an availability attribute to silence this warning
+   82 | typedef NSItemProviderRepresentationVisibility  (^_ProtocolTrampoline_1)(void * sel, id arg1);
+      |                                                   ^
+/Users/vikaschoudhary/.pub-cache/hosted/pub.dev/objective_c-9.2.4/src/objective_c_bindings_generated.m:84:1: warning: 'NSItemProviderRepresentationVisibility' is only available on iOS 11.0 or newer [-Wunguarded-availability-new]
+   84 | NSItemProviderRepresentationVisibility  _1wx624s_protocolTrampoline_1ldqghh(id target, void * sel, id arg1) {
+      | ^
+/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.0.sdk/System/Library/Frameworks/Foundation.framework/Headers/NSItemProvider.h:16:28: note: 'NSItemProviderRepresentationVisibility' has been marked as being introduced in iOS 11.0 here, but the deployment target is iOS 7.0.0
+   16 | typedef NS_ENUM(NSInteger, NSItemProviderRepresentationVisibility) {
+      |                            ^
+/Users/vikaschoudhary/.pub-cache/hosted/pub.dev/objective_c-9.2.4/src/objective_c_bindings_generated.m:84:41: note: annotate '_1wx624s_protocolTrampoline_1ldqghh' with an availability attribute to silence this warning
+   83 | __attribute__((visibility("default"))) __attribute__((used))
+   84 | NSItemProviderRepresentationVisibility  _1wx624s_protocolTrampoline_1ldqghh(id target, void * sel, id arg1) {
+      |                                         ^
+2 warnings generated.
+
+INFO: 2026-02-13 19:00:43.834631: Generated /Users/vikaschoudhary/Document/Projects/Vita Flow/Vita_Flow/frontend/.dart_tool/hooks_runner/shared/objective_c/build/9f22e6a04e/obj/src/objective_c_bindings_generated.m.o
+
+INFO: 2026-02-13 19:00:43.834843: Running: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -shared -Wl,-encryptable -undefined dynamic_lookup -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.0.sdk -target arm64-apple-ios-simulator /Users/vikaschoudhary/Document/Projects/Vita Flow/Vita_Flow/frontend/.dart_tool/hooks_runner/shared/objective_c/build/9f22e6a04e/obj/src/include/dart_api_dl.c.o /Users/vikaschoudhary/Document/Projects/Vita Flow/Vita_Flow/frontend/.dart_tool/hooks_runner/shared/objective_c/build/9f22e6a04e/obj/src/objective_c.c.o /Users/vikaschoudhary/Document/Projects/Vita Flow/Vita_Flow/frontend/.dart_tool/hooks_runner/shared/objective_c/build/9f22e6a04e/obj/src/input_stream_adapter.m.o /Users/vikaschoudhary/Document/Projects/Vita Flow/Vita_Flow/frontend/.dart_tool/hooks_runner/shared/objective_c/build/9f22e6a04e/obj/src/objective_c.m.o /Users/vikaschoudhary/Document/Projects/Vita Flow/Vita_Flow/frontend/.dart_tool/hooks_runner/shared/objective_c/build/9f22e6a04e/obj/src/observer.m.o /Users/vikaschoudhary/Document/Projects/Vita Flow/Vita_Flow/frontend/.dart_tool/hooks_runner/shared/objective_c/build/9f22e6a04e/obj/src/ns_number.m.o /Users/vikaschoudhary/Document/Projects/Vita Flow/Vita_Flow/frontend/.dart_tool/hooks_runner/shared/objective_c/build/9f22e6a04e/obj/src/protocol.m.o /Users/vikaschoudhary/Document/Projects/Vita Flow/Vita_Flow/frontend/.dart_tool/hooks_runner/shared/objective_c/build/9f22e6a04e/obj/src/objective_c_bindings_generated.m.o -o /Users/vikaschoudhary/Document/Projects/Vita Flow/Vita_Flow/frontend/.dart_tool/hooks_runner/shared/objective_c/build/9f22e6a04e/objective_c.dylib
+
+INFO: 2026-02-13 19:00:43.865286: 
+INFO: 2026-02-13 19:00:43.865325: ld: warning: -undefined dynamic_lookup is deprecated on iOS-simulator
+
+INFO: 2026-02-13 19:00:43.865336: Generated /Users/vikaschoudhary/Document/Projects/Vita Flow/Vita_Flow/frontend/.dart_tool/hooks_runner/shared/objective_c/build/9f22e6a04e/objective_c.dylib
+
