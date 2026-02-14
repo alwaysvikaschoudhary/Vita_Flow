@@ -81,5 +81,23 @@ class ApiService {
       throw Exception("Error connecting to server: $e");
     }
   }
+
+  static Future<bool> updateLocation(String phoneNumber, double lat, double lng) async {
+    final url = Uri.parse("$baseUrl/user/location");
+    try {
+      final response = await http.put(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          "phoneNumber": phoneNumber,
+          "latitude": lat,
+          "longitude": lng,
+        }),
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      throw Exception("Error updating location: $e");
+    }
+  }
 }
 

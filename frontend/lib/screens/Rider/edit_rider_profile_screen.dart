@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:vita_flow/services/api_service.dart';
+import 'package:vita_flow/screens/Common/location_picker_screen.dart';
 
 class EditRiderProfileScreen extends StatefulWidget {
   final Map<String, dynamic> currentUser;
@@ -45,6 +46,25 @@ class _EditRiderProfileScreenState extends State<EditRiderProfileScreen> {
     }
     latController = TextEditingController(text: lat.toString());
     lngController = TextEditingController(text: lng.toString());
+  }
+
+  Future<void> _pickLocation() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => LocationPickerScreen(
+          initialLat: double.tryParse(latController.text),
+          initialLng: double.tryParse(lngController.text),
+        ),
+      ),
+    );
+
+    if (result != null && result is Map) {
+      setState(() {
+        latController.text = result['latitude'].toString();
+        lngController.text = result['longitude'].toString();
+      });
+    }
   }
 
   Future<void> save() async {
@@ -121,6 +141,16 @@ class _EditRiderProfileScreenState extends State<EditRiderProfileScreen> {
                   Expanded(child: _buildTextField("Longitude", lngController)),
                 ],
               ),
+              ElevatedButton.icon(
+                onPressed: _pickLocation,
+                icon: const Icon(Icons.map),
+                label: const Text("Pick from Map"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueAccent,
+                  foregroundColor: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 16),
 
               _buildTextField("Address", addressController),
               _buildTextField("About", aboutController, maxLines: 3),

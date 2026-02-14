@@ -19,6 +19,9 @@ public class BloodRequestController {
     @Autowired
     private BloodRequestService requestService;
 
+    @Autowired
+    private com.vitaflow.services.MatchingService matchingService;
+
     @PostMapping("/create")
     public ResponseEntity<?> createRequest(@RequestBody BloodRequest request) {
         try {
@@ -35,7 +38,15 @@ public class BloodRequestController {
             }
             
             BloodRequest savedRequest = requestService.createRequest(request);
-            return ResponseEntity.ok(Map.of("message", "Request created successfully", "request", savedRequest));
+            
+            // Find nearby donors
+            List<com.vitaflow.entities.user.Donor> nearbyDonors = matchingService.findNearbyDonors(savedRequest.getBloodGroup(), savedRequest.getOrdinate());
+            
+            return ResponseEntity.ok(Map.of(
+                "message", "Request created successfully", 
+                "request", savedRequest,
+                "nearbyDonors", nearbyDonors
+            ));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }

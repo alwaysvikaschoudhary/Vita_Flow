@@ -1,6 +1,7 @@
 package com.vitaflow.services;
 
 
+import com.vitaflow.payload.LocationDTO;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,6 +23,5 @@ public interface UserService {
     com.vitaflow.entities.user.Donor getDonorById(String userId);
     com.vitaflow.entities.user.Rider getRiderById(String userId);
 
+    public boolean updateUserLocation(String phoneNumber, LocationDTO location);
 }
-
-

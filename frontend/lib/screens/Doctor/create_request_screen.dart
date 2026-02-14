@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:vita_flow/config.dart';
 
+import 'package:vita_flow/screens/Common/location_picker_screen.dart';
+
 class CreateBloodRequestScreen extends StatefulWidget {
   final Map<String, dynamic> currentUser;
   const CreateBloodRequestScreen({super.key, required this.currentUser});
@@ -35,6 +37,25 @@ class _CreateBloodRequestScreenState extends State<CreateBloodRequestScreen> {
     "AB-"
   ];
 
+  Future<void> _pickLocation() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => LocationPickerScreen(
+          initialLat: double.tryParse(_latController.text),
+          initialLng: double.tryParse(_lngController.text),
+        ),
+      ),
+    );
+
+    if (result != null && result is Map) {
+      setState(() {
+        _latController.text = result['latitude'].toString();
+        _lngController.text = result['longitude'].toString();
+      });
+    }
+  }
+
   Future<void> _createRequest() async {
     if (_unitsController.text.isEmpty) {
       if (!mounted) return;
@@ -66,10 +87,25 @@ class _CreateBloodRequestScreenState extends State<CreateBloodRequestScreen> {
         return;
       }
     } else {
+
       // Use current user location
       if (widget.currentUser['ordinate'] != null) {
         latitude = (widget.currentUser['ordinate']['latitude'] ?? 0.0).toDouble();
         longitude = (widget.currentUser['ordinate']['longitude'] ?? 0.0).toDouble();
+      } else {
+         if (!mounted) return;
+         ScaffoldMessenger.of(context).showSnackBar(
+           const SnackBar(content: Text("No saved location found in profile. Please select 'New Location' or update profile.")),
+         );
+         return;
+      }
+      
+      if (latitude == 0.0 && longitude == 0.0) {
+         if (!mounted) return;
+         ScaffoldMessenger.of(context).showSnackBar(
+           const SnackBar(content: Text("Invalid saved location (0,0). Please update profile.")),
+         );
+         return;
       }
     }
 
@@ -311,6 +347,47 @@ class _CreateBloodRequestScreenState extends State<CreateBloodRequestScreen> {
                         const Text("New Location"),
                       ],
                     ),
+                    if (_locationType == "current") ...[
+                      const SizedBox(height: 10),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade50,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.grey.shade200),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Saved Address:",
+                              style: TextStyle(
+                                  fontSize: 12, color: Colors.grey.shade600),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              widget.currentUser['address'] ?? "No address saved",
+                              style: const TextStyle(
+                                  fontSize: 14, fontWeight: FontWeight.w500),
+                            ),
+                            const SizedBox(height: 8),
+                            if (widget.currentUser['ordinate'] != null)
+                              Text(
+                                "Coordinates: ${widget.currentUser['ordinate']['latitude']}, ${widget.currentUser['ordinate']['longitude']}",
+                                style: TextStyle(
+                                    fontSize: 12, color: Colors.grey.shade500),
+                              )
+                            else
+                              const Text(
+                                "No location coordinates found. Please update your profile.",
+                                style:
+                                    TextStyle(fontSize: 12, color: Colors.red),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
                     if (_locationType == "new") ...[
                       const SizedBox(height: 10),
                       Row(
@@ -351,6 +428,16 @@ class _CreateBloodRequestScreenState extends State<CreateBloodRequestScreen> {
                             ),
                           ),
                         ],
+                      ),
+                      const SizedBox(height: 10),
+                      ElevatedButton.icon(
+                        onPressed: _pickLocation,
+                        icon: const Icon(Icons.map),
+                        label: const Text("Pick from Map"),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blueAccent,
+                          foregroundColor: Colors.white,
+                        ),
                       ),
                     ]
                   ],

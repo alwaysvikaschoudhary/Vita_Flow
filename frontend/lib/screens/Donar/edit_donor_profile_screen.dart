@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:vita_flow/services/api_service.dart';
+import 'package:vita_flow/screens/Common/location_picker_screen.dart';
 
 class EditDonorProfileScreen extends StatefulWidget {
   final Map<String, dynamic> currentUser;
@@ -53,11 +54,31 @@ class _EditDonorProfileScreenState extends State<EditDonorProfileScreen> {
       lng = (user['ordinate']['longitude'] ?? 0.0).toDouble();
     }
     latController = TextEditingController(text: lat.toString());
+    latController = TextEditingController(text: lat.toString());
     lngController = TextEditingController(text: lng.toString());
 
     selectedBloodGroup = user['bloodGroup'];
     if (selectedBloodGroup != null && !bloodGroups.contains(selectedBloodGroup)) {
       selectedBloodGroup = null; // Reset if invalid
+    }
+  }
+
+  Future<void> _pickLocation() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => LocationPickerScreen(
+          initialLat: double.tryParse(latController.text),
+          initialLng: double.tryParse(lngController.text),
+        ),
+      ),
+    );
+
+    if (result != null && result is Map) {
+      setState(() {
+        latController.text = result['latitude'].toString();
+        lngController.text = result['longitude'].toString();
+      });
     }
   }
 
@@ -156,6 +177,16 @@ class _EditDonorProfileScreenState extends State<EditDonorProfileScreen> {
                     Expanded(child: _buildTextField("Longitude", lngController)),
                   ],
                 ),
+                ElevatedButton.icon(
+                  onPressed: _pickLocation,
+                  icon: const Icon(Icons.map),
+                  label: const Text("Pick from Map"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blueAccent,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 16),
 
                 _buildTextField("Address", addressController, maxLines: 2),
                 _buildTextField("Medical History", medicalHistoryController, maxLines: 2),

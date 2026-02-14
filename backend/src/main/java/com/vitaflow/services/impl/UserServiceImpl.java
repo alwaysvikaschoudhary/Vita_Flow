@@ -191,4 +191,39 @@ public class UserServiceImpl implements UserService {
     public Rider getRiderById(String userId) {
         return riderRepository.findById(userId).orElseThrow(() -> new RuntimeException("Rider not found"));
     }
+
+    @Override
+    public boolean updateUserLocation(String phoneNumber, com.vitaflow.payload.LocationDTO location) {
+        Optional<Doctor> doctor = doctorRepository.findByPhoneNumber(phoneNumber);
+        if (doctor.isPresent()) {
+            Doctor d = doctor.get();
+            if (d.getOrdinate() == null) d.setOrdinate(new com.vitaflow.entities.Ordinate());
+            d.getOrdinate().setLatitude(location.getLatitude());
+            d.getOrdinate().setLongitude(location.getLongitude());
+            doctorRepository.save(d);
+            return true;
+        }
+
+        Optional<Donor> donor = donorRepository.findByPhoneNumber(phoneNumber);
+        if (donor.isPresent()) {
+            Donor d = donor.get();
+            if (d.getOrdinate() == null) d.setOrdinate(new com.vitaflow.entities.Ordinate());
+            d.getOrdinate().setLatitude(location.getLatitude());
+            d.getOrdinate().setLongitude(location.getLongitude());
+            donorRepository.save(d);
+            return true;
+        }
+
+        Optional<Rider> rider = riderRepository.findByPhoneNumber(phoneNumber);
+        if (rider.isPresent()) {
+            Rider r = rider.get();
+            if (r.getOrdinate() == null) r.setOrdinate(new com.vitaflow.entities.Ordinate());
+            r.getOrdinate().setLatitude(location.getLatitude());
+            r.getOrdinate().setLongitude(location.getLongitude());
+            riderRepository.save(r);
+            return true;
+        }
+
+        return false;
+    }
 }

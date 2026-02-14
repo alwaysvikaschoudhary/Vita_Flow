@@ -129,4 +129,24 @@ public class UserController {
     public Rider getRider(@PathVariable String userId) {
         return userService.getRiderById(userId);
     }
+
+    @PutMapping("/location")
+    public ResponseEntity<?> updateLocation(@RequestBody Map<String, Object> payload) {
+        String phoneNumber = (String) payload.get("phoneNumber");
+        Double latitude = ((Number) payload.get("latitude")).doubleValue();
+        Double longitude = ((Number) payload.get("longitude")).doubleValue();
+
+        if (phoneNumber == null || latitude == null || longitude == null) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Phone number, latitude, and longitude are required"));
+        }
+
+        com.vitaflow.payload.LocationDTO location = new com.vitaflow.payload.LocationDTO(latitude, longitude);
+        boolean updated = userService.updateUserLocation(phoneNumber, location);
+
+        if (updated) {
+            return ResponseEntity.ok(Map.of("message", "Location updated successfully"));
+        } else {
+            return ResponseEntity.badRequest().body(Map.of("message", "User not found"));
+        }
+    }
 }

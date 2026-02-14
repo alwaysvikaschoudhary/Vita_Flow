@@ -5,8 +5,11 @@ com/vitaflow/services/BloodRequestService.class
 com/vitaflow/entities/Role.class
 com/vitaflow/entities/BloodRequest.class
 com/vitaflow/services/impl/UserServiceImpl.class
+com/vitaflow/services/MatchingService$DonorDistance.class
+com/vitaflow/payload/LocationDTO.class
 com/vitaflow/repositories/BloodRequestRepository.class
 com/vitaflow/entities/user/Donor$DonorBuilder.class
+com/vitaflow/services/GoogleDistanceService.class
 com/vitaflow/controllers/UserController$1.class
 com/vitaflow/entities/BloodRequest$BloodRequestBuilder.class
 com/vitaflow/config/CorsConfig.class
@@ -18,6 +21,7 @@ com/vitaflow/entities/user/Rider$RiderBuilder.class
 com/vitaflow/controllers/UserController.class
 com/vitaflow/entities/user/Doctor$DoctorBuilder.class
 com/vitaflow/services/OtpService.class
+com/vitaflow/services/MatchingService.class
 com/vitaflow/entities/user/Rider.class
 com/vitaflow/repositories/RiderRepository.class
 com/vitaflow/repositories/DonorRepository.class
