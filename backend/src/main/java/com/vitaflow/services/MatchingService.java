@@ -18,6 +18,9 @@ public class MatchingService {
     private DonorRepository donorRepository;
 
     @Autowired
+    private com.vitaflow.repositories.BloodRequestRepository bloodRequestRepository;
+
+    @Autowired
     private GoogleDistanceService googleDistanceService;
 
     public List<Donor> findNearbyDonors(String bloodGroup, Ordinate doctorLocation) {
@@ -57,6 +60,117 @@ public class MatchingService {
 
         // 6. Return Donors
         return donorDistances.stream().map(DonorDistance::getDonor).collect(Collectors.toList());
+    }
+
+    public List<com.vitaflow.entities.BloodRequest> findNearbyRequests(String donorBloodGroup, Ordinate donorLocation) {
+        // 1. Fetch all PENDING requests
+        List<com.vitaflow.entities.BloodRequest> allPendingRequests = bloodRequestRepository.findByStatus("PENDING");
+
+        if (allPendingRequests.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        // 2. Filter by Blood Group Compatibility
+        List<com.vitaflow.entities.BloodRequest> compatibleRequests = allPendingRequests.stream()
+                .filter(req -> isCompatible(donorBloodGroup, req.getBloodGroup()))
+                .filter(req -> req.getOrdinate() != null && req.getOrdinate().getLatitude() != null && req.getOrdinate().getLongitude() != null)
+                .collect(Collectors.toList());
+
+        if (compatibleRequests.isEmpty()) {
+             return new ArrayList<>();
+        }
+
+        // 3. Extract Request Locations
+        List<Ordinate> requestLocations = compatibleRequests.stream()
+                .map(com.vitaflow.entities.BloodRequest::getOrdinate)
+                .collect(Collectors.toList());
+
+        // 4. Get Distances
+        List<Double> distances = googleDistanceService.getDistances(donorLocation, requestLocations);
+
+        // 5. Filter by Distance (5km limit)
+        List<RequestDistance> requestDistances = new ArrayList<>();
+        for (int i = 0; i < compatibleRequests.size(); i++) {
+            double dist = distances.get(i);
+            if (dist <= 5.0) { 
+                requestDistances.add(new RequestDistance(compatibleRequests.get(i), dist));
+            }
+        }
+        
+        // 6. Sort by distance
+        requestDistances.sort(Comparator.comparingDouble(RequestDistance::getDistance));
+        
+        return requestDistances.stream().map(RequestDistance::getRequest).collect(Collectors.toList());
+    }
+
+    private boolean isCompatible(String donorGroup, String requestGroup) {
+        // Simple compatibility logic (can be expanded)
+        // For now, let's assume exact match or universal donor logic if simple.
+        // Or just exact match to be safe for now.
+        // "O-" is universal donor. "AB+" is universal recipient.
+        
+        if (donorGroup == null || requestGroup == null) return false;
+        
+        // Exact match is always compatible
+        if (donorGroup.equalsIgnoreCase(requestGroup)) return true;
+        
+        // O- can give to anyone
+        if (donorGroup.equalsIgnoreCase("O-")) return true;
+        
+        // O+ can give to O+, A+, B+, AB+
+        if (donorGroup.equalsIgnoreCase("O+") && (requestGroup.contains("+"))) return true;
+        
+        // A- can give to A-, A+, AB-, AB+
+        if (donorGroup.equalsIgnoreCase("A-") && (requestGroup.startsWith("A"))) return true; // A+, A-, AB+, AB- logic slightly more complex strings. 
+        
+        // Let's stick to Exact Match + O- for safety in this iteration unless specified. 
+        // User said "match him like with blood group".
+        // Let's do exact match + compatible logic.
+        
+        return canDonate(donorGroup, requestGroup);
+    }
+    
+    private boolean canDonate(String donor, String recipient) {
+        // Simplified Map
+        // O- -> All
+        // O+ -> O+, A+, B+, AB+
+        // A- -> A-, A+, AB-, AB+
+        // A+ -> A+, AB+
+        // B- -> B-, B+, AB-, AB+
+        // B+ -> B+, AB+
+        // AB- -> AB-, AB+
+        // AB+ -> AB+
+        
+        if (donor.equals("O-")) return true;
+        if (recipient.equals("AB+")) return true;
+        
+        if (donor.equals("O+")) return (recipient.equals("O+") || recipient.equals("A+") || recipient.equals("B+") || recipient.equals("AB+"));
+        if (donor.equals("A-")) return (recipient.equals("A-") || recipient.equals("A+") || recipient.equals("AB-") || recipient.equals("AB+"));
+        if (donor.equals("A+")) return (recipient.equals("A+") || recipient.equals("AB+"));
+        if (donor.equals("B-")) return (recipient.equals("B-") || recipient.equals("B+") || recipient.equals("AB-") || recipient.equals("AB+"));
+        if (donor.equals("B+")) return (recipient.equals("B+") || recipient.equals("AB+"));
+        if (donor.equals("AB-")) return (recipient.equals("AB-") || recipient.equals("AB+"));
+        
+        return false;
+    }
+
+    // Helper class
+    private static class RequestDistance {
+        private final com.vitaflow.entities.BloodRequest request;
+        private final double distance;
+
+        public RequestDistance(com.vitaflow.entities.BloodRequest request, double distance) {
+            this.request = request;
+            this.distance = distance;
+        }
+
+        public com.vitaflow.entities.BloodRequest getRequest() {
+            return request;
+        }
+
+        public double getDistance() {
+            return distance;
+        }
     }
 
     // Helper class

@@ -139,7 +139,7 @@ class _CreateBloodRequestScreenState extends State<CreateBloodRequestScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Request created successfully!")),
         );
-        Navigator.pop(context);
+        Navigator.pop(context, true);
       } else {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(

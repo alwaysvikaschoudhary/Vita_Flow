@@ -99,5 +99,31 @@ class ApiService {
       throw Exception("Error updating location: $e");
     }
   }
+  static Future<List<dynamic>> getRequestsByHospital(String hospitalId) async {
+    final url = Uri.parse("$baseUrl/request/hospital/$hospitalId");
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception("Failed to load requests: ${response.body}");
+      }
+    } catch (e) {
+      throw Exception("Error connecting to server: $e");
+    }
+  }
+  static Future<List<dynamic>> getNearbyRequests(String donorId) async {
+    final url = Uri.parse("$baseUrl/request/nearby/$donorId");
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception("Failed to load nearby requests: ${response.body}");
+      }
+    } catch (e) {
+      throw Exception("Error connecting to server: $e");
+    }
+  }
 }
 

@@ -61,4 +61,18 @@ public class BloodRequestController {
     public ResponseEntity<List<BloodRequest>> getRequestsByHospital(@PathVariable String hospitalId) {
         return ResponseEntity.ok(requestService.getRequestsByHospital(hospitalId));
     }
+
+    @Autowired
+    private com.vitaflow.repositories.DonorRepository donorRepository;
+
+    @GetMapping("/nearby/{donorId}")
+    public ResponseEntity<?> getNearbyRequestsForDonor(@PathVariable String donorId) {
+         com.vitaflow.entities.user.Donor donor = donorRepository.findById(donorId).orElse(null);
+         if (donor == null || donor.getOrdinate() == null) {
+             return ResponseEntity.badRequest().body(Map.of("error", "Donor not found or location not set"));
+         }
+         
+         List<BloodRequest> nearby = matchingService.findNearbyRequests(donor.getBloodGroup(), donor.getOrdinate());
+         return ResponseEntity.ok(nearby);
+    }
 }

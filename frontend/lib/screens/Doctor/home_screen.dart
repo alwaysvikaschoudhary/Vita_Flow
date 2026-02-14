@@ -1,9 +1,42 @@
+import 'package:vita_flow/services/api_service.dart';
 import 'package:vita_flow/screens/Doctor/create_request_screen.dart';
 import 'package:flutter/material.dart';
 
-class DoctorHomeScreen extends StatelessWidget {
+class DoctorHomeScreen extends StatefulWidget {
   final Map<String, dynamic> currentUser;
   const DoctorHomeScreen({super.key, required this.currentUser});
+
+  @override
+  State<DoctorHomeScreen> createState() => _DoctorHomeScreenState();
+}
+
+class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
+  List<dynamic> _requests = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchRequests();
+  }
+
+  Future<void> _fetchRequests() async {
+    try {
+      final requests = await ApiService.getRequestsByHospital(widget.currentUser['userId']);
+      if (mounted) {
+        setState(() {
+          // Sort reverse to show newest first
+          _requests = requests.reversed.toList();
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      print("Error fetching requests: $e");
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,14 +66,14 @@ class DoctorHomeScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            currentUser['hospitalName'] ?? "Hospital",
+                            widget.currentUser['hospitalName'] ?? "Hospital",
                             style: const TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
                           Text(
-                            "Dr. ${currentUser['name']}",
+                            "Dr. ${widget.currentUser['name']}",
                             style: const TextStyle(
                               fontSize: 15,
                               color: Colors.grey,
@@ -67,9 +100,9 @@ class DoctorHomeScreen extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _statCard(Icons.monitor_heart, Colors.blue, "5", "Active"),
-                  _statCard(Icons.access_time, Colors.orange, "3", "Pending"),
-                  _statCard(Icons.check_circle, Colors.green, "28", "Today"),
+                  _statCard(Icons.monitor_heart, Colors.blue, "${_requests.where((r) => r['status'] == 'ACCEPTED').length}", "Active"),
+                  _statCard(Icons.access_time, Colors.orange, "${_requests.where((r) => r['status'] == 'PENDING').length}", "Pending"),
+                  _statCard(Icons.check_circle, Colors.green, "${_requests.where((r) => r['status'] == 'COMPLETED').length}", "Today"),
                 ],
               ),
 
@@ -88,52 +121,22 @@ class DoctorHomeScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(16),
                     ),
                   ),
-                  onPressed: () {
-                    Navigator.push(
+                  onPressed: () async {
+                    final result = await Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (c) => CreateBloodRequestScreen(currentUser: currentUser),
+                                builder: (c) => CreateBloodRequestScreen(currentUser: widget.currentUser),
                               ),
                             );
+                    if (result == true) {
+                      _fetchRequests();
+                    }
                   },
                   child: const Text(
                     "+   Create New Request",
                     style: TextStyle(fontSize: 16, color: Colors.white),
                   ),
                 ),
-              ),
-
-              const SizedBox(height: 20),
-
-              // ----------------------------
-              // ACTIVE DELIVERIES
-              // ----------------------------
-              const Text(
-                "Active Deliveries",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-
-              const SizedBox(height: 12),
-              _deliveryCard(
-                name: "Jitesh Kumar",
-                bloodType: "O+",
-                units: "2 units",
-                eta: "12 mins",
-                tag: "In Transit",
-                tagColor: Colors.blue,
-              ),
-
-              const SizedBox(height: 12),
-              _deliveryCard(
-                name: "Sarah Johnson",
-                bloodType: "A+",
-                units: "1 unit",
-                eta: "25 mins",
-                tag: "Collection",
-                tagColor: Colors.orange,
               ),
 
               const SizedBox(height: 24),
@@ -158,6 +161,41 @@ class DoctorHomeScreen extends StatelessWidget {
                   ],
                 ),
               ),
+
+              const SizedBox(height: 20),
+
+              // ----------------------------
+              // ACTIVE REQUESTS LIST
+              // ----------------------------
+              const Text(
+                "Active Requests",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+
+              const SizedBox(height: 12),
+              
+              if (_isLoading)
+                const Center(child: CircularProgressIndicator())
+              else if (_requests.isEmpty)
+                const Center(child: Text("No active requests found.", style: TextStyle(color: Colors.grey)))
+              else
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: _requests.length,
+                  itemBuilder: (context, index) {
+                    final req = _requests[index];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12.0),
+                      child: _requestCard(req),
+                    );
+                  },
+                ),
+
+              
             ],
           ),
         ),
@@ -191,16 +229,15 @@ class DoctorHomeScreen extends StatelessWidget {
   }
 
   // -----------------------------------------
-  // DELIVERY CARD
+  // REQUEST CARD (Dynamic)
   // -----------------------------------------
-  Widget _deliveryCard({
-    required String name,
-    required String bloodType,
-    required String units,
-    required String eta,
-    required String tag,
-    required Color tagColor,
-  }) {
+  Widget _requestCard(dynamic req) {
+    String status = req['status'] ?? "PENDING";
+    Color statusColor = Colors.orange;
+    if (status == "ACCEPTED") statusColor = Colors.blue;
+    if (status == "COMPLETED") statusColor = Colors.green;
+    if (status == "CANCELLED") statusColor = Colors.red;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -216,11 +253,14 @@ class DoctorHomeScreen extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Text(
-                      name,
-                      style: const TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
+                    Flexible(
+                      child: Text(
+                        "Request #${req['requestId']?.toString().substring(0, 6) ?? '...'}",
+                        style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     const SizedBox(width: 10),
@@ -228,32 +268,40 @@ class DoctorHomeScreen extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: tagColor.withOpacity(0.15),
+                        color: statusColor.withOpacity(0.15),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        tag,
-                        style: TextStyle(color: tagColor, fontSize: 12),
+                        status,
+                        style: TextStyle(color: statusColor, fontSize: 12),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 6),
-                Text("Blood Type:", style: TextStyle(color: Colors.grey[600])),
+                Text("Target: ${req['bloodGroup']}", style: TextStyle(color: Colors.grey[600])),
                 Text(
-                  bloodType,
+                  "${req['units']} Units • ${req['urgency']}",
                   style: const TextStyle(
                       color: Colors.red, fontWeight: FontWeight.w600),
                 ),
-                Text(units),
               ],
             ),
           ),
 
-          // ETA
-          Text(
-            "ETA: $eta",
-            style: const TextStyle(color: Colors.black54),
+          // Time / ETA
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                req['time'] ?? "--:--",
+                style: const TextStyle(color: Colors.black54, fontWeight: FontWeight.bold),
+              ),
+              Text(
+                req['date'] ?? "",
+                style: const TextStyle(color: Colors.grey, fontSize: 12),
+              ),
+            ],
           ),
         ],
       ),
@@ -284,5 +332,5 @@ class DoctorHomeScreen extends StatelessWidget {
       ),
     );
   }
+  
 }
-
