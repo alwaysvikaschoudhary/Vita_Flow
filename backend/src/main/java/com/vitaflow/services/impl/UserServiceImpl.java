@@ -106,6 +106,7 @@ public class UserServiceImpl implements UserService {
             if (doctor.getHospitalId() != null) dbDoctor.setHospitalId(doctor.getHospitalId());
             if (doctor.getDegree() != null) dbDoctor.setDegree(doctor.getDegree());
             if (doctor.getExperience() != null) dbDoctor.setExperience(doctor.getExperience());
+            if (doctor.getOrdinate() != null) dbDoctor.setOrdinate(doctor.getOrdinate());
             
             return doctorRepository.save(dbDoctor);
         }
@@ -136,6 +137,7 @@ public class UserServiceImpl implements UserService {
             if (donor.getMedicalHistory() != null) dbDonor.setMedicalHistory(donor.getMedicalHistory());
             if (donor.getNumberOfDonation() != null) dbDonor.setNumberOfDonation(donor.getNumberOfDonation());
             if (donor.getLastDonationDate() != null) dbDonor.setLastDonationDate(donor.getLastDonationDate());
+            if (donor.getOrdinate() != null) dbDonor.setOrdinate(donor.getOrdinate());
             
             return donorRepository.save(dbDonor);
         }
@@ -164,6 +166,7 @@ public class UserServiceImpl implements UserService {
             if (rider.getTotalDeliveries() != null) dbRider.setTotalDeliveries(rider.getTotalDeliveries());
             if (rider.getRating() != null) dbRider.setRating(rider.getRating());
             if (rider.getVehicleType() != null) dbRider.setVehicleType(rider.getVehicleType());
+            if (rider.getOrdinate() != null) dbRider.setOrdinate(rider.getOrdinate());
             
             return riderRepository.save(dbRider);
         }

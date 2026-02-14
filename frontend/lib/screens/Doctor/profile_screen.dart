@@ -198,6 +198,22 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                   _infoItem(Icons.phone, "Contact", user['phoneNumber'] ?? "--"),
                   _infoItem(Icons.email, "Email", user['email'] ?? "--"),
                   _infoItem(Icons.location_on, "Address", user['address'] ?? "--"),
+                  Builder(
+                    builder: (context) {
+                      String lat = "0.0";
+                      String lng = "0.0";
+                      if (user['ordinate'] != null) {
+                        lat = (user['ordinate']['latitude'] ?? 0.0).toString();
+                        lng = (user['ordinate']['longitude'] ?? 0.0).toString();
+                      }
+                      return Column(
+                        children: [
+                          _infoItem(Icons.map, "Latitude", lat),
+                          _infoItem(Icons.map, "Longitude", lng),
+                        ],
+                      );
+                    }
+                  ),
                   _infoItem(Icons.school, "Degree", user['degree'] ?? "--"),
                   if (user['about'] != null) ...[
                      const SizedBox(height: 10),

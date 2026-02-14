@@ -184,6 +184,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   InfoRow(Icons.monitor_weight, "Weight(kg)", user['weight'] ?? "--"),
                   InfoRow(Icons.height, "Height(cm)", user['height'] ?? "--"),
                   InfoRow(Icons.location_on, "Address", user['address'] ?? "--"),
+                  Builder(
+                    builder: (context) {
+                      String lat = "0.0";
+                      String lng = "0.0";
+                      if (user['ordinate'] != null) {
+                        lat = (user['ordinate']['latitude'] ?? 0.0).toString();
+                        lng = (user['ordinate']['longitude'] ?? 0.0).toString();
+                      }
+                      return Column(
+                        children: [
+                          InfoRow(Icons.map, "Latitude", lat),
+                          InfoRow(Icons.map, "Longitude", lng),
+                        ],
+                      );
+                    }
+                  ),
                   if (user['gender'] != null) InfoRow(Icons.person, "Gender", user['gender']),
                   if (user['medicalHistory'] != null) ...[
                       const SizedBox(height: 10),

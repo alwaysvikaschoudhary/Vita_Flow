@@ -19,6 +19,8 @@ class _EditRiderProfileScreenState extends State<EditRiderProfileScreen> {
   late TextEditingController vehicleTypeController;
   late TextEditingController addressController;
   late TextEditingController aboutController;
+  late TextEditingController latController;
+  late TextEditingController lngController;
   
   String? selectedGender;
   bool isLoading = false;
@@ -34,6 +36,15 @@ class _EditRiderProfileScreenState extends State<EditRiderProfileScreen> {
     addressController = TextEditingController(text: widget.currentUser['address']);
     aboutController = TextEditingController(text: widget.currentUser['about']);
     selectedGender = widget.currentUser['gender'];
+    
+    double lat = 0.0;
+    double lng = 0.0;
+    if (widget.currentUser['ordinate'] != null) {
+      lat = (widget.currentUser['ordinate']['latitude'] ?? 0.0).toDouble();
+      lng = (widget.currentUser['ordinate']['longitude'] ?? 0.0).toDouble();
+    }
+    latController = TextEditingController(text: lat.toString());
+    lngController = TextEditingController(text: lng.toString());
   }
 
   Future<void> save() async {
@@ -51,6 +62,10 @@ class _EditRiderProfileScreenState extends State<EditRiderProfileScreen> {
         "address": addressController.text,
         "about": aboutController.text,
         "gender": selectedGender,
+        "ordinate": {
+          "latitude": double.tryParse(latController.text) ?? 0.0,
+          "longitude": double.tryParse(lngController.text) ?? 0.0,
+        }
       };
 
       try {
@@ -98,6 +113,14 @@ class _EditRiderProfileScreenState extends State<EditRiderProfileScreen> {
                 decoration: const InputDecoration(labelText: "Gender", border: OutlineInputBorder()),
               ),
               const SizedBox(height: 10),
+
+              Row(
+                children: [
+                  Expanded(child: _buildTextField("Latitude", latController)),
+                  const SizedBox(width: 10),
+                  Expanded(child: _buildTextField("Longitude", lngController)),
+                ],
+              ),
 
               _buildTextField("Address", addressController),
               _buildTextField("About", aboutController, maxLines: 3),

@@ -1,0 +1,12 @@
+package com.vitaflow.services;
+
+import com.vitaflow.entities.BloodRequest;
+
+import java.util.List;
+
+public interface BloodRequestService {
+    BloodRequest createRequest(BloodRequest request);
+    List<BloodRequest> getAllRequests();
+    List<BloodRequest> getRequestsByStatus(String status);
+    List<BloodRequest> getRequestsByHospital(String hospitalId);
+}

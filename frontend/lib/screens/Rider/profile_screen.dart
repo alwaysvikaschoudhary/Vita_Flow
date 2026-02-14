@@ -192,6 +192,22 @@ class _RiderProfileScreenState extends State<RiderProfileScreen> {
                   _infoItem(Icons.phone, "Phone", user['phoneNumber'] ?? "--"),
                   _infoItem(Icons.email, "Email", user['email'] ?? "--"),
                   _infoItem(Icons.location_on, "Address", user['address'] ?? "--"),
+                  Builder(
+                    builder: (context) {
+                      String lat = "0.0";
+                      String lng = "0.0";
+                      if (user['ordinate'] != null) {
+                        lat = (user['ordinate']['latitude'] ?? 0.0).toString();
+                        lng = (user['ordinate']['longitude'] ?? 0.0).toString();
+                      }
+                      return Column(
+                        children: [
+                          _infoItem(Icons.map, "Latitude", lat),
+                          _infoItem(Icons.map, "Longitude", lng),
+                        ],
+                      );
+                    }
+                  ),
                   _infoItem(Icons.pedal_bike, "Bike Number", user['bikeNumber'] ?? "--"),
                   _infoItem(Icons.card_membership, "License", user['license'] ?? "--"),
                   if (user['gender'] != null) _infoItem(Icons.person, "Gender", user['gender']),

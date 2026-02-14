@@ -21,6 +21,8 @@ class _EditDoctorProfileScreenState extends State<EditDoctorProfileScreen> {
   late TextEditingController degreeController;
   late TextEditingController experienceController;
   late TextEditingController genderController;
+  late TextEditingController latController;
+  late TextEditingController lngController;
 
   bool isLoading = false;
 
@@ -37,6 +39,15 @@ class _EditDoctorProfileScreenState extends State<EditDoctorProfileScreen> {
     degreeController = TextEditingController(text: user['degree'] ?? '');
     experienceController = TextEditingController(text: user['experience'] ?? '');
     genderController = TextEditingController(text: user['gender'] ?? '');
+    
+    double lat = 0.0;
+    double lng = 0.0;
+    if (user['ordinate'] != null) {
+      lat = (user['ordinate']['latitude'] ?? 0.0).toDouble();
+      lng = (user['ordinate']['longitude'] ?? 0.0).toDouble();
+    }
+    latController = TextEditingController(text: lat.toString());
+    lngController = TextEditingController(text: lng.toString());
   }
 
   Future<void> save() async {
@@ -57,6 +68,10 @@ class _EditDoctorProfileScreenState extends State<EditDoctorProfileScreen> {
         "degree": degreeController.text.trim(),
         "experience": experienceController.text.trim(),
         "gender": genderController.text.trim(),
+        "ordinate": {
+          "latitude": double.tryParse(latController.text) ?? 0.0,
+          "longitude": double.tryParse(lngController.text) ?? 0.0,
+        }
       };
 
       final response = await ApiService.completeProfile(updatedData);
@@ -64,6 +79,7 @@ class _EditDoctorProfileScreenState extends State<EditDoctorProfileScreen> {
       setState(() => isLoading = false);
 
       if (response != null && response['user'] != null) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Profile Updated Successfully!")),
         );
@@ -71,6 +87,7 @@ class _EditDoctorProfileScreenState extends State<EditDoctorProfileScreen> {
       }
     } catch (e) {
       setState(() => isLoading = false);
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error: $e")),
       );
@@ -96,6 +113,15 @@ class _EditDoctorProfileScreenState extends State<EditDoctorProfileScreen> {
                 _buildTextField("Experience (Years)", experienceController),
                 _buildTextField("Gender", genderController),
                 _buildTextField("Address", addressController, maxLines: 3),
+                
+                Row(
+                  children: [
+                    Expanded(child: _buildTextField("Latitude", latController)),
+                    const SizedBox(width: 10),
+                    Expanded(child: _buildTextField("Longitude", lngController)),
+                  ],
+                ),
+
                 _buildTextField("About", aboutController, maxLines: 3),
                 
                 const SizedBox(height: 30),

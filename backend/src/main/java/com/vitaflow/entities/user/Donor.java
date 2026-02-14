@@ -1,6 +1,7 @@
 package com.vitaflow.entities.user;
 
 import com.vitaflow.entities.Role;
+import com.vitaflow.entities.Ordinate;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -64,6 +65,13 @@ public class Donor {
     private String numberOfDonation;
 
     private String lastDonationDate;
+
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "latitude", column = @Column(name = "location_lat")),
+        @AttributeOverride(name = "longitude", column = @Column(name = "location_lng"))
+    })
+    private Ordinate ordinate;
 
 }
 

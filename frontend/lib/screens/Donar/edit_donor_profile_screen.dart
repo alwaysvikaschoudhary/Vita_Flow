@@ -23,6 +23,8 @@ class _EditDonorProfileScreenState extends State<EditDonorProfileScreen> {
   late TextEditingController heightController;
   late TextEditingController medicalHistoryController; // "None" if empty
   late TextEditingController genderController;
+  late TextEditingController latController;
+  late TextEditingController lngController;
   
   String? selectedBloodGroup;
   final List<String> bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
@@ -44,6 +46,15 @@ class _EditDonorProfileScreenState extends State<EditDonorProfileScreen> {
     medicalHistoryController = TextEditingController(text: user['medicalHistory'] ?? '');
     genderController = TextEditingController(text: user['gender'] ?? '');
     
+    double lat = 0.0;
+    double lng = 0.0;
+    if (user['ordinate'] != null) {
+      lat = (user['ordinate']['latitude'] ?? 0.0).toDouble();
+      lng = (user['ordinate']['longitude'] ?? 0.0).toDouble();
+    }
+    latController = TextEditingController(text: lat.toString());
+    lngController = TextEditingController(text: lng.toString());
+
     selectedBloodGroup = user['bloodGroup'];
     if (selectedBloodGroup != null && !bloodGroups.contains(selectedBloodGroup)) {
       selectedBloodGroup = null; // Reset if invalid
@@ -71,6 +82,10 @@ class _EditDonorProfileScreenState extends State<EditDonorProfileScreen> {
         "height": heightController.text.trim(),
         "medicalHistory": medicalHistoryController.text.trim(),
         "gender": genderController.text.trim(),
+        "ordinate": {
+          "latitude": double.tryParse(latController.text) ?? 0.0,
+          "longitude": double.tryParse(lngController.text) ?? 0.0,
+        }
       };
 
       final response = await ApiService.completeProfile(updatedData);
@@ -78,6 +93,7 @@ class _EditDonorProfileScreenState extends State<EditDonorProfileScreen> {
       setState(() => isLoading = false);
 
       if (response != null && response['user'] != null) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Profile Updated Successfully!")),
         );
@@ -85,6 +101,7 @@ class _EditDonorProfileScreenState extends State<EditDonorProfileScreen> {
       }
     } catch (e) {
       setState(() => isLoading = false);
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error: $e")),
       );
@@ -129,6 +146,14 @@ class _EditDonorProfileScreenState extends State<EditDonorProfileScreen> {
                      Expanded(child: _buildTextField("Weight (kg)", weightController)),
                      const SizedBox(width: 10),
                      Expanded(child: _buildTextField("Height (cm)", heightController)),
+                  ],
+                ),
+                
+                Row(
+                  children: [
+                    Expanded(child: _buildTextField("Latitude", latController)),
+                    const SizedBox(width: 10),
+                    Expanded(child: _buildTextField("Longitude", lngController)),
                   ],
                 ),
 

@@ -75,6 +75,7 @@ public class UserController {
     // Generic Complete Profile (Restored for Frontend Compatibility)
     @PostMapping("/complete-profile")
     public ResponseEntity<?> completeProfile(@RequestBody Map<String, Object> payload) {
+        System.out.println("Processing complete-profile with payload: " + payload);
         String roleStr = (String) payload.get("role");
         if (roleStr == null) {
              return ResponseEntity.badRequest().body(Map.of("message", "Role is required"));
@@ -88,14 +89,17 @@ public class UserController {
             switch (role) {
                 case DOCTOR:
                     Doctor doctor = mapper.convertValue(payload, Doctor.class);
+                    System.out.println("Mapped Doctor Ordinate: " + (doctor.getOrdinate() != null ? doctor.getOrdinate().getLatitude() : "null"));
                     response.put("user", userService.saveDoctor(doctor));
                     break;
                 case DONOR:
                      Donor donor = mapper.convertValue(payload, Donor.class);
+                     System.out.println("Mapped Donor Ordinate: " + (donor.getOrdinate() != null ? donor.getOrdinate().getLatitude() : "null"));
                      response.put("user", userService.saveDonor(donor));
                      break;
                  case RIDER:
                      Rider rider = mapper.convertValue(payload, Rider.class);
+                     System.out.println("Mapped Rider Ordinate: " + (rider.getOrdinate() != null ? rider.getOrdinate().getLatitude() : "null"));
                      response.put("user", userService.saveRider(rider));
                      break;
                 default:
