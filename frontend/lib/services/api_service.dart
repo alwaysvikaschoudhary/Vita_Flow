@@ -126,10 +126,14 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> acceptRequest(String requestId, String donorId) async {
-    final url = Uri.parse("$baseUrl/request/accept/$requestId?donorId=$donorId");
+  static Future<Map<String, dynamic>> acceptRequest(String requestId, Map<String, dynamic> data) async {
+    final url = Uri.parse("$baseUrl/request/accept/$requestId");
     try {
-      final response = await http.post(url);
+      final response = await http.post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(data),
+      );
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       } else {
@@ -151,6 +155,128 @@ class ApiService {
       }
     } catch (e) {
       throw Exception("Error connecting to server: $e");
+    }
+  }
+
+  static Future<List<dynamic>> getRiderNearbyRequests(String riderId) async {
+    final url = Uri.parse("$baseUrl/request/rider/nearby/$riderId");
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception("Failed to load rider tasks: ${response.body}");
+      }
+    } catch (e) {
+      throw Exception("Error connecting to server: $e");
+    }
+  }
+
+  static Future<List<dynamic>> getActiveDonorRequests(String donorId) async {
+    final url = Uri.parse("$baseUrl/request/active/donor/$donorId");
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception("Failed to load active requests: ${response.body}");
+      }
+    } catch (e) {
+      throw Exception("Error connecting to server: $e");
+    }
+  }
+  static Future<bool> updateRiderLocation(String requestId, double lat, double lng) async {
+    final url = Uri.parse("$baseUrl/request/rider/location");
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          "requestId": requestId,
+          "latitude": lat,
+          "longitude": lng,
+        }),
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      throw Exception("Error updating rider location: $e");
+    }
+  }
+
+  static Future<Map<String, dynamic>> assignRider(String requestId, String riderId, String riderName) async {
+    final url = Uri.parse("$baseUrl/request/assign/rider");
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          "requestId": requestId,
+          "riderId": riderId,
+          "riderName": riderName,
+        }),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception("Failed to assign rider: ${response.body}");
+      }
+    } catch (e) {
+      throw Exception("Error connecting to server: $e");
+    }
+  }
+
+  static Future<Map<String, dynamic>> verifyPickupOtp(String requestId, String otp) async {
+    final url = Uri.parse("$baseUrl/request/pickup/verify");
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          "requestId": requestId,
+          "otp": otp,
+        }),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception("OTP Verification Failed: ${response.body}");
+      }
+    } catch (e) {
+      throw Exception("Error connecting to server: $e");
+    }
+  }
+
+  static Future<Map<String, dynamic>> completeRequest(String requestId) async {
+    final url = Uri.parse("$baseUrl/request/complete");
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({"requestId": requestId}),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception("Failed to complete request: ${response.body}");
+      }
+    } catch (e) {
+      throw Exception("Error connecting to server: $e");
+    }
+  }
+
+  static Future<Map<String, dynamic>?> getActiveRiderRequest(String riderId) async {
+    final url = Uri.parse("$baseUrl/request/rider/active/$riderId");
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else if (response.statusCode == 204) {
+        return null; // No active request
+      } else {
+        throw Exception("Failed to fetch active request");
+      }
+    } catch (e) {
+      return null;
     }
   }
 }

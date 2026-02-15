@@ -10,4 +10,5 @@ import java.util.List;
 public interface BloodRequestRepository extends JpaRepository<BloodRequest, String> {
     List<BloodRequest> findByHospitalId(String hospitalId);
     List<BloodRequest> findByStatus(String status);
+    List<BloodRequest> findByDonorIdAndStatusIn(String donorId, List<String> statuses);
 }

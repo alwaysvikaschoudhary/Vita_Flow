@@ -1,34 +1,53 @@
 import 'package:geolocator/geolocator.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class LocationService {
-  Future<Position?> getCurrentLocation() async {
+  static Future<bool> handleLocationPermission() async {
     bool serviceEnabled;
     LocationPermission permission;
 
-    // Test if location services are enabled.
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      return null;
+      return false;
     }
 
     permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        return null;
+        return false;
       }
     }
 
     if (permission == LocationPermission.deniedForever) {
-      return null;
+      return false;
     }
 
+    return true;
+  }
+
+  static Stream<Position> getPositionStream() {
+    return Geolocator.getPositionStream(
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 10, // Update every 10 meters
+      ),
+    );
+  }
+
+  static Future<Position?> getCurrentLocation() async {
+    final hasPermission = await handleLocationPermission();
+    if (!hasPermission) return null;
     return await Geolocator.getCurrentPosition();
   }
 
-  Future<bool> requestPermission() async {
-    var status = await Permission.location.request();
-    return status.isGranted;
+  static double calculateDistance(LatLng start, LatLng end) {
+    return Geolocator.distanceBetween(
+      start.latitude,
+      start.longitude,
+      end.latitude,
+      end.longitude,
+    );
   }
 }

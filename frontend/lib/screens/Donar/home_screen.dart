@@ -4,6 +4,8 @@ import 'nearby_requests_screen.dart';
 import 'package:vita_flow/services/api_service.dart';
 import 'package:intl/intl.dart';
 
+import 'package:vita_flow/screens/Donar/donation_progress_screen.dart' as com_vitaflow_screens;
+
 class HomeScreen extends StatefulWidget {
   final Map<String, dynamic> currentUser;
   const HomeScreen({super.key, required this.currentUser});
@@ -14,25 +16,29 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   List<dynamic> _nearbyRequests = [];
+  List<dynamic> _activeRequests = []; // Added for active tracking
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _fetchNearbyRequests();
+    _fetchData();
   }
 
-  Future<void> _fetchNearbyRequests() async {
+  Future<void> _fetchData() async {
     try {
-      final requests = await ApiService.getNearbyRequests(widget.currentUser['userId']);
+      final nearby = await ApiService.getNearbyRequests(widget.currentUser['userId']);
+      final active = await ApiService.getActiveDonorRequests(widget.currentUser['userId']);
+      
       if (mounted) {
         setState(() {
-          _nearbyRequests = requests;
+          _nearbyRequests = nearby;
+          _activeRequests = active;
           _isLoading = false;
         });
       }
     } catch (e) {
-      print("Error fetching nearby requests: $e");
+      print("Error fetching data: $e");
       if (mounted) {
         setState(() => _isLoading = false);
       }
@@ -78,7 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: const Color.fromARGB(255, 229, 230, 234),
       body: SafeArea(
         child: RefreshIndicator(
-          onRefresh: _fetchNearbyRequests,
+          onRefresh: _fetchData,
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: EdgeInsets.only(top: 10, bottom: 10, left: 5, right: 5),
@@ -128,6 +134,131 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
 
                 const SizedBox(height: 15),
+
+                // ------------------------
+                // ACTIVE DONATION CARD
+                // ------------------------
+                if (_activeRequests.isNotEmpty)
+                  ..._activeRequests.map((req) {
+                    final hospitalName = req['hospitalName'] ?? "Hospital";
+                    final otp = req['otp'] ?? "----";
+                    final status = req['status'] ?? "Active";
+
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 15, left: 10, right: 10),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFE0463A), Color(0xFFFF6B6B)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.red.withOpacity(0.3),
+                            blurRadius: 10,
+                            offset: const Offset(0, 5),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Active Donation",
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    "Status: $status",
+                                    style: const TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.lock, color: Colors.white, size: 16),
+                                    const SizedBox(width: 5),
+                                    Text(
+                                      "OTP: $otp",
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 15),
+                          Row(
+                            children: [
+                              const CircleAvatar(
+                                radius: 20,
+                                backgroundColor: Colors.white,
+                                child: Icon(Icons.local_hospital, color: Color(0xFFE0463A)),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  hospitalName,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 15),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                foregroundColor: const Color(0xFFE0463A),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => com_vitaflow_screens.DonationProgressScreen(requestData: req),
+                                  ),
+                                );
+                              },
+                              child: const Text("View Details & Track"),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
 
                 // ------------------------
                 // VERIFIED DONOR CARD

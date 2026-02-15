@@ -9,6 +9,7 @@ public interface BloodRequestService {
     List<BloodRequest> getAllRequests();
     List<BloodRequest> getRequestsByStatus(String status);
     List<BloodRequest> getRequestsByHospital(String hospitalId);
-    BloodRequest acceptRequest(String requestId, String donorId);
+    BloodRequest acceptRequest(String requestId, String donorId, String donorName, Double latitude, Double longitude);
     BloodRequest getRequestById(String requestId);
+    List<BloodRequest> findActiveRequestsForDonor(String donorId);
 }

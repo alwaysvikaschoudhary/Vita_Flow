@@ -42,4 +42,17 @@ public class BloodRequest {
 
     private String otp;
 
+    private String donorName;
+
+    private String riderName;
+
+    private String donorPhoneNumber;
+
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "latitude", column = @Column(name = "pickup_latitude")),
+        @AttributeOverride(name = "longitude", column = @Column(name = "pickup_longitude"))
+    })
+    private Ordinate pickupOrdinate;
+
 }

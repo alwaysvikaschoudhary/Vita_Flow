@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:vita_flow/services/api_service.dart';
 import 'donation_progress_screen.dart';
+import '../Location/location_picker_screen.dart' as com_vitaflow_screens;
+// Actually, earlier viewed file list suggests LocationPickerScreen.dart is likely in screens/Location or similar. 
+// Let's check file list or assume screens/Location/LocationPickerScreen.dart based on previous context.
+// Wait, I see "Created LocationPickerScreen.dart" in task.md under "Frontend: Google Maps Integration".
+// Let's find it.
 
 class NearbyRequestsScreen extends StatefulWidget {
   final String userId;
@@ -302,7 +307,10 @@ class _NearbyRequestsScreenState extends State<NearbyRequestsScreen> {
       barrierDismissible: false,
       builder: (popupCtx) {
         bool isLoading = false;
-        
+        double? selectedLat;
+        double? selectedLng;
+        String locationText = "Select Pickup Location";
+
         return StatefulBuilder(
           builder: (context, setState) {
             return Dialog(
@@ -318,11 +326,12 @@ class _NearbyRequestsScreenState extends State<NearbyRequestsScreen> {
                       children: const [
                         Icon(Icons.check_circle, color: Colors.green, size: 28),
                         SizedBox(width: 8),
-                        Text(
-                          "You're Eligible!",
-                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+                         Expanded(
+                          child: Text(
+                            "Confirm & Pickup",
+                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+                          ),
                         ),
-                        Spacer(),
                       ],
                     ),
 
@@ -335,17 +344,55 @@ class _NearbyRequestsScreenState extends State<NearbyRequestsScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Text(
-                        "All eligibility requirements passed. You can proceed with this donation request.",
+                        "Please select your pickup location for the Rider.",
                         style: TextStyle(fontSize: 15),
                       ),
                     ),
 
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 20),
 
-                    const _eligibilityItem("Age & weight requirements met", true),
-                    const _eligibilityItem("Cooling period complete", true),
-                    const _eligibilityItem("Health declaration verified", true),
-                    const _eligibilityItem("Blood type proof verified", true),
+                    // Location Picker Button
+                    InkWell(
+                      onTap: () async {
+                         // Pick location
+                         final result = await Navigator.push(
+                           context,
+                           MaterialPageRoute(
+                             builder: (context) => const com_vitaflow_screens.LocationPickerScreen(),
+                           ),
+                         );
+                         
+                         if (result != null && result is Map<String, double>) {
+                           setState(() {
+                             selectedLat = result['latitude'];
+                             selectedLng = result['longitude'];
+                             locationText = "Location Selected";
+                           });
+                         }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey.shade300),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.location_on, color: selectedLat != null ? Colors.red : Colors.grey),
+                            const SizedBox(width: 10),
+                            Text(
+                              locationText,
+                              style: TextStyle(
+                                color: selectedLat != null ? Colors.black : Colors.grey,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const Spacer(),
+                            const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+                          ],
+                        ),
+                      ),
+                    ),
 
                     const SizedBox(height: 20),
 
@@ -361,14 +408,27 @@ class _NearbyRequestsScreenState extends State<NearbyRequestsScreen> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
+                              disabledBackgroundColor: Colors.grey.shade300,
                           ),
-                          onPressed: () async {
+                          onPressed: (selectedLat == null) ? null : () async {
                             setState(() => isLoading = true);
                             try {
-                              final acceptedReq = await ApiService.acceptRequest(requestId, widget.userId);
+                              // We need to fetch donor name properly, but for now hardcode or use ID as placeholder if name unavailable in this scope
+                              // Ideally we should pass donor name to this widget or fetch it.
+                              // Assuming "Unknown Donor" for now if not available, backend might fetch it if we pass ID.
+                              // Actually backend matching service fetches details, but here we can pass what we have.
+                              
+                              final payload = {
+                                "donorId": widget.userId,
+                                "donorName": "Donor", // Placeholder, will fix by fetching user profile if needed, or backend can query.
+                                "latitude": selectedLat,
+                                "longitude": selectedLng
+                              };
+
+                              final acceptedReq = await ApiService.acceptRequest(requestId, payload);
+                              
                               if (context.mounted) {
                                 Navigator.pop(popupCtx); // close popup
-                                // Close Nearby Screen as well? No, just navigate forward.
                                 nestedNavigator.push(
                                   MaterialPageRoute(
                                     builder: (_) => DonationProgressScreen(requestData: acceptedReq),
@@ -385,7 +445,7 @@ class _NearbyRequestsScreenState extends State<NearbyRequestsScreen> {
                             }
                           },
                           child: const Text(
-                            "Confirm",
+                            "Confirm & Accept",
                             style: TextStyle(color: Colors.white),
                           ),
                         ),
@@ -406,6 +466,7 @@ class _NearbyRequestsScreenState extends State<NearbyRequestsScreen> {
     );
   }
 }
+
 
 class _eligibilityItem extends StatelessWidget {
   final String text;

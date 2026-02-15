@@ -124,6 +124,60 @@ public class MatchingService {
         return result;
     }
 
+    @Autowired
+    private com.vitaflow.repositories.RiderRepository riderRepository;    
+
+    public List<com.vitaflow.entities.BloodRequest> findNearbyRequestsForRider(String riderId) {
+        // 1. Fetch Rider and Location
+        com.vitaflow.entities.user.Rider rider = riderRepository.findById(riderId).orElse(null);
+        if (rider == null || rider.getOrdinate() == null) {
+            throw new RuntimeException("Rider not found or location not set");
+        }
+        Ordinate riderLocation = rider.getOrdinate();
+
+        // 2. Fetch all ACCEPTED requests
+        List<com.vitaflow.entities.BloodRequest> acceptedRequests = bloodRequestRepository.findByStatus("ACCEPTED");
+        
+        List<com.vitaflow.entities.BloodRequest> nearbyRequests = new ArrayList<>();
+
+        // 3. Filter: Rider must be close to BOTH Hospital AND Pickup Location (within 5km each)
+        // Note: This logic assumes the Rider wants tasks where they are currently somewhat in the middle or close to start points.
+        // User Request: "rider distance is less 5km from both reqest location and donor location"
+        
+        for (com.vitaflow.entities.BloodRequest req : acceptedRequests) {
+            if (req.getOrdinate() == null || req.getPickupOrdinate() == null) {
+                continue; // Skip if locations are missing
+            }
+
+            // Calc distance Rider -> Hospital
+            double distToHospital = googleDistanceService.calculateDistance(
+                riderLocation.getLatitude(), riderLocation.getLongitude(),
+                req.getOrdinate().getLatitude(), req.getOrdinate().getLongitude()
+            );
+
+            // Calc distance Rider -> Pickup (Donor)
+            double distToPickup = googleDistanceService.calculateDistance(
+                riderLocation.getLatitude(), riderLocation.getLongitude(),
+                req.getPickupOrdinate().getLatitude(), req.getPickupOrdinate().getLongitude()
+            );
+            
+            if (distToHospital <= 5.0 && distToPickup <= 5.0) {
+                 // FILTER: Only show if NO RIDER is assigned yet
+                 if (req.getRiderId() == null) {
+                     // Populate hospital name before adding
+                     if (req.getHospitalId() != null) {
+                        doctorRepository.findById(req.getHospitalId()).ifPresent(doctor -> {
+                            req.setHospitalName(doctor.getHospitalName());
+                        });
+                     }
+                     nearbyRequests.add(req);
+                 }
+            }
+        }
+        
+        return nearbyRequests;
+    }
+
     private boolean isCompatible(String donorGroup, String requestGroup) {
         // Simple compatibility logic (can be expanded)
         // For now, let's assume exact match or universal donor logic if simple.
@@ -134,19 +188,6 @@ public class MatchingService {
         
         // Exact match is always compatible
         if (donorGroup.equalsIgnoreCase(requestGroup)) return true;
-        
-        // O- can give to anyone
-        if (donorGroup.equalsIgnoreCase("O-")) return true;
-        
-        // O+ can give to O+, A+, B+, AB+
-        if (donorGroup.equalsIgnoreCase("O+") && (requestGroup.contains("+"))) return true;
-        
-        // A- can give to A-, A+, AB-, AB+
-        if (donorGroup.equalsIgnoreCase("A-") && (requestGroup.startsWith("A"))) return true; // A+, A-, AB+, AB- logic slightly more complex strings. 
-        
-        // Let's stick to Exact Match + O- for safety in this iteration unless specified. 
-        // User said "match him like with blood group".
-        // Let's do exact match + compatible logic.
         
         return canDonate(donorGroup, requestGroup);
     }
