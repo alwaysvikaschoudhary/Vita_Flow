@@ -161,6 +161,10 @@ public class BloodRequestController {
             BloodRequest request = requestService.getRequestById(requestId);
             if (request == null) return ResponseEntity.badRequest().body(Map.of("error", "Request not found"));
 
+            if ("PICKED_UP".equals(request.getStatus())) {
+                 return ResponseEntity.ok(Map.of("message", "Request is already picked up", "request", request));
+            }
+
             if (request.getOtp() != null && request.getOtp().equals(otp)) {
                 request.setStatus("PICKED_UP");
                 BloodRequest updatedRequest = requestService.createRequest(request);

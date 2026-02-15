@@ -68,6 +68,10 @@ class _PickupVerificationScreenState extends State<PickupVerificationScreen> {
     String status = data['status'] ?? "PENDING";
     if (status == "RIDER_ASSIGNED" || status == "ON_THE_WAY") {
       _isPickupStarted = true;
+    } else if (status == "PICKED_UP") {
+      _isPickupStarted = true;
+      _currentPhase = DeliveryPhase.toDoctor;
+      _address = data['hospitalName'] ?? "Hospital";
     }
 
     // Parse Coordinates
