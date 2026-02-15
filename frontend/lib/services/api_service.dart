@@ -6,7 +6,9 @@ import 'package:vita_flow/config.dart';
 class ApiService {
   // Use 10.0.2.2 for Android Emulator, localhost for iOS Simulator
   // static const String baseUrl = "http://10.0.2.2:8080"; 
-  static const String baseUrl = Config.baseUrl; 
+  // static const String baseUrl = Config.baseUrl; 
+  // static const String baseUrl = Config.baseUrl; 
+  static const String baseUrl = "http://10.22.1.1:8081"; // Updated for new network interface 
 
   static Future<Map<String, dynamic>> login(String email, String password) async {
     final url = Uri.parse("$baseUrl/user/login");

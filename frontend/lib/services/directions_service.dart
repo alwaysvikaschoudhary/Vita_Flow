@@ -6,7 +6,8 @@ import 'package:vita_flow/config.dart'; // Ensure you have Config for API keys
 
 class DirectionsService {
   // Key from AndroidManifest.xml
-  static const String _apiKey = "";
+  // Key from Config (Update in lib/config.dart)
+  static const String _apiKey = Config.googleApiKey;
 
   static Future<List<LatLng>> getPolylineCoordinates(LatLng origin, LatLng destination) async {
     List<LatLng> polylineCoordinates = [];
@@ -19,21 +20,30 @@ class DirectionsService {
     // I will assume for now we might need to hardcode or get from config.
     // Let's rely on the package to help or just raw HTTP request if package fails.
     
-    PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
-      googleApiKey: _apiKey,
-      request: PolylineRequest(
-        origin: PointLatLng(origin.latitude, origin.longitude),
-        destination: PointLatLng(destination.latitude, destination.longitude),
-        mode: TravelMode.driving,
-      ),
-    );
+    try {
+      PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
+        googleApiKey: _apiKey,
+        request: PolylineRequest(
+          origin: PointLatLng(origin.latitude, origin.longitude),
+          destination: PointLatLng(destination.latitude, destination.longitude),
+          mode: TravelMode.driving,
+        ),
+      );
 
-    if (result.points.isNotEmpty) {
-      for (var point in result.points) {
-        polylineCoordinates.add(LatLng(point.latitude, point.longitude));
+      if (result.points.isNotEmpty) {
+        for (var point in result.points) {
+          polylineCoordinates.add(LatLng(point.latitude, point.longitude));
+        }
+      } else {
+        print("Directions API FAILED. Status: ${result.status}, Error: ${result.errorMessage}");
+        print("Using Key: $_apiKey"); // Debugging: Check if key is correct
+        throw Exception(result.errorMessage); 
       }
-    } else {
-      print("Directions API Error: ${result.errorMessage}");
+    } catch (e) {
+      print("EXCEPTION fetching directions: $e");
+      // Fallback: Return a straight line
+      polylineCoordinates.add(origin);
+      polylineCoordinates.add(destination);
     }
     
     return polylineCoordinates;

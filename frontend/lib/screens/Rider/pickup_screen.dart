@@ -6,7 +6,7 @@ import 'package:vita_flow/services/location_service.dart';
 import 'package:vita_flow/services/directions_service.dart';
 import 'package:vita_flow/services/api_service.dart';
 import 'package:url_launcher/url_launcher.dart';
-
+import 'package:vita_flow/screens/Rider/full_screen_map.dart';
 enum DeliveryPhase { toDonor, toDoctor }
 
 class PickupVerificationScreen extends StatefulWidget {
@@ -164,8 +164,8 @@ class _PickupVerificationScreenState extends State<PickupVerificationScreen> {
           Polyline(
             polylineId: const PolylineId("route"),
             points: points,
-            color: Colors.blue,
-            width: 5,
+            color: Colors.blue, // Google Maps Blue-ish
+            width: 6,
           ),
         };
         _updateMarkers();
@@ -422,17 +422,40 @@ class _PickupVerificationScreenState extends State<PickupVerificationScreen> {
         borderRadius: BorderRadius.circular(18),
         child: _riderLocation == null 
           ? const Center(child: CircularProgressIndicator())
-          : GoogleMap(
-              initialCameraPosition: CameraPosition(
-                target: _riderLocation!,
-                zoom: 14,
+          : GestureDetector(
+            onTap: () {
+               if (_riderLocation != null) {
+                 Navigator.push(
+                   context,
+                   MaterialPageRoute(
+                     builder: (_) => FullScreenMapScreen(
+                       initialLocation: _riderLocation!,
+                       destinationLocation: _currentPhase == DeliveryPhase.toDonor ? _donorLocation : _doctorLocation,
+                       markers: _markers,
+                       polylines: _polylines,
+                     ),
+                   ),
+                 );
+               }
+            },
+            child: AbsorbPointer( // Disable interaction on mini-map
+              child: GoogleMap(
+                initialCameraPosition: CameraPosition(
+                  target: _riderLocation!,
+                  zoom: 14,
+                ),
+                markers: _markers,
+                polylines: _polylines,
+                onMapCreated: (controller) => _controller.complete(controller),
+                myLocationEnabled: true,
+                myLocationButtonEnabled: true,
+                zoomGesturesEnabled: false,
+                scrollGesturesEnabled: false,
+                tiltGesturesEnabled: false,
+                rotateGesturesEnabled: false,
               ),
-              markers: _markers,
-              polylines: _polylines,
-              onMapCreated: (controller) => _controller.complete(controller),
-              myLocationEnabled: true,
-              myLocationButtonEnabled: true,
             ),
+          ),
       ),
     );
   }
