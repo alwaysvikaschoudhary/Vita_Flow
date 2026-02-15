@@ -255,7 +255,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                   children: [
                     Flexible(
                       child: Text(
-                        "Request #${req['requestId']?.toString().substring(0, 6) ?? '...'}",
+                        "Status : ",
                         style: const TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w700,
@@ -294,18 +294,55 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                req['time'] ?? "--:--",
-                style: const TextStyle(color: Colors.black54, fontWeight: FontWeight.bold),
-              ),
-              Text(
-                req['date'] ?? "",
-                style: const TextStyle(color: Colors.grey, fontSize: 12),
+                _timeAgo(req['date'], req['time']),
+                style: const TextStyle(color: Colors.black54, fontWeight: FontWeight.bold, fontSize: 13),
               ),
             ],
           ),
         ],
       ),
     );
+  }
+
+  String _timeAgo(String? dateStr, String? timeStr) {
+    if (dateStr == null || timeStr == null) return "Just now";
+    try {
+      final now = DateTime.now();
+      final dateParts = dateStr.split('-');
+      final timeParts = timeStr.split(':');
+
+      if (dateParts.length == 3 && timeParts.length >= 2) {
+        final year = int.parse(dateParts[0]);
+        final month = int.parse(dateParts[1]);
+        final day = int.parse(dateParts[2]);
+        final hour = int.parse(timeParts[0]);
+        final minute = int.parse(timeParts[1]);
+        final dt = DateTime(year, month, day, hour, minute);
+
+        final diff = now.difference(dt);
+
+        if (diff.inDays >= 365) {
+          return "${(diff.inDays / 365).floor()} years ago";
+        } else if (diff.inDays >= 30) {
+          return "${(diff.inDays / 30).floor()} months ago";
+        } else if (diff.inDays > 0) {
+          return "${diff.inDays} ${diff.inDays == 1 ? 'day' : 'days'} ago";
+        } else if (diff.inHours > 0) {
+          final mins = diff.inMinutes % 60;
+          if (mins > 0) {
+             return "${diff.inHours} h $mins min ago";
+          }
+          return "${diff.inHours} ${diff.inHours == 1 ? 'hour' : 'hours'} ago";
+        } else if (diff.inMinutes > 0) {
+          return "${diff.inMinutes} min ago";
+        } else {
+          return "Just now";
+        }
+      }
+      return "Recently";
+    } catch (e) {
+      return "Recently";
+    }
   }
 
   // -----------------------------------------

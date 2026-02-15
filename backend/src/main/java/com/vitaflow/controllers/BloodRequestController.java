@@ -75,4 +75,23 @@ public class BloodRequestController {
          List<BloodRequest> nearby = matchingService.findNearbyRequests(donor.getBloodGroup(), donor.getOrdinate());
          return ResponseEntity.ok(nearby);
     }
+    @PostMapping("/accept/{requestId}")
+    public ResponseEntity<?> acceptRequest(@PathVariable String requestId, @RequestParam String donorId) {
+        try {
+            BloodRequest acceptedRequest = requestService.acceptRequest(requestId, donorId);
+            return ResponseEntity.ok(acceptedRequest);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/{requestId}")
+    public ResponseEntity<?> getRequestById(@PathVariable String requestId) {
+        BloodRequest request = requestService.getRequestById(requestId);
+        if (request != null) {
+            return ResponseEntity.ok(request);
+        } else {
+             return ResponseEntity.notFound().build();
+        }
+    }
 }

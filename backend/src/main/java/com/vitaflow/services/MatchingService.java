@@ -15,6 +15,9 @@ import java.util.stream.Collectors;
 public class MatchingService {
 
     @Autowired
+    private com.vitaflow.repositories.DoctorRepository doctorRepository;
+
+    @Autowired
     private DonorRepository donorRepository;
 
     @Autowired
@@ -100,7 +103,25 @@ public class MatchingService {
         // 6. Sort by distance
         requestDistances.sort(Comparator.comparingDouble(RequestDistance::getDistance));
         
-        return requestDistances.stream().map(RequestDistance::getRequest).collect(Collectors.toList());
+        List<com.vitaflow.entities.BloodRequest> result = requestDistances.stream()
+                .map(RequestDistance::getRequest)
+                .collect(Collectors.toList());
+
+        // 7. Populate Hospital Name (which is stored in Doctor entity)
+        for (com.vitaflow.entities.BloodRequest req : result) {
+            if (req.getHospitalId() != null) {
+                // hospitalId in BloodRequest actually stores the Doctor's userId
+                try {
+                    doctorRepository.findById(req.getHospitalId()).ifPresent(doctor -> {
+                        req.setHospitalName(doctor.getHospitalName());
+                    });
+                } catch (Exception e) {
+                    System.out.println("Error fetching doctor for hospitalId: " + req.getHospitalId() + " - " + e.getMessage());
+                }
+            }
+        }
+        
+        return result;
     }
 
     private boolean isCompatible(String donorGroup, String requestGroup) {

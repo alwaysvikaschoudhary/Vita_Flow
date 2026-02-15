@@ -125,5 +125,33 @@ class ApiService {
       throw Exception("Error connecting to server: $e");
     }
   }
+
+  static Future<Map<String, dynamic>> acceptRequest(String requestId, String donorId) async {
+    final url = Uri.parse("$baseUrl/request/accept/$requestId?donorId=$donorId");
+    try {
+      final response = await http.post(url);
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception("Failed to accept request: ${response.body}");
+      }
+    } catch (e) {
+      throw Exception("Error connecting to server: $e");
+    }
+  }
+
+  static Future<Map<String, dynamic>> getRequestById(String requestId) async {
+    final url = Uri.parse("$baseUrl/request/$requestId");
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception("Failed to load request: ${response.body}");
+      }
+    } catch (e) {
+      throw Exception("Error connecting to server: $e");
+    }
+  }
 }
 

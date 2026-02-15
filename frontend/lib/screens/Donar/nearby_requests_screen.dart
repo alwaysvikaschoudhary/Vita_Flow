@@ -1,8 +1,50 @@
 import 'package:flutter/material.dart';
+import 'package:vita_flow/services/api_service.dart';
 import 'donation_progress_screen.dart';
 
-class NearbyRequestsScreen extends StatelessWidget {
-  const NearbyRequestsScreen({super.key});
+class NearbyRequestsScreen extends StatefulWidget {
+  final String userId;
+  const NearbyRequestsScreen({super.key, required this.userId});
+
+  @override
+  State<NearbyRequestsScreen> createState() => _NearbyRequestsScreenState();
+}
+
+class _NearbyRequestsScreenState extends State<NearbyRequestsScreen> {
+  List<dynamic> _requests = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchRequests();
+  }
+
+  Future<void> _fetchRequests() async {
+    try {
+      final data = await ApiService.getNearbyRequests(widget.userId);
+      if (mounted) {
+        setState(() {
+          _requests = data;
+          // Sort: High/Critical first
+          _requests.sort((a, b) {
+            int priority(String? u) {
+              final lower = u?.toLowerCase().trim() ?? "";
+              if (lower == 'high' || lower == 'critical') return 0;
+              return 1;
+            }
+            return priority(a['urgency']).compareTo(priority(b['urgency']));
+          });
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      print("Error fetching nearby requests: $e");
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,75 +71,99 @@ class NearbyRequestsScreen extends StatelessWidget {
               ),
             ),
 
-            // FILTER
-            Container(
-              margin: const EdgeInsets.only(left: 10, right: 10, bottom: 10),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Row(
-                children: const [
-                  Icon(Icons.filter_list, size: 22),
-                  SizedBox(width: 8),
-                  Text("Filter by blood type & distance"),
-                ],
-              ),
-            ),
-
             // BODY SCROLL
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(15),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child: Image.asset(
-                        "assets/images/map_demo.png",
-                        height: 220,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                      ),
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : RefreshIndicator(
+                      onRefresh: _fetchRequests,
+                      child: _requests.isEmpty
+                          ? ListView(
+                              children: const [
+                                SizedBox(height: 50),
+                                Center(child: Text("No nearby requests found.")),
+                              ],
+                            )
+                          : ListView.builder(
+                              padding: const EdgeInsets.all(15),
+                              itemCount: _requests.length,
+                              itemBuilder: (context, index) {
+                                final req = _requests[index];
+                                return Column(
+                                  children: [
+                                    _requestCard(
+                                      context: context,
+                                      title: req['doctorName'] != null
+                                          ? "${req['hospitalName']} (${req['doctorName']})"
+                                          : (req['hospitalName'] ?? "Unknown Hospital"),
+                                      distance: "Nearby",
+                                      urgency: req['urgency'] ?? "Normal",
+                                      urgencyColor: _getUrgencyColor(req['urgency']),
+                                      bloodType: req['bloodGroup'] ?? "?",
+                                      units: "${req['units']} units",
+                                      time: _timeAgo(req['date'], req['time']),
+                                      requestId: req['requestId'] ?? "", 
+                                    ),
+                                    const SizedBox(height: 10),
+                                  ],
+                                );
+                              },
+                            ),
                     ),
-
-                    const SizedBox(height: 10),
-
-                    // CARD 1
-                    _requestCard(
-                      context: context,
-                      title: "Gitanjali Hostel (Bhankrota)",
-                      distance: "1.2 km",
-                      urgency: "High",
-                      urgencyColor: Colors.red.shade100,
-                      bloodType: "O+",
-                      units: "2 units",
-                      time: "1 hour",
-                    ),
-
-                    const SizedBox(height: 10),
-
-                    // CARD 2
-                    _requestCard(
-                      context: context,
-                      title: "Balaji Soni Hospital",
-                      distance: "2.5 km",
-                      urgency: "Normal",
-                      urgencyColor: Colors.grey.shade300,
-                      bloodType: "AB-",
-                      units: "1 unit",
-                      time: "3 hours",
-                    ),
-                  ],
-                ),
-              ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  String _timeAgo(String? dateStr, String? timeStr) {
+    if (dateStr == null || timeStr == null) return "Just now";
+    try {
+      final now = DateTime.now();
+      final dateParts = dateStr.split('-');
+      final timeParts = timeStr.split(':');
+
+      if (dateParts.length == 3 && timeParts.length >= 2) {
+        final year = int.parse(dateParts[0]);
+        final month = int.parse(dateParts[1]);
+        final day = int.parse(dateParts[2]);
+        final hour = int.parse(timeParts[0]);
+        final minute = int.parse(timeParts[1]);
+        final dt = DateTime(year, month, day, hour, minute);
+
+        final diff = now.difference(dt);
+
+        if (diff.inDays >= 365) {
+          return "${(diff.inDays / 365).floor()} years ago";
+        } else if (diff.inDays >= 30) {
+          return "${(diff.inDays / 30).floor()} months ago";
+        } else if (diff.inDays > 0) {
+          return "${diff.inDays} ${diff.inDays == 1 ? 'day' : 'days'} ago";
+        } else if (diff.inHours > 0) {
+          final mins = diff.inMinutes % 60;
+          if (mins > 0) {
+             return "${diff.inHours} h $mins min ago";
+          }
+          return "${diff.inHours} ${diff.inHours == 1 ? 'hour' : 'hours'} ago";
+        } else if (diff.inMinutes > 0) {
+          return "${diff.inMinutes} min ago";
+        } else {
+          return "Just now";
+        }
+      }
+      return "Recently";
+    } catch (e) {
+      return "Recently";
+    }
+  }
+
+  Color _getUrgencyColor(String? urgency) {
+    final lower = urgency?.toLowerCase().trim() ?? "";
+    if (lower == 'high' || lower == 'critical') {
+      return Colors.red.shade100;
+    }
+    return Colors.grey.shade300;
   }
 
   // ------------------------------------------------------------------
@@ -112,6 +178,7 @@ class NearbyRequestsScreen extends StatelessWidget {
     required String bloodType,
     required String units,
     required String time,
+    required String requestId,
   }) {
     return Container(
       padding: const EdgeInsets.all(10),
@@ -188,7 +255,7 @@ class NearbyRequestsScreen extends StatelessWidget {
               ),
               onPressed: () {
                 final nestedNavigator = Navigator.of(context);
-                showEligibilityPopup(context, nestedNavigator);
+                showEligibilityPopup(context, nestedNavigator, requestId);
               },
               child: const Text(
                 "Accept Request",
@@ -228,88 +295,112 @@ class NearbyRequestsScreen extends StatelessWidget {
   void showEligibilityPopup(
     BuildContext context,
     NavigatorState nestedNavigator,
+    String requestId,
   ) {
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (popupCtx) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  children: const [
-                    Icon(Icons.check_circle, color: Colors.green, size: 28),
-                    SizedBox(width: 8),
-                    Text(
-                      "You're Eligible!",
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+        bool isLoading = false;
+        
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: const [
+                        Icon(Icons.check_circle, color: Colors.green, size: 28),
+                        SizedBox(width: 8),
+                        Text(
+                          "You're Eligible!",
+                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+                        ),
+                        Spacer(),
+                      ],
                     ),
-                    Spacer(),
-                  ],
-                ),
 
-                const SizedBox(height: 10),
+                    const SizedBox(height: 10),
 
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Color(0xFFE8F8E8),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Text(
-                    "All eligibility requirements passed. You can proceed with this donation request.",
-                    style: TextStyle(fontSize: 15),
-                  ),
-                ),
-
-                const SizedBox(height: 10),
-
-                const _eligibilityItem("Age & weight requirements met", true),
-                const _eligibilityItem("Cooling period complete", true),
-                const _eligibilityItem("Health declaration verified", true),
-                const _eligibilityItem("Blood type proof verified", true),
-
-                const SizedBox(height: 20),
-
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFFE0463A),
-                      shape: RoundedRectangleBorder(
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE8F8E8),
                         borderRadius: BorderRadius.circular(12),
                       ),
+                      child: const Text(
+                        "All eligibility requirements passed. You can proceed with this donation request.",
+                        style: TextStyle(fontSize: 15),
+                      ),
                     ),
-                    onPressed: () {
-                      Navigator.pop(popupCtx); // close popup
 
-                      nestedNavigator.push(
-                        MaterialPageRoute(
-                          builder: (_) => const DonationProgressScreen(),
+                    const SizedBox(height: 10),
+
+                    const _eligibilityItem("Age & weight requirements met", true),
+                    const _eligibilityItem("Cooling period complete", true),
+                    const _eligibilityItem("Health declaration verified", true),
+                    const _eligibilityItem("Blood type proof verified", true),
+
+                    const SizedBox(height: 20),
+
+                    if (isLoading)
+                      const CircularProgressIndicator()
+                    else
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFE0463A),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          onPressed: () async {
+                            setState(() => isLoading = true);
+                            try {
+                              final acceptedReq = await ApiService.acceptRequest(requestId, widget.userId);
+                              if (context.mounted) {
+                                Navigator.pop(popupCtx); // close popup
+                                // Close Nearby Screen as well? No, just navigate forward.
+                                nestedNavigator.push(
+                                  MaterialPageRoute(
+                                    builder: (_) => DonationProgressScreen(requestData: acceptedReq),
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              if (context.mounted) {
+                                setState(() => isLoading = false);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text("Error: $e")),
+                                );
+                              }
+                            }
+                          },
+                          child: const Text(
+                            "Confirm",
+                            style: TextStyle(color: Colors.white),
+                          ),
                         ),
-                      );
-                    },
-                    child: const Text(
-                      "Confirm",
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
+                      ),
+                      
+                    if (!isLoading)
+                      TextButton(
+                        onPressed: () => Navigator.pop(popupCtx),
+                        child: const Text("Cancel"),
+                      ),
+                  ],
                 ),
-
-                TextButton(
-                  onPressed: () => Navigator.pop(popupCtx),
-                  child: const Text("Cancel"),
-                ),
-              ],
-            ),
-          ),
+              ),
+            );
+          }
         );
       },
     );

@@ -37,4 +37,9 @@ public class BloodRequest {
 
     private Ordinate ordinate;
 
+    @Transient
+    private String hospitalName;
+
+    private String otp;
+
 }

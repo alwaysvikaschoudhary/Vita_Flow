@@ -388,100 +388,131 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 const SizedBox(height: 15),
 
-                // ------------------------
-                // URGENT REQUESTS
-                // ------------------------
-                if (_isLoading)
-                   const Center(child: CircularProgressIndicator())
-                else if (_nearbyRequests.isEmpty)
-                   Container(
+              // ------------------------
+              // URGENT / BLOOD REQUESTS
+              // ------------------------
+              Builder(
+                builder: (context) {
+                  if (_isLoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  
+                  if (_nearbyRequests.isEmpty) {
+                    return Container(
                       margin: const EdgeInsets.symmetric(horizontal: 10),
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
                         color: Colors.grey.shade200,
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: const Center(child: Text("No urgent requests nearby")),
-                   )
-                else
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => NearbyRequestsScreen()),
+                      child: const Center(child: Text("No blood requests nearby")),
                     );
-                  },
-                  child: Container(
-                    margin: const EdgeInsets.only(left: 10, right: 10),
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE0463A),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(Icons.location_on, color: Colors.white),
-                            SizedBox(width: 12),
-                            Text(
-                              "Urgent Requests",
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                            ),
-                            SizedBox(width: 8),
-                            CircleAvatar(
-                              radius: 10,
-                              backgroundColor: Colors.white,
-                              child: Text(
-                                "${_nearbyRequests.length}",
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.black,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          "Blood needed within 5 km",
-                          style: TextStyle(color: Colors.white),
-                        ),
-                        SizedBox(height: 12),
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            children: _nearbyRequests.take(5).map((req) {
-                              return _bloodChip(req['bloodGroup'] ?? "?");
-                            }).toList(),
+                  }
+
+                  // Check if any request is Urgent
+                  print("DEBUG: Nearby Requests Data: $_nearbyRequests");
+                  final hasUrgent = _nearbyRequests.any((req) {
+                    final u = (req['urgency'] ?? '').toString().trim().toLowerCase();
+                    return u == 'high' || u == 'critical';
+                  });
+
+                  // Define styles based on urgency
+                  final cardColor = hasUrgent ? const Color(0xFFE0463A) : const Color(0xFFFFF5D6); // Red or Yellow
+                  final textColor = hasUrgent ? Colors.white : Colors.black;
+                  final titleText = hasUrgent ? "Urgent Requests" : "Blood Requests";
+                  final subTitleText = hasUrgent ? "Blood needed within 5 km" : "Requests nearby";
+                  final iconColor = hasUrgent ? Colors.white : Colors.orange;
+
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => NearbyRequestsScreen(
+                            userId: widget.currentUser['userId'],
                           ),
                         ),
-                      ],
+                      );
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.only(left: 10, right: 10),
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: cardColor,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.location_on, color: iconColor),
+                              SizedBox(width: 12),
+                              Text(
+                                titleText,
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                  color: textColor,
+                                ),
+                              ),
+                              SizedBox(width: 8),
+                              CircleAvatar(
+                                radius: 10,
+                                backgroundColor: hasUrgent ? Colors.white : Colors.orange,
+                                child: Text(
+                                  "${_nearbyRequests.length}",
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: hasUrgent ? Colors.black : Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            subTitleText,
+                            style: TextStyle(color: textColor),
+                          ),
+                          SizedBox(height: 12),
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: _nearbyRequests.take(5).map((req) {
+                                return _bloodChip(req['bloodGroup'] ?? "?", hasUrgent);
+                              }).toList(),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ),
-              ],
-            ),
+                  );
+                },
+              ),
+            ],
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
-  static Widget _bloodChip(String text) {
+  static Widget _bloodChip(String text, bool isUrgent) {
     return Container(
       margin: const EdgeInsets.only(right: 8),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.white24,
+        color: isUrgent ? Colors.white24 : Colors.orange.shade100,
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Text(text, style: const TextStyle(color: Colors.white)),
+      child: Text(
+        text, 
+        style: TextStyle(
+          color: isUrgent ? Colors.white : Colors.black,
+          fontWeight: FontWeight.bold
+        )
+      ),
     );
   }
 }
