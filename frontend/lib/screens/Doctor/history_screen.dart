@@ -36,8 +36,8 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
       final requests = await ApiService.getRequestsByHospital(widget.currentUser['userId']);
       if (mounted) {
         setState(() {
-          // Sort reverse to show newest first
-          _requests = requests.reversed.toList();
+          // Sort by date and time descending (Newest first)
+          _requests = requests..sort(_compareRequests);
           _isLoading = false;
         });
       }
@@ -46,6 +46,25 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
       if (mounted) {
         setState(() => _isLoading = false);
       }
+    }
+  }
+
+  int _compareRequests(dynamic a, dynamic b) {
+    try {
+      final String dateA = a['date'] ?? '1970-01-01';
+      final String timeA = a['time'] ?? '00:00';
+      final String dateB = b['date'] ?? '1970-01-01';
+      final String timeB = b['time'] ?? '00:00';
+      
+      final dtA = DateTime.parse("$dateA $timeA"); // Expects yyyy-MM-dd HH:mm
+      final dtB = DateTime.parse("$dateB $timeB");
+      
+      return dtB.compareTo(dtA);
+    } catch (e) {
+      // Fallback to string comparison if parse fails
+      final String dtA = "${a['date']} ${a['time']}";
+      final String dtB = "${b['date']} ${b['time']}";
+      return dtB.compareTo(dtA);
     }
   }
 
@@ -128,12 +147,12 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
                 // TOP METRICS ROW
                 // -------------------------
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _metricCard("$totalRequests", "Total Requests", Icons.show_chart, Colors.blue.shade100),
-                    _metricCard("$fulfillmentRate%", "Fulfillment", Icons.emoji_events, Colors.green.shade100),
-                    // Avg Time is tricky without complex date diffs, keeping static for now or maybe "Pending" count?
-                    _metricCard("${_requests.where((r) => r['status']=='PENDING').length}", "Pending", Icons.access_time, Colors.purple.shade100),
+                    Expanded(child: _metricCard("$totalRequests", "Total Requests", Icons.show_chart, Colors.blue.shade50, Colors.blue)),
+                    const SizedBox(width: 12),
+                    Expanded(child: _metricCard("$fulfillmentRate%", "Fulfillment", Icons.emoji_events, Colors.green.shade50, Colors.green)),
+                    const SizedBox(width: 12),
+                    Expanded(child: _metricCard("${_requests.where((r) => r['status']=='PENDING').length}", "Action Needed", Icons.assignment_late, Colors.orange.shade50, Colors.orange)),
                   ],
                 ),
 
@@ -346,23 +365,50 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
   // ----------------------------------------------------
   // METRIC CARD
   // ----------------------------------------------------
-  Widget _metricCard(String value, String label, IconData icon, Color bg) {
+  Widget _metricCard(String value, String label, IconData icon, Color bg, Color iconColor) {
     return Container(
-      width: 110,
-      padding: const EdgeInsets.only(top: 13, bottom: 13),
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
       decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(16),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.08),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
       ),
       child: Column(
         children: [
-          Icon(icon, size: 26),
-          const SizedBox(height: 6),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: bg,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, size: 24, color: iconColor),
+          ),
+          const SizedBox(height: 12),
           Text(
             value,
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            style: const TextStyle(
+              fontSize: 20, 
+              fontWeight: FontWeight.w800,
+              color: Colors.black87
+            ),
           ),
-          Text(label, style: const TextStyle(fontSize: 15 ,color: Colors.black54)),
+          const SizedBox(height: 4),
+          Text(
+            label, 
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey[500],
+              height: 1.2
+            )
+          ),
         ],
       ),
     );
