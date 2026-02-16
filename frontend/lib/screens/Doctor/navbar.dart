@@ -27,8 +27,8 @@ class _DoctorNavBarState extends State<DoctorNavBar> {
         index: selectedIndex,
         children: [
           _buildNav(homeKey, DoctorHomeScreen(currentUser: widget.currentUser)),
-          _buildNav(requestKey, const DoctorRequestsScreen()),
-          _buildNav(historyKey, const DoctorHistoryScreen()),
+          _buildNav(requestKey, DoctorRequestsScreen(currentUser: widget.currentUser)),
+          _buildNav(historyKey, DoctorHistoryScreen(currentUser: widget.currentUser)),
           _buildNav(profileKey, DoctorProfileScreen(currentUser: widget.currentUser)),
         ],
       ),

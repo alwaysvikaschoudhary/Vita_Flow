@@ -1,3 +1,4 @@
+import 'package:vita_flow/services/api_service.dart';
 import 'package:vita_flow/screens/role_select.dart';
 import 'package:vita_flow/screens/login_screen.dart';
 import 'package:flutter/material.dart';
@@ -24,210 +25,237 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
     user = widget.currentUser;
   }
 
+  Future<void> _fetchProfile() async {
+    try {
+      final updatedUser = await ApiService.getDoctorById(widget.currentUser['userId']); // Assuming userId is key
+      // Or if userId is not in map, might need to pass it differently. 
+      // But typically currentUser map has it. 
+      // Let's verify what currentUser has. It usually has "id" or "userId".
+      // Based on previous code: widget.currentUser['userId'] was used in HomeScreen.
+      
+      if (mounted) {
+        setState(() {
+          user = updatedUser;
+        });
+      }
+    } catch (e) {
+      print("Error fetching profile: $e");
+      if (mounted) {
+         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Failed to refresh profile")));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF1F2F6),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ------------------------------
-              // PAGE HEADER
-              // ------------------------------
-              const Text(
-                "Hospital Profile",
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 10),
-
-              // ------------------------------
-              // HOSPITAL TITLE CARD
-              // ------------------------------
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
-                  borderRadius: BorderRadius.circular(20),
+        child: RefreshIndicator(
+          onRefresh: _fetchProfile,
+          color: const Color(0xFFE0463A),
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ------------------------------
+                // PAGE HEADER
+                // ------------------------------
+                const Text(
+                  "Hospital Profile",
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
                 ),
-                child: Column(
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Icon
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.blue,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: const Icon(
-                            Icons.local_hospital,
-                            color: Colors.white,
-                            size: 35,
-                          ),
-                        ),
+                const SizedBox(height: 10),
 
-                        const SizedBox(width: 10),
+                // ------------------------------
+                // HOSPITAL TITLE CARD
+                // ------------------------------
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Icon
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.blue,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: const Icon(
+                              Icons.local_hospital,
+                              color: Colors.white,
+                              size: 35,
+                            ),
+                          ),
 
-                        // Hospital name + dept
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          const SizedBox(width: 10),
+
+                          // Hospital name + dept
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  user['name'] ?? "Unknown Name",
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  user['specialization'] ?? "General",
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    color: Colors.black54,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // Edit button
+                          GestureDetector(
+                            onTap: () async {
+                              // If edit screen returns updated user, we update state. 
+                              // But now we can also just fetch again if needed.
+                                final updated = await Navigator.push(
+                                  context, 
+                                  MaterialPageRoute(builder: (_) => EditDoctorProfileScreen(currentUser: user)),
+                                );
+                                if (updated != null) {
+                                  setState(() {
+                                    user = updated;
+                                  });
+                                }
+                            },
+                            child: CircleAvatar(
+                              backgroundColor: Colors.white,
+                              child: Icon(Icons.edit, color: Colors.black),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 10),
+
+                      // Stats row
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          _statsBox(user['experience'] ?? "--", "Experience"),
+                          _statsBox(user['gender'] ?? "--", "Gender"),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 10),
+
+                // ------------------------------
+                // VERIFICATION STATUS
+                // ------------------------------
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Builder(
+                    builder: (context) {
+                      double percentage = _calculateCompletion();
+                      int percentInt = (percentage * 100).toInt();
+                      bool isComplete = percentage == 1.0;
+                      
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "Verification Status",
+                            style: TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                          const SizedBox(height: 6),
+                          Row(
                             children: [
+                              Text("$percentInt%", style: TextStyle(color: _getColor(percentage))),
+                              const Spacer(),
                               Text(
-                                user['name'] ?? "Unknown Name",
-                                style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                user['specialization'] ?? "General",
-                                style: const TextStyle(
-                                  fontSize: 15,
-                                  color: Colors.black54,
-                                ),
+                                isComplete ? "Complete" : "Incomplete", 
+                                style: TextStyle(color: isComplete ? Colors.green : Colors.red),
                               ),
                             ],
                           ),
-                        ),
-
-                        // Edit button
-                        GestureDetector(
-                          onTap: () async {
-                              final updated = await Navigator.push(
-                                context, 
-                                MaterialPageRoute(builder: (_) => EditDoctorProfileScreen(currentUser: user)),
-                              );
-                              if (updated != null) {
-                                setState(() {
-                                  user = updated;
-                                });
-                              }
-                          },
-                          child: CircleAvatar(
-                            backgroundColor: Colors.white,
-                            child: Icon(Icons.edit, color: Colors.black),
+                          const SizedBox(height: 6),
+                          LinearProgressIndicator(
+                            value: percentage,
+                            color: _getColor(percentage),
+                            backgroundColor: Colors.grey.shade300,
                           ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 10),
-
-                    // Stats row
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        _statsBox(user['experience'] ?? "--", "Experience"),
-                        _statsBox(user['gender'] ?? "--", "Gender"),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 10),
-
-              // ------------------------------
-              // VERIFICATION STATUS
-              // ------------------------------
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Builder(
-                  builder: (context) {
-                    double percentage = _calculateCompletion();
-                    int percentInt = (percentage * 100).toInt();
-                    bool isComplete = percentage == 1.0;
-                    
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          "Verification Status",
-                          style: TextStyle(fontWeight: FontWeight.w600),
-                        ),
-                        const SizedBox(height: 6),
-                        Row(
-                          children: [
-                            Text("$percentInt%", style: TextStyle(color: _getColor(percentage))),
-                            const Spacer(),
-                            Text(
-                              isComplete ? "Complete" : "Incomplete", 
-                              style: TextStyle(color: isComplete ? Colors.green : Colors.red),
+                          if (!isComplete) ...[
+                            const SizedBox(height: 10),
+                             const Text(
+                              "⚠ Complete your profile to get faster verification",
+                              style: TextStyle(color: Color.fromARGB(255, 65, 63, 63)),
                             ),
-                          ],
-                        ),
-                        const SizedBox(height: 6),
-                        LinearProgressIndicator(
-                          value: percentage,
-                          color: _getColor(percentage),
-                          backgroundColor: Colors.grey.shade300,
-                        ),
-                        if (!isComplete) ...[
-                          const SizedBox(height: 10),
-                           const Text(
-                            "⚠ Complete your profile to get faster verification",
-                            style: TextStyle(color: Color.fromARGB(255, 65, 63, 63)),
-                          ),
-                        ]
-                      ],
-                    );
-                  }
-                ),
-              ),
-
-              const SizedBox(height: 10),
-
-              // ------------------------------
-              // HOSPITAL INFO CARD
-              // ------------------------------
-              _infoSection(
-                title: "Hospital Information",
-                children: [
-                  _infoItem(Icons.local_hospital, "Hospital Name", user['hospitalName'] ?? "--"),
-                  _infoItem(Icons.phone, "Contact", user['phoneNumber'] ?? "--"),
-                  _infoItem(Icons.email, "Email", user['email'] ?? "--"),
-                  _infoItem(Icons.location_on, "Address", user['address'] ?? "--"),
-                  Builder(
-                    builder: (context) {
-                      String lat = "0.0";
-                      String lng = "0.0";
-                      if (user['ordinate'] != null) {
-                        lat = (user['ordinate']['latitude'] ?? 0.0).toString();
-                        lng = (user['ordinate']['longitude'] ?? 0.0).toString();
-                      }
-                      return Column(
-                        children: [
-                          _infoItem(Icons.map, "Latitude", lat),
-                          _infoItem(Icons.map, "Longitude", lng),
+                          ]
                         ],
                       );
                     }
                   ),
-                  _infoItem(Icons.school, "Degree", user['degree'] ?? "--"),
-                  if (user['about'] != null) ...[
-                     const SizedBox(height: 10),
-                     const Text("About", style: TextStyle(color: Colors.black54)),
-                     Text(user['about'], style: const TextStyle(fontWeight: FontWeight.w500)),
-                  ]
-                ],
-              ),
+                ),
 
-              const SizedBox(height: 10),
+                const SizedBox(height: 10),
 
-              // ------------------------------
-              // NOTIFICATION SETTINGS
-              // ------------------------------
+                // ------------------------------
+                // HOSPITAL INFO CARD
+                // ------------------------------
+                _infoSection(
+                  title: "Hospital Information",
+                  children: [
+                    _infoItem(Icons.local_hospital, "Hospital Name", user['hospitalName'] ?? "--"),
+                    _infoItem(Icons.phone, "Contact", user['phoneNumber'] ?? "--"),
+                    _infoItem(Icons.email, "Email", user['email'] ?? "--"),
+                    _infoItem(Icons.location_on, "Address", user['address'] ?? "--"),
+                    Builder(
+                      builder: (context) {
+                        String lat = "0.0";
+                        String lng = "0.0";
+                        if (user['ordinate'] != null) {
+                          lat = (user['ordinate']['latitude'] ?? 0.0).toString();
+                          lng = (user['ordinate']['longitude'] ?? 0.0).toString();
+                        }
+                        return Column(
+                          children: [
+                            _infoItem(Icons.map, "Latitude", lat),
+                            _infoItem(Icons.map, "Longitude", lng),
+                          ],
+                        );
+                      }
+                    ),
+                    _infoItem(Icons.school, "Degree", user['degree'] ?? "--"),
+                    if (user['about'] != null) ...[
+                       const SizedBox(height: 10),
+                       const Text("About", style: TextStyle(color: Colors.black54)),
+                       Text(user['about'], style: const TextStyle(fontWeight: FontWeight.w500)),
+                    ]
+                  ],
+                ),
+
+                const SizedBox(height: 10),
+
+                // ------------------------------
+                // NOTIFICATION SETTINGS
+                // ------------------------------
 //               _infoSection(
 //                 title: "Notification Preferences",
 //                 children: [
@@ -240,55 +268,56 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
 //                 ],
 //               ),
 
-              const SizedBox(height: 10),
+                const SizedBox(height: 10),
 
-              Container(
-                alignment: Alignment.center,
-                padding: const EdgeInsets.symmetric(vertical: 20),
-                child: ElevatedButton.icon(
-                  icon: const Icon(Icons.logout, color: Colors.white),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
+                Container(
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.logout, color: Colors.white),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      elevation: 5,
                     ),
-                    elevation: 5,
-                  ),
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          title: const Text("Logout"),
-                          content: const Text("Are you sure you want to logout?"),
-                          actions: [
-                            TextButton(
-                              child: const Text("Cancel"),
-                              onPressed: () => Navigator.of(context).pop(),
-                            ),
-                            TextButton(
-                              child: const Text("Logout", style: TextStyle(color: Colors.red)),
-                              onPressed: () {
-                                Navigator.of(context).pop(); // Close dialog
-                                Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
-                                  MaterialPageRoute(builder: (_) => const Login()),
-                                  (route) => false,
-                                );
-                              },
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                  },
-                  label: const Text(
-                    "Logout",
-                    style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: const Text("Logout"),
+                            content: const Text("Are you sure you want to logout?"),
+                            actions: [
+                              TextButton(
+                                child: const Text("Cancel"),
+                                onPressed: () => Navigator.of(context).pop(),
+                              ),
+                              TextButton(
+                                child: const Text("Logout", style: TextStyle(color: Colors.red)),
+                                onPressed: () {
+                                  Navigator.of(context).pop(); // Close dialog
+                                  Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+                                    MaterialPageRoute(builder: (_) => const Login()),
+                                    (route) => false,
+                                  );
+                                },
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
+                    label: const Text(
+                      "Logout",
+                      style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

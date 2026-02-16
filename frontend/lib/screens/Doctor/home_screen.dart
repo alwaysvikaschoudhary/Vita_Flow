@@ -13,11 +13,23 @@ class DoctorHomeScreen extends StatefulWidget {
 class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
   List<dynamic> _requests = [];
   bool _isLoading = true;
+  
+  // Filters
+  String _selectedStatus = 'All';
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
     _fetchRequests();
+    // Removed listener for manual search trigger
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _fetchRequests() async {
@@ -38,167 +50,309 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
     }
   }
 
+  List<dynamic> _getFilteredRequests() {
+    final now = DateTime.now();
+    return _requests.where((req) {
+      // 1. Date Filter (Last 2 days)
+      bool withinTwoDays = false;
+      if (req['date'] != null) {
+        try {
+          // Assuming date is in YYYY-MM-DD format
+          // If time is also present, we might need to combine them, but usually date is enough for "2 days ago"
+           final parts = req['date'].toString().split('-');
+           if (parts.length == 3) {
+             final date = DateTime(int.parse(parts[0]), int.parse(parts[1]), int.parse(parts[2]));
+             final diff = now.difference(date).inDays;
+             if (diff <= 2) {
+               withinTwoDays = true;
+             }
+           }
+        } catch (e) {
+          // Relaxed filter for debugging: Includes requests with invalid dates
+          withinTwoDays = true; 
+        }
+      } else {
+        // Relaxed filter: Includes requests with no date
+        withinTwoDays = true; 
+      }
+      
+      // 2. Status Filter
+      String statusToCheck = req['status']?.toString().toUpperCase() ?? '';
+      bool statusMatches = false;
+      if (_selectedStatus == 'All') {
+        statusMatches = true;
+      } else if (_selectedStatus == 'Pickup') {
+        statusMatches = statusToCheck == 'PICKED_UP';
+      } else {
+        statusMatches = statusToCheck == _selectedStatus.toUpperCase();
+      }
+      
+      // 3. Search Filter (Blood Group)
+      bool searchMatches = true;
+      if (_searchQuery.isNotEmpty) {
+        final bg = req['bloodGroup']?.toString().toLowerCase() ?? '';
+        searchMatches = bg.contains(_searchQuery.toLowerCase());
+      }
+
+      return withinTwoDays && statusMatches && searchMatches;
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final filteredRequests = _getFilteredRequests();
+
     return Scaffold(
       backgroundColor: const Color(0xFFF1F2F6),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+        child: RefreshIndicator(
+          onRefresh: _fetchRequests,
+          color: const Color(0xFFE0463A),
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
 
-              // ----------------------------
-              // HEADER
-              // ----------------------------
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
+                // ----------------------------
+                // HEADER
+                // ----------------------------
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              widget.currentUser['hospitalName'] ?? "Hospital",
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            Text(
+                              "Dr. ${widget.currentUser['name']}",
+                              style: const TextStyle(
+                                fontSize: 15,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      CircleAvatar(
+                        radius: 25,
+                        backgroundColor: Colors.red.shade50,
+                        child: const Icon(Icons.notifications, color: Colors.red),
+                      )
+                    ],
+                  ),
                 ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+
+                const SizedBox(height: 10),
+
+                // ----------------------------
+                // STATS ROW (Keep showing total stats irrespective of filter, or filtered stats? Usually total)
+                // ----------------------------
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            widget.currentUser['hospitalName'] ?? "Hospital",
-                            style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          Text(
-                            "Dr. ${widget.currentUser['name']}",
-                            style: const TextStyle(
-                              fontSize: 15,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ],
+                    _statCard(Icons.monitor_heart, Colors.blue, "${_requests.where((r) => r['status'] == 'ACCEPTED').length}", "Active"),
+                    _statCard(Icons.access_time, Colors.orange, "${_requests.where((r) => r['status'] == 'PENDING').length}", "Pending"),
+                    _statCard(Icons.check_circle, Colors.green, "${_requests.where((r) => r['status'] == 'COMPLETED').length}", "Today"),
+                  ],
+                ),
+
+                const SizedBox(height: 10),
+
+                // ----------------------------
+                // CREATE NEW REQUEST BUTTON
+                // ----------------------------
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFE0463A),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
                       ),
                     ),
-
-                    CircleAvatar(
-                      radius: 25,
-                      backgroundColor: Colors.red.shade50,
-                      child: const Icon(Icons.notifications, color: Colors.red),
-                    )
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 10),
-
-              // ----------------------------
-              // STATS ROW
-              // ----------------------------
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _statCard(Icons.monitor_heart, Colors.blue, "${_requests.where((r) => r['status'] == 'ACCEPTED').length}", "Active"),
-                  _statCard(Icons.access_time, Colors.orange, "${_requests.where((r) => r['status'] == 'PENDING').length}", "Pending"),
-                  _statCard(Icons.check_circle, Colors.green, "${_requests.where((r) => r['status'] == 'COMPLETED').length}", "Today"),
-                ],
-              ),
-
-              const SizedBox(height: 10),
-
-              // ----------------------------
-              // CREATE NEW REQUEST BUTTON
-              // ----------------------------
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFE0463A),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                    onPressed: () async {
+                      final result = await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (c) => CreateBloodRequestScreen(currentUser: widget.currentUser),
+                                ),
+                              );
+                      if (result == true) {
+                        _fetchRequests();
+                      }
+                    },
+                    child: const Text(
+                      "+   Create New Request",
+                      style: TextStyle(fontSize: 16, color: Colors.white),
                     ),
                   ),
-                  onPressed: () async {
-                    final result = await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (c) => CreateBloodRequestScreen(currentUser: widget.currentUser),
-                              ),
-                            );
-                    if (result == true) {
-                      _fetchRequests();
-                    }
-                  },
-                  child: const Text(
-                    "+   Create New Request",
-                    style: TextStyle(fontSize: 16, color: Colors.white),
+                ),
+
+                const SizedBox(height: 24),
+
+                // ----------------------------
+                // AVAILABLE STOCK
+                // ----------------------------
+                const Text(
+                  "Available Stock",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                ),
+
+                const SizedBox(height: 12),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _stockCard("A+", "18 units"),
+                      _stockCard("B+", "17 units"),
+                      _stockCard("O+", "2 units"),
+                      _stockCard("AB+", "17 units"),
+                    ],
                   ),
                 ),
-              ),
 
-              const SizedBox(height: 24),
+                const SizedBox(height: 20),
 
-              // ----------------------------
-              // AVAILABLE STOCK
-              // ----------------------------
-              const Text(
-                "Available Stock",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-              ),
-
-              const SizedBox(height: 12),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    _stockCard("A+", "18 units"),
-                    _stockCard("B+", "17 units"),
-                    _stockCard("O+", "2 units"),
-                    _stockCard("AB+", "17 units"),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              // ----------------------------
-              // ACTIVE REQUESTS LIST
-              // ----------------------------
-              const Text(
-                "Active Requests",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-
-              const SizedBox(height: 12),
-              
-              if (_isLoading)
-                const Center(child: CircularProgressIndicator())
-              else if (_requests.isEmpty)
-                const Center(child: Text("No active requests found.", style: TextStyle(color: Colors.grey)))
-              else
-                ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: _requests.length,
-                  itemBuilder: (context, index) {
-                    final req = _requests[index];
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 12.0),
-                      child: _requestCard(req),
-                    );
-                  },
+                // ----------------------------
+                // ACTIVE REQUESTS LIST HEADER
+                // ----------------------------
+                const Text(
+                  "Active Requests",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
 
-              
-            ],
+                const SizedBox(height: 12),
+                
+                // ----------------------------
+                // FILTERS & SEARCH
+                // ----------------------------
+                
+                // Search Bar
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText: "Search Blood Group (e.g. A+)",
+                      prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                      suffixIcon: IconButton(
+                        icon: const Icon(Icons.arrow_forward_ios, size: 18, color: Color(0xFFE0463A)),
+                        onPressed: () {
+                          setState(() {
+                            _searchQuery = _searchController.text;
+                          });
+                        },
+                      ),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    ),
+                    onSubmitted: (value) {
+                      setState(() {
+                        _searchQuery = value;
+                      });
+                    },
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                // Status Chips
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _filterChip("All"),
+                      _filterChip("Pending"),
+                      _filterChip("Accepted"),
+                      _filterChip("Pickup"),
+                      _filterChip("Completed"),
+                      _filterChip("Cancelled"),
+                    ],
+                  ),
+                ),
+                
+                const SizedBox(height: 12),
+
+                // ----------------------------
+                // LIST
+                // ----------------------------
+
+                if (_isLoading)
+                  const Center(child: CircularProgressIndicator())
+                else if (filteredRequests.isEmpty)
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Text(
+                        "No requests found matching criteria.", 
+                        style: TextStyle(color: Colors.grey[600])
+                      ),
+                    )
+                  )
+                else
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: filteredRequests.length,
+                    itemBuilder: (context, index) {
+                      final req = filteredRequests[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12.0),
+                        child: _requestCard(req),
+                      );
+                    },
+                  ),
+
+                
+              ],
+            ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _filterChip(String status) {
+    bool isSelected = _selectedStatus == status;
+    return Padding(
+      padding: const EdgeInsets.only(right: 8.0),
+      child: ChoiceChip(
+        label: Text(status),
+        selected: isSelected,
+        onSelected: (bool selected) {
+          setState(() {
+            _selectedStatus = status;
+          });
+        },
+        selectedColor: const Color(0xFFE0463A),
+        labelStyle: TextStyle(
+          color: isSelected ? Colors.white : Colors.black,
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        ),
+        backgroundColor: Colors.white,
       ),
     );
   }
@@ -237,6 +391,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
     if (status == "ACCEPTED") statusColor = Colors.blue;
     if (status == "COMPLETED") statusColor = Colors.green;
     if (status == "CANCELLED") statusColor = Colors.red;
+    if (status == "PICKED_UP") statusColor = Colors.purple;
 
     return Container(
       padding: const EdgeInsets.all(16),

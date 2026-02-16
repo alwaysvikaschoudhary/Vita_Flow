@@ -39,13 +39,9 @@ public class BloodRequestController {
             
             BloodRequest savedRequest = requestService.createRequest(request);
             
-            // Find nearby donors
-            List<com.vitaflow.entities.user.Donor> nearbyDonors = matchingService.findNearbyDonors(savedRequest.getBloodGroup(), savedRequest.getOrdinate());
-            
             return ResponseEntity.ok(Map.of(
                 "message", "Request created successfully", 
-                "request", savedRequest,
-                "nearbyDonors", nearbyDonors
+                "request", savedRequest
             ));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));

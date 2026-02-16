@@ -8,7 +8,7 @@ class ApiService {
   // static const String baseUrl = "http://10.0.2.2:8080"; 
   // static const String baseUrl = Config.baseUrl; 
   // static const String baseUrl = Config.baseUrl; 
-  static const String baseUrl = "http://10.22.1.1:8081"; // Updated for new network interface 
+  static const String baseUrl = Config.baseUrl; 
 
   static Future<Map<String, dynamic>> login(String email, String password) async {
     final url = Uri.parse("$baseUrl/user/login");
@@ -290,6 +290,47 @@ class ApiService {
         return jsonDecode(response.body);
       } else {
         throw Exception("Failed to load history: ${response.body}");
+      }
+    } catch (e) {
+      throw Exception("Error connecting to server: $e");
+    }
+  }
+  static Future<Map<String, dynamic>> getDoctorById(String userId) async {
+    final url = Uri.parse("$baseUrl/user/doctor/$userId");
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception("Failed to load doctor profile: ${response.body}");
+      }
+    } catch (e) {
+      throw Exception("Error connecting to server: $e");
+    }
+  }
+
+  static Future<Map<String, dynamic>> getDonorById(String userId) async {
+    final url = Uri.parse("$baseUrl/user/donor/$userId");
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception("Failed to load donor profile: ${response.body}");
+      }
+    } catch (e) {
+      throw Exception("Error connecting to server: $e");
+    }
+  }
+
+  static Future<Map<String, dynamic>> getRiderById(String userId) async {
+    final url = Uri.parse("$baseUrl/user/rider/$userId");
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception("Failed to load rider profile: ${response.body}");
       }
     } catch (e) {
       throw Exception("Error connecting to server: $e");

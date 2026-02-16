@@ -46,8 +46,8 @@ class _DonorNavBarState extends State<RiderNavBar> {
           index: selectedIndex,
           children: [
             _buildNavigator(homeNavKey, RiderHomeScreen(currentUser: widget.currentUser)),
-            _buildNavigator(requestsNavKey, const RiderTasksScreen()),
-            _buildNavigator(historyNavKey, const RiderHistoryScreen()),
+            _buildNavigator(requestsNavKey, RiderTasksScreen(currentUser: widget.currentUser)),
+            _buildNavigator(historyNavKey, RiderHistoryScreen(currentUser: widget.currentUser)),
             _buildNavigator(profileNavKey, RiderProfileScreen(currentUser: widget.currentUser)),
           ],
         ),

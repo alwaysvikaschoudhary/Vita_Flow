@@ -1,48 +1,69 @@
 import 'package:flutter/material.dart';
 
-class RiderHistoryScreen extends StatelessWidget {
-  const RiderHistoryScreen({super.key});
+class RiderHistoryScreen extends StatefulWidget {
+  final Map<String, dynamic> currentUser;
+  const RiderHistoryScreen({super.key, required this.currentUser});
+
+  @override
+  State<RiderHistoryScreen> createState() => _RiderHistoryScreenState();
+}
+
+class _RiderHistoryScreenState extends State<RiderHistoryScreen> {
+  
+  Future<void> _refreshHistory() async {
+    // Simulate network delay as no API endpoint exists yet
+    await Future.delayed(const Duration(seconds: 1));
+    if (mounted) {
+      setState(() {
+        // Here we would reload data if API existed
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF1F2F6),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+        child: RefreshIndicator(
+          onRefresh: _refreshHistory,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
 
-              const Text("Delivery History",
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
+                const Text("Delivery History",
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
 
-              const SizedBox(height: 20),
+                const SizedBox(height: 20),
 
-              _weeklySummary(),
+                _weeklySummary(),
 
-              const SizedBox(height: 20),
+                const SizedBox(height: 20),
 
-              _historyTile(
-                bloodType: "O+",
-                date: "October 12, 2025",
-                hospital: "City Hospital",
-                distance: "1.2 km",
-                time: "2:45 PM",
-                earning: "₹50",
-              ),
+                _historyTile(
+                  bloodType: "O+",
+                  date: "October 12, 2025",
+                  hospital: "City Hospital",
+                  distance: "1.2 km",
+                  time: "2:45 PM",
+                  earning: "₹50",
+                ),
 
-              const SizedBox(height: 12),
+                const SizedBox(height: 12),
 
-              _historyTile(
-                bloodType: "A+",
-                date: "October 12, 2025",
-                hospital: "St. Hospital",
-                distance: "3.5 km",
-                time: "11:30 AM",
-                earning: "₹80",
-              ),
-            ],
+                _historyTile(
+                  bloodType: "A+",
+                  date: "October 12, 2025",
+                  hospital: "St. Hospital",
+                  distance: "3.5 km",
+                  time: "11:30 AM",
+                  earning: "₹80",
+                ),
+              ],
+            ),
           ),
         ),
       ),

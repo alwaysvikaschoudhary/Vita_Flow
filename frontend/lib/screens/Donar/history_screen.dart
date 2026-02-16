@@ -163,28 +163,38 @@ class _HistoryScreenState extends State<HistoryScreen> {
             Expanded(
               child: _isLoading 
                   ? const Center(child: CircularProgressIndicator()) 
-                  : _history.isEmpty 
-                      ? const Center(child: Text("No donation history yet"))
-                      : SingleChildScrollView(
-                          padding: const EdgeInsets.only(bottom: 20),
-                          child: Column(
-                            children: _history.map((req) {
-                              
-                              // Logic for Hospital + Doctor Name
-                              String hospital = req['hospitalName'] ?? "Unknown Hospital";
-                              String doctor = req['doctorName'] ?? "Unknown Doctor";
-                              String displayHospital = "$hospital ($doctor)";
+                  : RefreshIndicator(
+                      onRefresh: _fetchHistory,
+                      color: const Color(0xFFE0463A),
+                      child: _history.isEmpty 
+                          ? SingleChildScrollView(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              child: SizedBox(
+                                height: MediaQuery.of(context).size.height * 0.5,
+                                child: const Center(child: Text("No donation history yet")),
+                              ),
+                            )
+                          : ListView.builder(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              padding: const EdgeInsets.only(bottom: 20),
+                              itemCount: _history.length,
+                              itemBuilder: (context, index) {
+                                final req = _history[index];
+                                // Logic for Hospital + Doctor Name
+                                String hospital = req['hospitalName'] ?? "Unknown Hospital";
+                                String doctor = req['doctorName'] ?? "Unknown Doctor";
+                                String displayHospital = "$hospital ($doctor)";
 
-                              return _historyCard(
-                                hospital: displayHospital,
-                                date: req['date'] ?? "Unknown Date",
-                                bloodType: req['bloodGroup'] ?? widget.currentUser['bloodGroup'] ?? "-",
-                                units: req['units']?.toString() ?? "1",
-                                status: req['status'] ?? "Completed"
-                              );
-                            }).toList(),
-                          ),
-                        ),
+                                return _historyCard(
+                                  hospital: displayHospital,
+                                  date: req['date'] ?? "Unknown Date",
+                                  bloodType: req['bloodGroup'] ?? widget.currentUser['bloodGroup'] ?? "-",
+                                  units: req['units']?.toString() ?? "1",
+                                  status: req['status'] ?? "Completed"
+                                );
+                              },
+                            ),
+                    ),
             ),
           ],
         ),
