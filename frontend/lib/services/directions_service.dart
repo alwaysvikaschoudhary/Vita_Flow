@@ -35,12 +35,11 @@ class DirectionsService {
           polylineCoordinates.add(LatLng(point.latitude, point.longitude));
         }
       } else {
-        print("Directions API FAILED. Status: ${result.status}, Error: ${result.errorMessage}");
-        print("Using Key: $_apiKey"); // Debugging: Check if key is correct
-        throw Exception(result.errorMessage); 
+        print("Directions API Error: ${result.errorMessage}");
+        throw Exception(result.errorMessage); // Trigger catch for fallback
       }
     } catch (e) {
-      print("EXCEPTION fetching directions: $e");
+      print("Error fetching directions: $e");
       // Fallback: Return a straight line
       polylineCoordinates.add(origin);
       polylineCoordinates.add(destination);

@@ -1,7 +1,85 @@
 import 'package:flutter/material.dart';
+import 'package:vita_flow/services/api_service.dart';
+import 'package:intl/intl.dart';
 
-class HistoryScreen extends StatelessWidget {
-  const HistoryScreen({super.key});
+class HistoryScreen extends StatefulWidget {
+  final Map<String, dynamic> currentUser;
+  const HistoryScreen({super.key, required this.currentUser});
+
+  @override
+  State<HistoryScreen> createState() => _HistoryScreenState();
+}
+
+class _HistoryScreenState extends State<HistoryScreen> {
+  List<dynamic> _history = [];
+  bool _isLoading = true;
+  String _sortOption = 'Newest First'; // Default sort option
+
+  final List<String> _sortOptions = [
+    'Newest First',
+    'Oldest First',
+    'Blood Group (A-Z)',
+    'Blood Group (Z-A)',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchHistory();
+  }
+
+  Future<void> _fetchHistory() async {
+    try {
+      final history = await ApiService.getDonorHistory(widget.currentUser['userId']);
+      if (mounted) {
+        setState(() {
+          _history = history;
+          _isLoading = false;
+        });
+        _sortHistory(); // Initial sort
+      }
+    } catch (e) {
+      print("Error fetching history: $e");
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  void _sortHistory() {
+    setState(() {
+      switch (_sortOption) {
+        case 'Newest First':
+          _history.sort((a, b) {
+            String dateA = a['date'] ?? '';
+            String dateB = b['date'] ?? '';
+            return dateB.compareTo(dateA); // Descending
+          });
+          break;
+        case 'Oldest First':
+          _history.sort((a, b) {
+            String dateA = a['date'] ?? '';
+            String dateB = b['date'] ?? '';
+            return dateA.compareTo(dateB); // Ascending
+          });
+          break;
+        case 'Blood Group (A-Z)':
+          _history.sort((a, b) {
+            String bgA = a['bloodGroup'] ?? '';
+            String bgB = b['bloodGroup'] ?? '';
+            return bgA.compareTo(bgB);
+          });
+          break;
+        case 'Blood Group (Z-A)':
+          _history.sort((a, b) {
+            String bgA = a['bloodGroup'] ?? '';
+            String bgB = b['bloodGroup'] ?? '';
+            return bgB.compareTo(bgA);
+          });
+          break;
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,55 +97,94 @@ class HistoryScreen extends StatelessWidget {
             ),
 
             // METRICS BOX
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _metricBox(Icons.favorite_border, Colors.red, "13", "Donations",
-                    Colors.red.shade100),
-                _metricBox(Icons.emoji_events_outlined, Colors.green, "39",
-                    "Lives Saved", Colors.green.shade100),
-                _metricBox(Icons.location_on_outlined, Colors.blue, "52",
-                    "km Traveled", Colors.blue.shade100),
-              ],
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Row(
+                children: [
+                   Expanded(
+                     child: _metricBox(
+                         Icons.favorite, 
+                         Colors.red, 
+                         "${_history.length}", 
+                         "Total Donations",
+                         Colors.white
+                     ),
+                   ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 15),
+            
+            // SORT FILTER UI
+            if (!_isLoading && _history.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text("Filter by:", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.grey.shade300),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: _sortOption,
+                        icon: const Icon(Icons.sort, size: 20),
+                        isDense: true,
+                        style: const TextStyle(color: Colors.black, fontSize: 14),
+                        onChanged: (String? newValue) {
+                          if (newValue != null) {
+                            setState(() {
+                              _sortOption = newValue;
+                            });
+                            _sortHistory();
+                          }
+                        },
+                        items: _sortOptions.map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
 
             const SizedBox(height: 10),
 
             Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    _historyCard(
-                      hospital: "Gitanjali Hostel (Bhankrota)",
-                      date: "October 12, 2025",
-                      bloodType: "O+",
-                      units: "1",
-                      distance: "1.2 km",
-                    ),
-                    _historyCard(
-                      hospital: "Balaji Soni Hospital",
-                      date: "August 5, 2025",
-                      bloodType: "A-",
-                      units: "1",
-                      distance: "3.5 km",
-                    ),
-                    _historyCard(
-                      hospital: "HCG Cancer Hospital",
-                      date: "June 20, 2025",
-                      bloodType: "O-",
-                      units: "2",
-                      distance: "2.1 km",
-                    ),
-                    _historyCard(
-                      hospital: "Manipal Hospital",
-                      date: "April 15, 2025",
-                      bloodType: "AB+",
-                      units: "1",
-                      distance: "2.7 km",
-                    ),
-                  ],
-                ),
-              ),
+              child: _isLoading 
+                  ? const Center(child: CircularProgressIndicator()) 
+                  : _history.isEmpty 
+                      ? const Center(child: Text("No donation history yet"))
+                      : SingleChildScrollView(
+                          padding: const EdgeInsets.only(bottom: 20),
+                          child: Column(
+                            children: _history.map((req) {
+                              
+                              // Logic for Hospital + Doctor Name
+                              String hospital = req['hospitalName'] ?? "Unknown Hospital";
+                              String doctor = req['doctorName'] ?? "Unknown Doctor";
+                              String displayHospital = "$hospital ($doctor)";
+
+                              return _historyCard(
+                                hospital: displayHospital,
+                                date: req['date'] ?? "Unknown Date",
+                                bloodType: req['bloodGroup'] ?? widget.currentUser['bloodGroup'] ?? "-",
+                                units: req['units']?.toString() ?? "1",
+                                status: req['status'] ?? "Completed"
+                              );
+                            }).toList(),
+                          ),
+                        ),
             ),
           ],
         ),
@@ -78,19 +195,27 @@ class HistoryScreen extends StatelessWidget {
   Widget _metricBox(
       IconData icon, Color iconColor, String value, String label, Color bg) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: bg,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
       ),
       child: Column(
         children: [
-          Icon(icon, size: 28, color: iconColor),
-          const SizedBox(height: 6),
+          Icon(icon, size: 32, color: iconColor),
+          const SizedBox(height: 10),
           Text(value,
               style:
-                  const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-          Text(label, style: const TextStyle(color: Colors.black)),
+                  const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 4),
+          Text(label, style: const TextStyle(color: Colors.grey, fontSize: 14)),
         ],
       ),
     );
@@ -101,61 +226,101 @@ class HistoryScreen extends StatelessWidget {
     required String date,
     required String bloodType,
     required String units,
-    required String distance,
+    required String status,
   }) {
+    // Format date if possible
+    String displayDate = date;
+    try {
+       // Assuming date comes as YYYY-MM-DD
+       final parsedDate = DateTime.parse(date);
+       displayDate = DateFormat.yMMMMd().format(parsedDate);
+    } catch (e) {
+       // keep original string
+    }
+
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+             color: Colors.grey.withOpacity(0.05),
+             blurRadius: 5,
+             offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(hospital,
-                  style: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.w600)),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.green.shade50,
+                  color: Colors.red.shade50,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Text("Completed",
-                    style: TextStyle(color: Colors.green)),
+                child: const Icon(Icons.local_hospital, color: Colors.red, size: 24),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(hospital,
+                        style: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w600),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(displayDate, style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                  ],
+                ),
+              ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.green.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(status.toUpperCase(), // "COMPLETED"
+                    style: const TextStyle(color: Colors.green, fontSize: 10, fontWeight: FontWeight.bold)),
               )
             ],
           ),
 
-          const SizedBox(height: 6),
-
-          Row(
-            children: [
-              const Icon(Icons.calendar_today,
-                  size: 16, color: Colors.grey),
-              const SizedBox(width: 6),
-              Text(date, style: const TextStyle(color: Colors.grey)),
-            ],
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 12.0),
+            child: Divider(height: 1, color: Color(0xFFEEEEEE)),
           ),
 
-          const SizedBox(height: 14),
-
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _historyField("Blood Type", bloodType,
-                  valueColor: Colors.red), // ← RED BLOOD TYPE
-              _historyField("Units", units),
-              _historyField("Distance", distance),
+                  valueColor: Colors.red),
+              _verticalDivider(),
+              _historyField("Units", "$units Unit"),
+              _verticalDivider(),
+               _historyField("Type", "Donation"), // Placeholder for "Type" or similar
             ],
           ),
         ],
       ),
+    );
+  }
+
+  Widget _verticalDivider() {
+    return Container(
+      height: 30,
+      width: 1,
+      color: Colors.grey.shade200,
     );
   }
 
@@ -164,14 +329,14 @@ class HistoryScreen extends StatelessWidget {
     return Column(
       children: [
         Text(label,
-            style: const TextStyle(fontSize: 14, color: Colors.grey)),
+            style: const TextStyle(fontSize: 12, color: Colors.grey)),
         const SizedBox(height: 4),
         Text(
           value,
           style: TextStyle(
-            fontSize: 16,
+            fontSize: 15,
             fontWeight: FontWeight.w600,
-            color: valueColor, // dynamic color
+            color: valueColor, 
           ),
         ),
       ],

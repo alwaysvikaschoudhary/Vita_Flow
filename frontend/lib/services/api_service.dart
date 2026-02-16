@@ -281,5 +281,19 @@ class ApiService {
       return null;
     }
   }
+
+  static Future<List<dynamic>> getDonorHistory(String donorId) async {
+    final url = Uri.parse("$baseUrl/request/history/donor/$donorId");
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception("Failed to load history: ${response.body}");
+      }
+    } catch (e) {
+      throw Exception("Error connecting to server: $e");
+    }
+  }
 }
 

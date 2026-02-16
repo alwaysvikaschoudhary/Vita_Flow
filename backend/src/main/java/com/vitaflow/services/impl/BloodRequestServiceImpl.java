@@ -93,6 +93,11 @@ public class BloodRequestServiceImpl implements BloodRequestService {
         if (request.getHospitalId() != null) {
             doctorRepository.findById(request.getHospitalId()).ifPresent(doctor -> {
                 request.setHospitalName(doctor.getHospitalName());
+                // Also populate doctor name if not already set, or override depending on requirement.
+                // The user wants "Hospital (DoctorName)".
+                if (request.getDoctorName() == null || request.getDoctorName().isEmpty()) {
+                    request.setDoctorName(doctor.getName());
+                }
             });
         }
     }
@@ -103,6 +108,13 @@ public class BloodRequestServiceImpl implements BloodRequestService {
         // For now let's stick to accepted/on_the_way
         List<String> activeStatuses = List.of("ACCEPTED", "ON_THE_WAY", "PICKED_UP");
         List<BloodRequest> requests = requestRepository.findByDonorIdAndStatusIn(donorId, activeStatuses);
+        requests.forEach(this::populateHospitalName);
+        return requests;
+    }
+    @Override
+    public List<BloodRequest> findHistoryForDonor(String donorId) {
+        List<String> historyStatuses = List.of("COMPLETED", "PICKED_UP", "CANCELLED", "DELIVERED");
+        List<BloodRequest> requests = requestRepository.findByDonorIdAndStatusIn(donorId, historyStatuses);
         requests.forEach(this::populateHospitalName);
         return requests;
     }

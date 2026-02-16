@@ -12,4 +12,5 @@ public interface BloodRequestService {
     BloodRequest acceptRequest(String requestId, String donorId, String donorName, Double latitude, Double longitude);
     BloodRequest getRequestById(String requestId);
     List<BloodRequest> findActiveRequestsForDonor(String donorId);
+    List<BloodRequest> findHistoryForDonor(String donorId);
 }
