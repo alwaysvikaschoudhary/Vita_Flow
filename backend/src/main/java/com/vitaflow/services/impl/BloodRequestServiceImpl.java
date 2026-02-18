@@ -27,6 +27,11 @@ public class BloodRequestServiceImpl implements BloodRequestService {
             request.setRequestId(UUID.randomUUID().toString());
         }
         // Ensure hospital name is set on creation if possible, or transient is fine
+        if (request.getHospitalId() != null) {
+            doctorRepository.findById(request.getHospitalId()).ifPresent(doctor -> {
+                 request.setDoctorPhoneNumber(doctor.getPhoneNumber());
+            });
+        }
         return requestRepository.save(request);
     }
 
@@ -106,7 +111,7 @@ public class BloodRequestServiceImpl implements BloodRequestService {
     public List<BloodRequest> findActiveRequestsForDonor(String donorId) {
         // statuses: ACCEPTED, ON_THE_WAY, ARRIVED - basically anything not PENDING, COMPLETED, CANCELLED
         // For now let's stick to accepted/on_the_way
-        List<String> activeStatuses = List.of("ACCEPTED", "ON_THE_WAY", "PICKED_UP");
+        List<String> activeStatuses = List.of("ACCEPTED", "ON_THE_WAY", "PICKED_UP", "RIDER_ASSIGNED");
         List<BloodRequest> requests = requestRepository.findByDonorIdAndStatusIn(donorId, activeStatuses);
         requests.forEach(this::populateHospitalName);
         return requests;

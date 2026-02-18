@@ -42,15 +42,12 @@ class _DonorNavBarState extends State<RiderNavBar> {
 
       child: Scaffold(
         // MAIN BODY (IndexedStack keeps screens alive)
-        body: IndexedStack(
-          index: selectedIndex,
-          children: [
+        body: [
             _buildNavigator(homeNavKey, RiderHomeScreen(currentUser: widget.currentUser)),
             _buildNavigator(requestsNavKey, RiderTasksScreen(currentUser: widget.currentUser)),
             _buildNavigator(historyNavKey, RiderHistoryScreen(currentUser: widget.currentUser)),
             _buildNavigator(profileNavKey, RiderProfileScreen(currentUser: widget.currentUser)),
-          ],
-        ),
+        ][selectedIndex],
 
         // BOTTOM NAV BAR
         bottomNavigationBar: BottomNavigationBar(

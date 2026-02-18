@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:vita_flow/services/api_service.dart';
 import 'donation_certificate_screen.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class DonationProgressScreen extends StatefulWidget {
   final Map<String, dynamic> requestData;
@@ -14,11 +16,62 @@ class DonationProgressScreen extends StatefulWidget {
 class _DonationProgressScreenState extends State<DonationProgressScreen> {
   late Map<String, dynamic> _currentRequest;
   bool _isRefreshing = false;
+  Map<String, dynamic>? _riderDetails;
+  String _arrivalTime = "-- mins";
 
   @override
   void initState() {
     super.initState();
     _currentRequest = widget.requestData;
+    _fetchRiderDetails();
+  }
+
+  Future<void> _fetchRiderDetails() async {
+    final riderId = _currentRequest['riderId'];
+    if (riderId != null) {
+      try {
+        final rider = await ApiService.getRiderById(riderId);
+        if (mounted) {
+          setState(() {
+            _riderDetails = rider;
+          });
+          _calculateArrivalTime();
+        }
+      } catch (e) {
+        print("Error fetching rider: $e");
+      }
+    }
+  }
+
+  void _calculateArrivalTime() {
+    if (_riderDetails == null) return;
+    
+    // Donor Location (Pickup)
+    final pickup = _currentRequest['pickupOrdinate']; // Checks if pickupOrdinate exists
+    double? dLat, dLng;
+    
+    if (pickup != null) {
+      dLat = pickup['latitude'];
+      dLng = pickup['longitude'];
+    }
+
+    // Rider Location
+    final rOrdinate = _riderDetails!['ordinate'];
+    double? rLat, rLng;
+    if (rOrdinate != null) {
+       rLat = rOrdinate['latitude'];
+       rLng = rOrdinate['longitude'];
+    }
+
+    if (dLat != null && dLng != null && rLat != null && rLng != null) {
+      double distanceInMeters = Geolocator.distanceBetween(dLat, dLng, rLat, rLng);
+      // Assume average speed 30km/h => 0.5 km/min => 500m/min
+      // Time = Distance / Speed
+      int timeInMinutes = (distanceInMeters / 400).ceil(); // Conservatively 400m/min
+      setState(() {
+        _arrivalTime = "$timeInMinutes mins";
+      });
+    }
   }
 
   Future<void> _refreshRequest() async {
@@ -30,6 +83,7 @@ class _DonationProgressScreenState extends State<DonationProgressScreen> {
           _currentRequest = updatedData;
           _isRefreshing = false;
         });
+        _fetchRiderDetails(); // Refresh rider location too
       }
     } catch (e) {
       if (mounted) {
@@ -41,6 +95,14 @@ class _DonationProgressScreenState extends State<DonationProgressScreen> {
     }
   }
 
+  Future<void> _callNumber(String? number) async {
+    if (number == null || number.isEmpty) return;
+    final Uri launchUri = Uri(scheme: 'tel', path: number);
+    if (await canLaunchUrl(launchUri)) {
+      await launchUrl(launchUri);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // 1. Parse Status to determine active step
@@ -48,12 +110,15 @@ class _DonationProgressScreenState extends State<DonationProgressScreen> {
     final otp = _currentRequest['otp'] ?? "----";
     final riderId = _currentRequest['riderId'];
     
+    // Rider Info
+    final riderName = _currentRequest['riderName'] ?? (_riderDetails?['name'] ?? "Rider");
+    final riderBike = _currentRequest['riderBikeNumber'] ?? (_riderDetails?['bikeNumber'] ?? "Unknown Bike");
+    final riderPhone = _currentRequest['riderPhoneNumber'] ?? (_riderDetails?['phoneNumber']);
+    
     int currentStep = 1;
     if (status == "ACCEPTED" || status == "PENDING") currentStep = 1;
-    else if (status == "RIDER_ASSIGNED") currentStep = 2;
-    // Note: status might be differentiating between Assigned, Picked Up, etc. 
-    // Assuming backend updates status strings accordingly.
-    else if (status == "COLLECTED") currentStep = 3;
+    else if (status == "RIDER_ASSIGNED" || status == "ON_THE_WAY") currentStep = 2; // Added ON_THE_WAY
+    else if (status == "PICKED_UP" || status == "COLLECTED") currentStep = 3;
     else if (status == "DELIVERED" || status == "COMPLETED") currentStep = 4;
 
     return Scaffold(
@@ -82,9 +147,26 @@ class _DonationProgressScreenState extends State<DonationProgressScreen> {
                 ),
 
                 const SizedBox(height: 4),
+                // Hospital Name
                 Text(
                   _currentRequest['hospitalName'] ?? "Hospital",
                   style: const TextStyle(color: Colors.black),
+                ),
+                
+                // Doctor Phone Call Action (from request)
+                if (_currentRequest['doctorPhoneNumber'] != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: InkWell(
+                    onTap: () => _callNumber(_currentRequest['doctorPhoneNumber']),
+                    child: Row(
+                      children: const [
+                        Icon(Icons.call, size: 16, color: Colors.blue),
+                        SizedBox(width: 5),
+                        Text("Call Doctor/Hospital", style: TextStyle(color: Colors.blue)),
+                      ],
+                    ),
+                  ),
                 ),
 
                 const SizedBox(height: 16),
@@ -161,7 +243,10 @@ class _DonationProgressScreenState extends State<DonationProgressScreen> {
                         CircleAvatar(
                           radius: 28,
                           backgroundColor: Colors.blue.shade50,
-                          child: const Text("RS"), // Initials placeholder
+                          child: Text(
+                            riderName.toString().substring(0, 1).toUpperCase(),
+                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blue)
+                          ), 
                         ),
                         const SizedBox(width: 16),
                         Expanded(
@@ -169,7 +254,7 @@ class _DonationProgressScreenState extends State<DonationProgressScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                                Text(
-                                "Rahul Singh", // Placeholder
+                                riderName, 
                                 style: const TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w600,
@@ -177,15 +262,19 @@ class _DonationProgressScreenState extends State<DonationProgressScreen> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                "Rider ID: $riderId",
+                                "Bike: $riderBike",
                                 style: const TextStyle(color: Colors.grey),
                               ),
                             ],
                           ),
                         ),
-                        CircleAvatar(
-                          backgroundColor: Colors.green.shade100,
-                          child: Icon(Icons.phone, color: Colors.green),
+                        if (riderPhone != null)
+                        InkWell(
+                          onTap: () => _callNumber(riderPhone),
+                          child: CircleAvatar(
+                            backgroundColor: Colors.green.shade100,
+                            child: Icon(Icons.phone, color: Colors.green),
+                          ),
                         ),
                       ],
                     ),
@@ -200,16 +289,17 @@ class _DonationProgressScreenState extends State<DonationProgressScreen> {
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Row(
-                      children: const [
-                        Icon(Icons.location_on),
+                      children: [
+                        Icon(Icons.location_on, color: Colors.blue),
                         SizedBox(width: 8),
-                        Text("Arriving in"),
+                        Text("Arriving in", style: TextStyle(color: Colors.blue.shade900)),
                         Spacer(),
                         Text(
-                          "12 mins",
+                          _arrivalTime,
                           style: TextStyle(
                             color: Colors.blue,
                             fontWeight: FontWeight.w600,
+                            fontSize: 16
                           ),
                         ),
                       ],

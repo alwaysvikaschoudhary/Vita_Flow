@@ -23,15 +23,12 @@ class _DoctorNavBarState extends State<DoctorNavBar> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: selectedIndex,
-        children: [
+      body: [
           _buildNav(homeKey, DoctorHomeScreen(currentUser: widget.currentUser)),
           _buildNav(requestKey, DoctorRequestsScreen(currentUser: widget.currentUser)),
           _buildNav(historyKey, DoctorHistoryScreen(currentUser: widget.currentUser)),
           _buildNav(profileKey, DoctorProfileScreen(currentUser: widget.currentUser)),
-        ],
-      ),
+      ][selectedIndex],
 
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: selectedIndex,

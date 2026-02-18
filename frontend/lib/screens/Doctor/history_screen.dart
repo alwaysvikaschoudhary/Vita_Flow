@@ -16,8 +16,14 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
 
   // Filters
   String _selectedStatus = 'All';
+  bool _isNewestFirst = true;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+
+  // Chart Logic
+  String _chartFilter = 'Last 6 Months';
+  // Use static const to avoid null initialization issues on hot reload
+  static const List<String> _chartFilters = ['Last 3 Months', 'Last 6 Months', 'Last Year', 'All Time'];
 
   @override
   void initState() {
@@ -36,7 +42,7 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
       final requests = await ApiService.getRequestsByHospital(widget.currentUser['userId']);
       if (mounted) {
         setState(() {
-          // Sort by date and time descending (Newest first)
+          // Sort by date and time
           _requests = requests..sort(_compareRequests);
           _isLoading = false;
         });
@@ -50,6 +56,7 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
   }
 
   int _compareRequests(dynamic a, dynamic b) {
+    int comparison;
     try {
       final String dateA = a['date'] ?? '1970-01-01';
       final String timeA = a['time'] ?? '00:00';
@@ -59,13 +66,14 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
       final dtA = DateTime.parse("$dateA $timeA"); // Expects yyyy-MM-dd HH:mm
       final dtB = DateTime.parse("$dateB $timeB");
       
-      return dtB.compareTo(dtA);
+      comparison = dtB.compareTo(dtA);
     } catch (e) {
-      // Fallback to string comparison if parse fails
+      // Fallback to string comparison
       final String dtA = "${a['date']} ${a['time']}";
       final String dtB = "${b['date']} ${b['time']}";
-      return dtB.compareTo(dtA);
+      comparison = dtB.compareTo(dtA);
     }
+    return _isNewestFirst ? comparison : -comparison;
   }
 
   List<dynamic> _getFilteredRequests() {
@@ -107,6 +115,79 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
     // Convert to percentages? Or just counts. Pie chart needs values. 
     // Let's return raw counts for pie chart.
     return counts;
+  }
+
+  // Chart Helpers
+  List<FlSpot> _getChartSpots() {
+    final now = DateTime.now();
+    int monthsBack = 6;
+    if (_chartFilter == 'Last 3 Months') monthsBack = 3;
+    if (_chartFilter == 'Last 6 Months') monthsBack = 6;
+    if (_chartFilter == 'Last Year' || _chartFilter == 'All Time') monthsBack = 12;
+
+    // Initialize counts for each month bucket [0..monthsBack-1]
+    // Index 0 = (now - monthsBack + 1) months ago
+    // Index monthsBack-1 = current month
+    List<double> monthlyCounts = List.filled(monthsBack, 0.0);
+
+    for (var req in _requests) {
+      String dateStr = req['date'] ?? '';
+      if (dateStr.isEmpty) continue;
+      
+      try {
+        DateTime reqDate;
+        // Handle various date formats if necessary, assuming yyyy-MM-dd
+        // If date comes as dd-MM-yyyy or similar, might need adjustment. 
+        // Based on _compareRequests, it seems to parse standard format or is consistent string.
+        // Let's safe parse.
+        try {
+          reqDate = DateTime.parse(dateStr);
+        } catch (_) {
+          continue; 
+        }
+
+        // Calculate difference in months from now
+        // diff = (now.year - req.year) * 12 + now.month - req.month
+        int monthDiff = (now.year - reqDate.year) * 12 + now.month - reqDate.month;
+        
+        // We want data within [0, monthsBack-1] range of difference
+        // The chart displays from oldest (left) to newest (right)
+        // If monthDiff is 0 (current month), it goes to last index: index = monthsBack - 1 - 0
+        // If monthDiff is monthsBack - 1, it goes to first index: index = monthsBack - 1 - (monthsBack - 1) = 0
+        
+        if (monthDiff >= 0 && monthDiff < monthsBack) {
+          int index = monthsBack - 1 - monthDiff;
+          monthlyCounts[index]++;
+        }
+      } catch (e) {
+        // ignore invalid dates
+      }
+    }
+
+    return List.generate(monthsBack, (index) {
+      return FlSpot(index.toDouble(), monthlyCounts[index]);
+    });
+  }
+
+  List<String> _getChartMonths() {
+    final now = DateTime.now();
+    int count = 6;
+    if (_chartFilter == 'Last 3 Months') count = 3;
+    if (_chartFilter == 'Last 6 Months') count = 6;
+    if (_chartFilter == 'Last Year' || _chartFilter == 'All Time') count = 12;
+
+    List<String> months = [];
+    for (int i = count - 1; i >= 0; i--) {
+      final d = DateTime(now.year, now.month - i, 1);
+      months.add(_monthName(d.month));
+    }
+    return months;
+  }
+
+  String _monthName(int month) {
+    const m = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    if (month < 1 || month > 12) return "";
+    return m[month - 1];
   }
 
   @override
@@ -159,15 +240,45 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
                 const SizedBox(height: 10),
 
                 // -------------------------
-                // Monthly Requests Chart (Mocked for visual, or implemented if we have date parsing)
+                // Monthly Requests Chart
                 // -------------------------
                 _sectionCard(
                   title: "Monthly Requests",
+                  action: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.grey.shade300),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: _chartFilter,
+                        icon: const Icon(Icons.keyboard_arrow_down, color: Colors.grey, size: 20),
+                        isDense: true,
+                        style: const TextStyle(fontSize: 12, color: Colors.black87, fontWeight: FontWeight.w500),
+                        onChanged: (String? newValue) {
+                          if (newValue != null) setState(() => _chartFilter = newValue);
+                        },
+                        items: _chartFilters.map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
                   child: SizedBox(
                     height: 200,
                     child: LineChart(
                       LineChartData(
-                        gridData: FlGridData(show: false),
+                        gridData: FlGridData(
+                          show: true, 
+                          drawVerticalLine: false,
+                          horizontalInterval: 5,
+                          getDrawingHorizontalLine: (value) => FlLine(color: Colors.grey.shade100, strokeWidth: 1),
+                        ),
                         borderData: FlBorderData(show: false),
                         titlesData: FlTitlesData(
                           leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
@@ -176,12 +287,20 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
                           bottomTitles: AxisTitles(
                             sideTitles: SideTitles(
                               showTitles: true,
+                              interval: 1,
                               getTitlesWidget: (value, meta) {
-                                const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
+                                final months = _getChartMonths();
                                 if (value.toInt() < 0 || value.toInt() >= months.length) return Container();
                                 return Padding(
                                   padding: const EdgeInsets.only(top: 8),
-                                  child: Text(months[value.toInt()]),
+                                  child: Text(
+                                    months[value.toInt()],
+                                    style: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontSize: 10, 
+                                      fontWeight: FontWeight.w500
+                                    ),
+                                  ),
                                 );
                               },
                             ),
@@ -190,17 +309,23 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
                         lineBarsData: [
                           LineChartBarData(
                             isCurved: true,
-                            color: Colors.red,
+                            preventCurveOverShooting: true,
+                            color: const Color(0xFFE0463A),
                             barWidth: 3,
-                            dotData: FlDotData(show: true),
-                            spots: const [
-                              FlSpot(0, 5), // Mock data
-                              FlSpot(1, 8),
-                              FlSpot(2, 6),
-                              FlSpot(3, 12),
-                              FlSpot(4, 9),
-                              FlSpot(5, 15),
-                            ],
+                            dotData: FlDotData(
+                              show: true,
+                              getDotPainter: (spot, percent, barData, index) => FlDotCirclePainter(
+                                radius: 2,
+                                color: Colors.white,
+                                strokeWidth: 2,
+                                strokeColor: const Color(0xFFE0463A),
+                              ),
+                            ),
+                            belowBarData: BarAreaData(
+                              show: true,
+                              color: const Color(0xFFE0463A).withOpacity(0.1),
+                            ),
+                            spots: _getChartSpots(),
                           ),
                         ],
                       ),
@@ -248,12 +373,43 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
                 
                 const SizedBox(height: 20),
                 
-                const Text(
-                  "History Log",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      "History Log",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    TextButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          _isNewestFirst = !_isNewestFirst;
+                          _requests.sort(_compareRequests);
+                        });
+                      },
+                      icon: Icon(
+                        _isNewestFirst ? Icons.arrow_downward : Icons.arrow_upward,
+                        size: 16,
+                        color: const Color(0xFFE0463A),
+                      ),
+                      label: Text(
+                        _isNewestFirst ? "Newest First" : "Oldest First",
+                        style: const TextStyle(
+                          color: Color(0xFFE0463A),
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                    ),
+                  ],
                 ),
                 
                 const SizedBox(height: 10),
@@ -417,7 +573,7 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
   // ----------------------------------------------------
   // SECTION CARD
   // ----------------------------------------------------
-  Widget _sectionCard({required String title, required Widget child}) {
+  Widget _sectionCard({required String title, required Widget child, Widget? action}) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -427,12 +583,18 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              if (action != null) action,
+            ],
           ),
           const SizedBox(height: 12),
           child,

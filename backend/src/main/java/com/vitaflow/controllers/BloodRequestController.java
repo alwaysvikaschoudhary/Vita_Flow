@@ -151,6 +151,12 @@ public class BloodRequestController {
             request.setRiderName(riderName);
             request.setStatus("RIDER_ASSIGNED"); // Or ON_THE_WAY_TO_DONOR
             
+            com.vitaflow.entities.user.Rider rider = userService.getRiderById(riderId);
+            if (rider != null) {
+                request.setRiderPhoneNumber(rider.getPhoneNumber());
+                request.setRiderBikeNumber(rider.getBikeNumber());
+            }
+            
             BloodRequest updatedRequest = requestService.createRequest(request);
             return ResponseEntity.ok(updatedRequest);
         } catch (Exception e) {
@@ -210,6 +216,22 @@ public class BloodRequestController {
 
             request.setStatus("COMPLETED");
             BloodRequest updatedRequest = requestService.createRequest(request);
+            
+            // Increment Rider Deliveries
+            if (updatedRequest.getRiderId() != null) {
+                com.vitaflow.entities.user.Rider rider = userService.getRiderById(updatedRequest.getRiderId());
+                if (rider != null) {
+                    try {
+                        int count = rider.getTotalDeliveries() != null ? Integer.parseInt(rider.getTotalDeliveries()) : 0;
+                        rider.setTotalDeliveries(String.valueOf(count + 1));
+                        userService.saveRider(rider);
+                    } catch (NumberFormatException e) {
+                        rider.setTotalDeliveries("1");
+                        userService.saveRider(rider);
+                    }
+                }
+            }
+            
             return ResponseEntity.ok(updatedRequest);
         } catch (Exception e) {
              return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));

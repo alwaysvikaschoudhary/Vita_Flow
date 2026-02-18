@@ -47,6 +47,12 @@ public class BloodRequest {
     private String riderName;
 
     private String donorPhoneNumber;
+    
+    private String riderBikeNumber;
+    
+    private String riderPhoneNumber;
+    
+    private String doctorPhoneNumber;
 
     @Embedded
     @AttributeOverrides({
