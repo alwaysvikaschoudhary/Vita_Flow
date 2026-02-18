@@ -44,7 +44,7 @@ class _DonorNavBarState extends State<DonorNavBar> {
         // MAIN BODY (No IndexedStack -> Rebuilds on switch)
         body: [
             _buildNavigator(homeNavKey, HomeScreen(currentUser: widget.currentUser)),
-            _buildNavigator(requestsNavKey, const RequestsScreen()),
+            _buildNavigator(requestsNavKey, RequestsScreen(currentUser: widget.currentUser)),
             _buildNavigator(historyNavKey, HistoryScreen(currentUser: widget.currentUser)),
             _buildNavigator(profileNavKey, ProfileScreen(currentUser: widget.currentUser)),
         ][selectedIndex],
@@ -69,7 +69,7 @@ class _DonorNavBarState extends State<DonorNavBar> {
 
           items: const [
             BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-            BottomNavigationBarItem(icon: Icon(Icons.list_alt), label: "Requests"),
+            BottomNavigationBarItem(icon: Icon(Icons.add_circle_outline), label: "Create"),
             BottomNavigationBarItem(icon: Icon(Icons.history), label: "History"),
             BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
           ],

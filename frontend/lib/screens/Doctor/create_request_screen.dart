@@ -15,8 +15,8 @@ class CreateBloodRequestScreen extends StatefulWidget {
 }
 
 class _CreateBloodRequestScreenState extends State<CreateBloodRequestScreen> {
-  String selectedBlood = "O+";
-  String urgency = "Medium";
+  String selectedBlood = "";
+  String urgency = "";
   bool _isLoading = false;
   
   // Location State
@@ -57,6 +57,14 @@ class _CreateBloodRequestScreenState extends State<CreateBloodRequestScreen> {
   }
 
   Future<void> _createRequest() async {
+    if (selectedBlood.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please select a blood group")),
+      );
+      return;
+    }
+
     if (_unitsController.text.isEmpty) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
