@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:vita_flow/services/api_service.dart';
 
 class RiderHistoryScreen extends StatefulWidget {
   final Map<String, dynamic> currentUser;
@@ -9,14 +10,30 @@ class RiderHistoryScreen extends StatefulWidget {
 }
 
 class _RiderHistoryScreenState extends State<RiderHistoryScreen> {
+  List<dynamic> _history = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchHistory();
+  }
   
-  Future<void> _refreshHistory() async {
-    // Simulate network delay as no API endpoint exists yet
-    await Future.delayed(const Duration(seconds: 1));
-    if (mounted) {
-      setState(() {
-        // Here we would reload data if API existed
-      });
+  Future<void> _fetchHistory() async {
+    setState(() => _isLoading = true);
+    try {
+      final history = await ApiService.getRiderHistory(widget.currentUser['userId']);
+      if (mounted) {
+        setState(() {
+          _history = history.reversed.toList(); // Show newest first
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e")));
+      }
     }
   }
 
@@ -26,85 +43,48 @@ class _RiderHistoryScreenState extends State<RiderHistoryScreen> {
       backgroundColor: const Color(0xFFF1F2F6),
       body: SafeArea(
         child: RefreshIndicator(
-          onRefresh: _refreshHistory,
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+          onRefresh: _fetchHistory,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+               Padding(
+                 padding: const EdgeInsets.all(16.0),
+                 child: const Text("Delivery History",
+                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
+               ),
 
-                const Text("Delivery History",
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
-
-                const SizedBox(height: 20),
-
-                _weeklySummary(),
-
-                const SizedBox(height: 20),
-
-                _historyTile(
-                  bloodType: "O+",
-                  date: "October 12, 2025",
-                  hospital: "City Hospital",
-                  distance: "1.2 km",
-                  time: "2:45 PM",
-                  earning: "₹50",
-                ),
-
-                const SizedBox(height: 12),
-
-                _historyTile(
-                  bloodType: "A+",
-                  date: "October 12, 2025",
-                  hospital: "St. Hospital",
-                  distance: "3.5 km",
-                  time: "11:30 AM",
-                  earning: "₹80",
-                ),
-              ],
-            ),
+              Expanded(
+                child: _isLoading 
+                  ? const Center(child: CircularProgressIndicator())
+                  : _history.isEmpty
+                    ? const Center(child: Text("No delivery history found"))
+                    : ListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        itemCount: _history.length,
+                        itemBuilder: (context, index) {
+                          final req = _history[index];
+                          final hospitalName = req['hospitalName'] ?? "Unknown Hospital";
+                          final bloodGroup = req['bloodGroup'] ?? "?";
+                          final date = req['date'] ?? "";
+                          final time = req['time'] ?? "";
+                          
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 12.0),
+                            child: _historyTile(
+                              bloodType: bloodGroup,
+                              date: date,
+                              hospital: hospitalName,
+                              // distance: "2.5 km", // We don't have distance in history easily without calculation
+                              time: time,
+                            ),
+                          );
+                        },
+                      ),
+              ),
+            ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _weeklySummary() {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        children: [
-          _moneyRow("Base Pay", "₹520"),
-          _moneyRow("Tips", "₹120"),
-          _moneyRow("Bonuses", "₹50"),
-          const Divider(),
-          _moneyRow("Total", "₹6080", bold: true),
-        ],
-      ),
-    );
-  }
-
-  Widget _moneyRow(String label, String value, {bool bold = false}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        children: [
-          Text(label,
-              style: const TextStyle(color: Colors.black54, fontSize: 15)),
-          const Spacer(),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -113,9 +93,8 @@ class _RiderHistoryScreenState extends State<RiderHistoryScreen> {
     required String bloodType,
     required String date,
     required String hospital,
-    required String distance,
+    String? distance,
     required String time,
-    required String earning,
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -141,16 +120,30 @@ class _RiderHistoryScreenState extends State<RiderHistoryScreen> {
                 Text(hospital,
                     style: const TextStyle(
                         fontSize: 16, fontWeight: FontWeight.w600)),
-                Text(date, style: const TextStyle(color: Colors.grey)),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                     Icon(Icons.calendar_today, size: 12, color: Colors.grey),
+                     SizedBox(width: 4),
+                     Text(date, style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                     SizedBox(width: 10),
+                     Icon(Icons.access_time, size: 12, color: Colors.grey),
+                     SizedBox(width: 4),
+                     Text(time, style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                  ],
+                ),
+                if (distance != null)
                 Text(distance, style: const TextStyle(color: Colors.grey)),
-                Text(time, style: const TextStyle(color: Colors.grey)),
               ],
             ),
           ),
-
-          Text(earning,
-              style:
-                  const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          
+          Column(
+             children: [
+               Text("Completed", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 12)),
+               Icon(Icons.check_circle, color: Colors.green),
+             ]
+          )
         ],
       ),
     );

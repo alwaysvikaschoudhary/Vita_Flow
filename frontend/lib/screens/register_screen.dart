@@ -90,7 +90,7 @@ class _RegisterState extends State<Register> {
     );
     if (picked != null) {
       setState(() {
-        dobController.text = DateFormat('yyyy-MM-dd').format(picked);
+        dobController.text = DateFormat('dd-MM-yyyy').format(picked);
       });
     }
   }

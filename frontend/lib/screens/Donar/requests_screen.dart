@@ -122,7 +122,7 @@ class _RequestsScreenState extends State<RequestsScreen> {
       "units": "1", // Fixed
       "urgency": "Low", // Fixed
       "status": "PENDING", // Fixed
-      "date": DateFormat('yyyy-MM-dd').format(DateTime.now()), // Today
+      "date": DateFormat('dd-MM-yyyy').format(DateTime.now()), // Today
       "time": DateFormat('HH:mm').format(DateTime.now()),
       "donorId": widget.currentUser['userId'] ?? widget.currentUser['id'],
       "donorName": donorName,

@@ -188,6 +188,16 @@ public class BloodRequestController {
         }
     }
 
+    @GetMapping("/history/rider/{riderId}")
+    public ResponseEntity<?> getRiderHistory(@PathVariable String riderId) {
+        try {
+            List<BloodRequest> history = requestService.findHistoryForRider(riderId);
+            return ResponseEntity.ok(history);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
     @GetMapping("/{requestId}")
     public ResponseEntity<?> getRequestById(@PathVariable String requestId) {
         BloodRequest request = requestService.getRequestById(requestId);

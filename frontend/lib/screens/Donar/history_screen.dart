@@ -49,18 +49,19 @@ class _HistoryScreenState extends State<HistoryScreen> {
   void _sortHistory() {
     setState(() {
       switch (_sortOption) {
+
         case 'Newest First':
           _history.sort((a, b) {
-            String dateA = a['date'] ?? '';
-            String dateB = b['date'] ?? '';
-            return dateB.compareTo(dateA); // Descending
+            final da = _parseDate(a['date'] ?? '');
+            final db = _parseDate(b['date'] ?? '');
+            return db.compareTo(da); // Descending
           });
           break;
         case 'Oldest First':
           _history.sort((a, b) {
-            String dateA = a['date'] ?? '';
-            String dateB = b['date'] ?? '';
-            return dateA.compareTo(dateB); // Ascending
+            final da = _parseDate(a['date'] ?? '');
+            final db = _parseDate(b['date'] ?? '');
+            return da.compareTo(db); // Ascending
           });
           break;
         case 'Blood Group (A-Z)':
@@ -241,9 +242,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
     // Format date if possible
     String displayDate = date;
     try {
-       // Assuming date comes as YYYY-MM-DD
-       final parsedDate = DateTime.parse(date);
-       displayDate = DateFormat.yMMMMd().format(parsedDate);
+       final parsedDate = _parseDate(date);
+       if (parsedDate.year != 1970) {
+          displayDate = DateFormat('dd-MM-yyyy').format(parsedDate);
+       }
     } catch (e) {
        // keep original string
     }
@@ -351,5 +353,19 @@ class _HistoryScreenState extends State<HistoryScreen> {
         ),
       ],
     );
+  }
+  DateTime _parseDate(String dateStr) {
+    if (dateStr.isEmpty) return DateTime(1970);
+    try {
+      // Try ISO first (yyyy-MM-dd)
+      return DateTime.parse(dateStr);
+    } catch (_) {
+      try {
+        // Try dd-MM-yyyy
+        return DateFormat('dd-MM-yyyy').parse(dateStr);
+      } catch (e) {
+        return DateTime(1970);
+      }
+    }
   }
 }

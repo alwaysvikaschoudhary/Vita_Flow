@@ -64,17 +64,17 @@ class _RiderHomeScreenState extends State<RiderHomeScreen> {
               children: [
                 _buildHeader(),
 
-                const SizedBox(height: 16),
+                // const SizedBox(height: 16),
 
-                _buildStatsRow(),
+                // // _buildStatsRow(),
 
-                const SizedBox(height: 16),
+                // const SizedBox(height: 16),
 
-                // Show Active Delivery Card OR Online Card
-                if (_activeTask != null) 
-                  _activeDeliveryCard()
-                else 
-                  _buildOnlineCard(),
+                // // Show Active Delivery Card OR Online Card
+                // if (_activeTask != null) 
+                //   _activeDeliveryCard()
+                // else 
+                //   _buildOnlineCard(),
 
                 const SizedBox(height: 16),
 
@@ -152,15 +152,15 @@ class _RiderHomeScreenState extends State<RiderHomeScreen> {
   }
 
   // ---------------- STATS ROW ----------------
-  Widget _buildStatsRow() {
-    return Row(
-      children: [
-        _statBox(Icons.local_shipping, Colors.blue, "2", "Active"),
-        _statBox(Icons.currency_rupee, Colors.red, "₹490", "Today"),
-        _statBox(Icons.trending_up, Colors.purple, "52", "Total"),
-      ],
-    );
-  }
+  // Widget _buildStatsRow() {
+  //   return Row(
+  //     children: [
+  //       _statBox(Icons.local_shipping, Colors.blue, "2", "Active"),
+  //       _statBox(Icons.currency_rupee, Colors.red, "₹490", "Today"),
+  //       _statBox(Icons.trending_up, Colors.purple, "52", "Total"),
+  //     ],
+  //   );
+  // }
 
   Widget _statBox(IconData icon, Color color, String value, String label) {
     return Expanded(

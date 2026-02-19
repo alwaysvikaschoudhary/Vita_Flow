@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:intl/intl.dart';
 import 'package:vita_flow/services/api_service.dart';
 
 class DoctorHistoryScreen extends StatefulWidget {
@@ -58,17 +59,25 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
   int _compareRequests(dynamic a, dynamic b) {
     int comparison;
     try {
-      final String dateA = a['date'] ?? '1970-01-01';
+      final String dateA = a['date'] ?? '';
       final String timeA = a['time'] ?? '00:00';
-      final String dateB = b['date'] ?? '1970-01-01';
+      final String dateB = b['date'] ?? '';
       final String timeB = b['time'] ?? '00:00';
       
-      final dtA = DateTime.parse("$dateA $timeA"); // Expects yyyy-MM-dd HH:mm
-      final dtB = DateTime.parse("$dateB $timeB");
+      // Parse date part first
+      final dtDateA = _parseDate(dateA);
+      final dtDateB = _parseDate(dateB);
+      
+      // Combine with time if dates are valid
+      final dtA = DateTime(dtDateA.year, dtDateA.month, dtDateA.day, 
+          int.parse(timeA.split(':')[0]), int.parse(timeA.split(':')[1]));
+          
+      final dtB = DateTime(dtDateB.year, dtDateB.month, dtDateB.day,
+          int.parse(timeB.split(':')[0]), int.parse(timeB.split(':')[1]));
       
       comparison = dtB.compareTo(dtA);
     } catch (e) {
-      // Fallback to string comparison
+      // Fallback to string comparison if time parsing fails
       final String dtA = "${a['date']} ${a['time']}";
       final String dtB = "${b['date']} ${b['time']}";
       comparison = dtB.compareTo(dtA);
@@ -141,7 +150,8 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
         // Based on _compareRequests, it seems to parse standard format or is consistent string.
         // Let's safe parse.
         try {
-          reqDate = DateTime.parse(dateStr);
+          reqDate = _parseDate(dateStr);
+          if (reqDate.year == 1970) continue;
         } catch (_) {
           continue; 
         }
@@ -722,5 +732,19 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
         ],
       ),
     );
+  }
+  DateTime _parseDate(String dateStr) {
+    if (dateStr.isEmpty) return DateTime(1970);
+    try {
+      // Try ISO first (yyyy-MM-dd)
+      return DateTime.parse(dateStr);
+    } catch (_) {
+      try {
+        // Try dd-MM-yyyy
+        return DateFormat('dd-MM-yyyy').parse(dateStr);
+      } catch (e) {
+        return DateTime(1970);
+      }
+    }
   }
 }

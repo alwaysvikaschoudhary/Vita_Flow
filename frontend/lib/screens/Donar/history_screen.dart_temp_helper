@@ -1,0 +1,14 @@
+  DateTime _parseDate(String dateStr) {
+    if (dateStr.isEmpty) return DateTime(1970);
+    try {
+      // Try ISO first (yyyy-MM-dd)
+      return DateTime.parse(dateStr);
+    } catch (_) {
+      try {
+        // Try dd-MM-yyyy
+        return DateFormat('dd-MM-yyyy').parse(dateStr);
+      } catch (e) {
+        return DateTime(1970);
+      }
+    }
+  }

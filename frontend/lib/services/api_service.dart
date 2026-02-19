@@ -101,6 +101,7 @@ class ApiService {
       throw Exception("Error updating location: $e");
     }
   }
+
   static Future<List<dynamic>> getRequestsByHospital(String hospitalId) async {
     final url = Uri.parse("$baseUrl/request/hospital/$hospitalId");
     try {
@@ -114,6 +115,7 @@ class ApiService {
       throw Exception("Error connecting to server: $e");
     }
   }
+
   static Future<List<dynamic>> getNearbyRequests(String donorId) async {
     final url = Uri.parse("$baseUrl/request/nearby/$donorId");
     try {
@@ -219,6 +221,7 @@ class ApiService {
       throw Exception("Error connecting to server: $e");
     }
   }
+
   static Future<bool> updateRiderLocation(String requestId, double lat, double lng) async {
     final url = Uri.parse("$baseUrl/request/rider/location");
     try {
@@ -315,18 +318,23 @@ class ApiService {
   }
 
   static Future<List<dynamic>> getDonorHistory(String donorId) async {
-    final url = Uri.parse("$baseUrl/request/history/donor/$donorId");
-    try {
-      final response = await http.get(url);
-      if (response.statusCode == 200) {
-        return jsonDecode(response.body);
-      } else {
-        throw Exception("Failed to load history: ${response.body}");
-      }
-    } catch (e) {
-      throw Exception("Error connecting to server: $e");
+    final response = await http.get(Uri.parse('$baseUrl/request/history/donor/$donorId'));
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to load donor history');
     }
   }
+
+  static Future<List<dynamic>> getRiderHistory(String riderId) async {
+    final response = await http.get(Uri.parse('$baseUrl/request/history/rider/$riderId'));
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to load rider history');
+    }
+  }
+  
   static Future<Map<String, dynamic>> getDoctorById(String userId) async {
     final url = Uri.parse("$baseUrl/user/doctor/$userId");
     try {

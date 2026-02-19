@@ -60,7 +60,13 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     try {
-      final date = DateTime.parse(lastDonation);
+      DateTime date;
+      try {
+        date = DateTime.parse(lastDonation);
+      } catch (_) {
+        date = DateFormat('dd-MM-yyyy').parse(lastDonation);
+      }
+      
       final difference = DateTime.now().difference(date).inDays;
       if (difference > 90) { // 3 months approx
         return {"eligible": true, "msg": "Available Now"};

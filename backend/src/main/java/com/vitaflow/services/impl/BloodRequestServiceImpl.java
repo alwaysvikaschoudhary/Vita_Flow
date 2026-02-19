@@ -123,4 +123,12 @@ public class BloodRequestServiceImpl implements BloodRequestService {
         requests.forEach(this::populateHospitalName);
         return requests;
     }
+
+    @Override
+    public List<BloodRequest> findHistoryForRider(String riderId) {
+        List<String> historyStatuses = List.of("COMPLETED", "DELIVERED", "CANCELLED");
+        List<BloodRequest> requests = requestRepository.findByRiderIdAndStatusIn(riderId, historyStatuses);
+        requests.forEach(this::populateHospitalName);
+        return requests;
+    }
 }

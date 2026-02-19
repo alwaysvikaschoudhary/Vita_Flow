@@ -11,4 +11,5 @@ public interface BloodRequestRepository extends JpaRepository<BloodRequest, Stri
     List<BloodRequest> findByHospitalId(String hospitalId);
     List<BloodRequest> findByStatus(String status);
     List<BloodRequest> findByDonorIdAndStatusIn(String donorId, List<String> statuses);
+    List<BloodRequest> findByRiderIdAndStatusIn(String riderId, List<String> statuses);
 }

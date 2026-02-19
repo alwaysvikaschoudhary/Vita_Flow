@@ -48,6 +48,8 @@ class _PickupVerificationScreenState extends State<PickupVerificationScreen> {
   late String _bloodType;
   late String _address;
   String? _donorPhoneNumber;
+  late String _doctorName;
+  String? _doctorPhoneNumber;
 
   @override
   void initState() {
@@ -63,6 +65,8 @@ class _PickupVerificationScreenState extends State<PickupVerificationScreen> {
     _bloodType = data['bloodGroup'] ?? "Unknown";
     _address = data['hospitalName'] ?? "Hospital"; // Initial address displayed
     _donorPhoneNumber = data['donorPhoneNumber']; 
+    _doctorName = data['doctorName'] ?? "Doctor";
+    _doctorPhoneNumber = data['doctorPhoneNumber']; 
     
     // Check if presumably already started
     String status = data['status'] ?? "PENDING";
@@ -236,6 +240,24 @@ class _PickupVerificationScreenState extends State<PickupVerificationScreen> {
     }
   }
 
+  Future<void> _callDoctor() async {
+    if (_doctorPhoneNumber == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Doctor phone number not available")),
+      );
+      return;
+    }
+    final Uri launchUri = Uri(
+      scheme: 'tel',
+      path: _doctorPhoneNumber,
+    );
+    if (!await launchUrl(launchUri)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Could not launch dialer")),
+      );
+    }
+  }
+
   Future<void> _assignRider() async {
     setState(() => _isLoading = true);
     try {
@@ -368,6 +390,9 @@ class _PickupVerificationScreenState extends State<PickupVerificationScreen> {
 
                     const SizedBox(height: 30),
 
+                    _doctorCard(),
+                    const SizedBox(height: 30),
+
                     _pickupButton(context),
                   ],
                 ),
@@ -493,6 +518,64 @@ class _PickupVerificationScreenState extends State<PickupVerificationScreen> {
               const Spacer(),
               GestureDetector(
                 onTap: _callDonor,
+                child: CircleAvatar(
+                  radius: 22,
+                  backgroundColor: Colors.green.shade100,
+                  child: const Icon(Icons.call, color: Colors.green),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+
+          Row(
+            children: [
+              const Icon(Icons.location_on, size: 20, color: Colors.grey),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  _address,
+                  style: const TextStyle(color: Colors.black54),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _doctorCard() {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 28,
+                backgroundColor: Colors.red.shade50,
+                child: const Icon(Icons.person, color: Colors.red, size: 30),
+              ),
+              const SizedBox(width: 16),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _doctorName,
+                    style: const TextStyle(
+                        fontSize: 17, fontWeight: FontWeight.w600),
+                  ),
+                ],
+              ),
+              const Spacer(),
+              GestureDetector(
+                onTap: _callDoctor,
                 child: CircleAvatar(
                   radius: 22,
                   backgroundColor: Colors.green.shade100,

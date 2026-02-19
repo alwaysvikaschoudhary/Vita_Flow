@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:vita_flow/config.dart';
-
+import 'package:intl/intl.dart';
 import 'package:vita_flow/screens/Common/location_picker_screen.dart';
 
 class CreateBloodRequestScreen extends StatefulWidget {
@@ -128,7 +128,8 @@ class _CreateBloodRequestScreenState extends State<CreateBloodRequestScreen> {
       "status": "PENDING",
       "hospitalId": widget.currentUser['userId'], 
       "doctorName": widget.currentUser['name'],
-      "time": _timeController.text.isNotEmpty ? _timeController.text : null,
+      "time": DateFormat('HH:mm').format(DateTime.now()),
+      "date": DateFormat('dd-MM-yyyy').format(DateTime.now()),
       "ordinate": {
         "latitude": latitude, 
         "longitude": longitude
