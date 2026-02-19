@@ -178,6 +178,39 @@ public class MatchingService {
         return nearbyRequests;
     }
 
+    public List<com.vitaflow.entities.BloodRequest> findNearbyPendingRequestsForDoctor(Ordinate doctorLocation) {
+        // 1. Fetch all PENDING requests
+        List<com.vitaflow.entities.BloodRequest> allPendingRequests = bloodRequestRepository.findByStatus("PENDING");
+
+        if (allPendingRequests.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        // 2. Filter requests that have extraction location (pickupOrdinate)
+        // AND are within 5km of the doctor's location
+        List<RequestDistance> requestDistances = new ArrayList<>();
+        
+        for (com.vitaflow.entities.BloodRequest req : allPendingRequests) {
+            if (req.getPickupOrdinate() != null) {
+                double dist = googleDistanceService.calculateDistance(
+                    doctorLocation.getLatitude(), doctorLocation.getLongitude(),
+                    req.getPickupOrdinate().getLatitude(), req.getPickupOrdinate().getLongitude()
+                );
+
+                if (dist <= 5.0) {
+                     requestDistances.add(new RequestDistance(req, dist));
+                }
+            }
+        }
+
+        // 3. Sort by distance
+        requestDistances.sort(Comparator.comparingDouble(RequestDistance::getDistance));
+
+        return requestDistances.stream()
+                .map(RequestDistance::getRequest)
+                .collect(Collectors.toList());
+    }
+
     private boolean isCompatible(String donorGroup, String requestGroup) {
         // Simple compatibility logic (can be expanded)
         // For now, let's assume exact match or universal donor logic if simple.

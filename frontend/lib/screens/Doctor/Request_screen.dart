@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:vita_flow/services/api_service.dart';
-import 'package:vita_flow/screens/Doctor/track_delivery_screen.dart'; // Assume this exists or is placeholder
+import 'package:vita_flow/screens/Doctor/track_delivery_screen.dart'; 
+import 'package:vita_flow/screens/Location/location_picker_screen.dart';
 
 class DoctorRequestsScreen extends StatefulWidget {
   final Map<String, dynamic> currentUser;
@@ -13,6 +14,7 @@ class DoctorRequestsScreen extends StatefulWidget {
 class _DoctorRequestsScreenState extends State<DoctorRequestsScreen> {
   List<dynamic> _requests = [];
   bool _isLoading = true;
+  String _selectedTab = "Available"; // "Available" or "My Requests"
 
   @override
   void initState() {
@@ -21,14 +23,20 @@ class _DoctorRequestsScreenState extends State<DoctorRequestsScreen> {
   }
 
   Future<void> _fetchRequests() async {
+    setState(() => _isLoading = true);
     try {
-      // Use the same API as Home Screen to get all requests for this hospital
-      // "All Requests" implies history + active usually, or just active?
-      // Given the UI had filters for status, let's fetch ALL.
-      final requests = await ApiService.getRequestsByHospital(widget.currentUser['userId']);
+      List<dynamic> requests = [];
+      if (_selectedTab == "Available") {
+        // Fetch nearby pending requests
+        requests = await ApiService.getNearbyPendingRequestsForDoctor(widget.currentUser['userId']);
+      } else {
+        // Fetch history/active requests for this doctor (hospital)
+        requests = await ApiService.getRequestsByHospital(widget.currentUser['userId']);
+      }
+
       if (mounted) {
         setState(() {
-          _requests = requests.reversed.toList(); // Newest first
+          _requests = requests.reversed.toList();
           _isLoading = false;
         });
       }
@@ -40,153 +48,221 @@ class _DoctorRequestsScreenState extends State<DoctorRequestsScreen> {
     }
   }
 
-  // Helper to filter if needed, or just show all. 
-  // ensuring the screen matches the "All Requests" title.
+  Future<void> _acceptRequest(String requestId) async {
+    // Show dialog to choose location
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                "Confirm Acceptance",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 10),
+              const Text("Select location for pickup by rider:"),
+              const SizedBox(height: 20),
+              ListTile(
+                leading: const Icon(Icons.location_on, color: Colors.blue),
+                title: const Text("Use My Profile Location"),
+                onTap: () async {
+                  Navigator.pop(context);
+                  _processAcceptance(requestId, null, null);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.map, color: Colors.orange),
+                title: const Text("Select New Location"),
+                onTap: () async {
+                  Navigator.pop(context);
+                  
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const LocationPickerScreen(),
+                    ),
+                  );
+
+                  if (result != null && result is Map<String, double>) {
+                    _processAcceptance(requestId, result['latitude'], result['longitude']);
+                  }
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+
+  Future<void> _processAcceptance(String requestId, double? lat, double? lng) async {
+    setState(() => _isLoading = true);
+    try {
+      await ApiService.acceptRequestByDoctor({
+        "requestId": requestId,
+        "doctorId": widget.currentUser['userId'],
+        "doctorName": widget.currentUser['name'],
+        "doctorPhoneNumber": widget.currentUser['phoneNumber'],
+        "latitude": lat,
+        "longitude": lng,
+      });
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Request Accepted!")));
+        // Switch to "My Requests" to see it
+        setState(() {
+          _selectedTab = "My Requests";
+        });
+        _fetchRequests();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e")));
+        setState(() => _isLoading = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Basic stats
-    final activeCount = _requests.where((r) => r['status'] == 'ACCEPTED' || r['status'] == 'ON_THE_WAY' || r['status'] == 'PICKED_UP').length;
-    final pendingCount = _requests.where((r) => r['status'] == 'PENDING').length;
-    
-    // Today count
-    final now = DateTime.now();
-    final todayCount = _requests.where((r) {
-      if (r['date'] == null) return false;
-      try {
-        final parts = r['date'].toString().split('-');
-        final d = DateTime(int.parse(parts[0]), int.parse(parts[1]), int.parse(parts[2]));
-        return d.year == now.year && d.month == now.month && d.day == now.day;
-      } catch (e) {
-        return false;
-      }
-    }).length;
-
     return Scaffold(
       backgroundColor: const Color(0xFFF1F2F6),
       body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: _fetchRequests,
-          color: const Color(0xFFE0463A),
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "All Requests",
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
-                ),
-
-                const SizedBox(height: 16),
-
-                // ----------------------------
-                // FILTER BUTTON (Visual only for now, can implement logic later if needed)
-                // ----------------------------
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 14,
-                    horizontal: 18,
+        child: Column(
+          children: [
+            // Header
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    "Blood Requests",
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
                   ),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
+                  IconButton(
+                    icon: const Icon(Icons.refresh),
+                    onPressed: _fetchRequests,
                   ),
-                  child: Row(
-                    children: const [
-                      Icon(Icons.filter_list, color: Colors.black),
-                      SizedBox(width: 10),
-                      Text(
-                        "Filter by status & urgency",
-                        style: TextStyle(fontSize: 16),
-                      ),
-                    ],
-                  ),
-                ),
+                ],
+              ),
+            ),
 
-                const SizedBox(height: 20),
+            // Toggle
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(25),
+              ),
+              child: Row(
+                children: [
+                  _buildTab("Available"),
+                  _buildTab("My Requests"),
+                ],
+              ),
+            ),
+            
+            const SizedBox(height: 10),
 
-                // ----------------------------
-                // STATS ROW
-                // ----------------------------
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _statBox("$activeCount", "Active", Colors.blue.shade50, Colors.blue),
-                    _statBox(
-                      "$pendingCount",
-                      "Pending",
-                      Colors.yellow.shade50,
-                      Colors.orange,
-                    ),
-                    _statBox("$todayCount", "Today", Colors.green.shade50, Colors.green),
-                  ],
-                ),
+            // List
+            Expanded(
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _requests.isEmpty
+                      ? const Center(child: Text("No requests found"))
+                      : ListView.builder(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: _requests.length,
+                          itemBuilder: (context, index) {
+                            final req = _requests[index];
+                             // Determine UI properties based on status/urgency
+                            String urgency = req['urgency'] ?? "Medium";
+                            Color urgencyColor = Colors.orange;
+                            if (urgency == "Critical") urgencyColor = Colors.red;
+                            if (urgency == "Low") urgencyColor = Colors.green;
 
-                const SizedBox(height: 20),
+                            String status = req['status'] ?? "Pending";
+                            Color statusColor = Colors.grey;
+                            if (status == "ACCEPTED") statusColor = Colors.blue;
+                            if (status == "COMPLETED") statusColor = Colors.green;
+                            if (status == "PENDING") statusColor = Colors.orange;
+                            if (status == "PICKED_UP") statusColor = Colors.purple;
+                            if (status == "CANCELLED") statusColor = Colors.red;
 
-                // ----------------------------
-                // REQUEST LIST
-                // ----------------------------
-                if (_isLoading)
-                  const Center(child: CircularProgressIndicator())
-                else if (_requests.isEmpty)
-                   const Center(child: Padding(padding: EdgeInsets.all(20), child: Text("No requests found.")))
-                else
-                  ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: _requests.length,
-                    itemBuilder: (context, index) {
-                      final req = _requests[index];
-                      // Determine UI properties based on status/urgency
-                      String urgency = req['urgency'] ?? "Medium";
-                      Color urgencyColor = Colors.orange;
-                      if (urgency == "Critical") urgencyColor = Colors.red;
-                      if (urgency == "Low") urgencyColor = Colors.green;
+                            String btnText = "View Details";
+                            if (_selectedTab == "Available") {
+                              btnText = "Accept Request";
+                            } else {
+                              if (status == "ACCEPTED" || status == "PICKED_UP") btnText = "Track Delivery";
+                            }
 
-                      String status = req['status'] ?? "Pending";
-                      Color statusColor = Colors.grey;
-                      if (status == "ACCEPTED") statusColor = Colors.blue;
-                      if (status == "COMPLETED") statusColor = Colors.green;
-                      if (status == "PENDING") statusColor = Colors.orange;
-                      if (status == "PICKED_UP") statusColor = Colors.purple;
-                      if (status == "CANCELLED") statusColor = Colors.red;
-
-                      String btnText = "View Details";
-                      if (status == "ACCEPTED" || status == "PICKED_UP") btnText = "Track Delivery";
-
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        child: _requestCard(
-                          blood: req['bloodGroup'] ?? "?",
-                          units: "${req['units']} Units",
-                          timeAgo: _timeAgo(req['date'], req['time']),
-                          donorName: req['donorName'] ?? (status == "PENDING" ? "Waiting for match" : "Unknown"),
-                          urgency: urgency,
-                          urgencyColor: urgencyColor,
-                          status: status,
-                          statusColor: statusColor,
-                          buttonText: btnText,
-                          onPressed: () {
-                             if (status == "ACCEPTED" || status == "PICKED_UP") {
-                                // Navigate to tracking if supported
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (c) => const DoctorLiveTrackingScreen(),
-                                  ),
-                                );
-                             } else {
-                               // Detail view logic
-                             }
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 16),
+                              child: _requestCard(
+                                blood: req['bloodGroup'] ?? "?",
+                                units: "${req['units']} Units",
+                                timeAgo: _timeAgo(req['date'], req['time']),
+                                donorName: req['donorName'] ?? (status == "PENDING" ? "Waiting for match" : "Unknown"),
+                                urgency: urgency,
+                                urgencyColor: urgencyColor,
+                                status: status,
+                                statusColor: statusColor,
+                                buttonText: btnText,
+                                onPressed: () {
+                                   if (_selectedTab == "Available") {
+                                      _acceptRequest(req['requestId'] ?? req['id']);
+                                   } else {
+                                      if (status == "ACCEPTED" || status == "PICKED_UP") {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (c) => const DoctorLiveTrackingScreen(),
+                                          ),
+                                        );
+                                      }
+                                   }
+                                },
+                              ),
+                            );
                           },
                         ),
-                      );
-                    },
-                  ),
-              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTab(String title) {
+    bool isSelected = _selectedTab == title;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            _selectedTab = title;
+          });
+          _fetchRequests();
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: isSelected ? const Color(0xFFE0463A) : Colors.transparent,
+            borderRadius: BorderRadius.circular(25),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            title,
+            style: TextStyle(
+              color: isSelected ? Colors.white : Colors.black54,
+              fontWeight: FontWeight.bold,
             ),
           ),
         ),

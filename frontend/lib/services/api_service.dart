@@ -128,6 +128,38 @@ class ApiService {
     }
   }
 
+  static Future<List<dynamic>> getNearbyPendingRequestsForDoctor(String doctorId) async {
+    final url = Uri.parse("$baseUrl/request/nearby/doctor/$doctorId");
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception("Failed to load nearby pending requests: ${response.body}");
+      }
+    } catch (e) {
+      throw Exception("Error connecting to server: $e");
+    }
+  }
+
+  static Future<Map<String, dynamic>> acceptRequestByDoctor(Map<String, dynamic> data) async {
+    final url = Uri.parse("$baseUrl/request/doctor/accept");
+    try {
+      final response = await http.post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(data),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception("Failed to accept request: ${response.body}");
+      }
+    } catch (e) {
+      throw Exception("Error connecting to server: $e");
+    }
+  }
+
   static Future<Map<String, dynamic>> acceptRequest(String requestId, Map<String, dynamic> data) async {
     final url = Uri.parse("$baseUrl/request/accept/$requestId");
     try {

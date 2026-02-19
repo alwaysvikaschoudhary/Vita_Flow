@@ -22,6 +22,9 @@ public class BloodRequestController {
     @Autowired
     private com.vitaflow.services.MatchingService matchingService;
 
+    @Autowired
+    private com.vitaflow.repositories.DoctorRepository doctorRepository;
+
     @PostMapping("/create")
     public ResponseEntity<?> createRequest(@RequestBody BloodRequest request) {
         try {
@@ -89,6 +92,67 @@ public class BloodRequestController {
             }
 
             return ResponseEntity.ok(acceptedRequest);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/nearby/doctor/{doctorId}")
+    public ResponseEntity<?> getNearbyPendingRequestsForDoctor(@PathVariable String doctorId) {
+        try {
+            com.vitaflow.entities.user.Doctor doctor = doctorRepository.findById(doctorId).orElse(null);
+            
+            if (doctor == null || doctor.getOrdinate() == null) {
+                 return ResponseEntity.badRequest().body(Map.of("error", "Doctor profile location not found"));
+            }
+
+            List<BloodRequest> nearby = matchingService.findNearbyPendingRequestsForDoctor(doctor.getOrdinate());
+            return ResponseEntity.ok(nearby);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/doctor/accept")
+    public ResponseEntity<?> acceptRequestByDoctor(@RequestBody Map<String, Object> payload) {
+        try {
+            String requestId = (String) payload.get("requestId");
+            String doctorId = (String) payload.get("doctorId");
+            String doctorName = (String) payload.get("doctorName");
+            String doctorPhoneNumber = (String) payload.get("doctorPhoneNumber"); 
+            
+            Double latitude = payload.get("latitude") != null ? Double.valueOf(payload.get("latitude").toString()) : null;
+            Double longitude = payload.get("longitude") != null ? Double.valueOf(payload.get("longitude").toString()) : null;
+
+            BloodRequest request = requestService.getRequestById(requestId);
+            if (request == null) return ResponseEntity.badRequest().body(Map.of("error", "Request not found"));
+            
+            if (!"PENDING".equals(request.getStatus())) {
+                 return ResponseEntity.badRequest().body(Map.of("error", "Request is not pending"));
+            }
+
+            request.setStatus("ACCEPTED");
+            request.setHospitalId(doctorId);
+            request.setDoctorName(doctorName);
+            request.setDoctorPhoneNumber(doctorPhoneNumber);
+            
+            // Generate OTP if not present
+            if (request.getOtp() == null || request.getOtp().isEmpty()) {
+                String otp = String.format("%04d", new java.util.Random().nextInt(10000));
+                request.setOtp(otp);
+            }
+            
+            if (latitude != null && longitude != null) {
+                request.setOrdinate(new com.vitaflow.entities.Ordinate(latitude, longitude));
+            } else {
+                 com.vitaflow.entities.user.Doctor doctor = doctorRepository.findById(doctorId).orElse(null);
+                 if (doctor != null && doctor.getOrdinate() != null) {
+                     request.setOrdinate(doctor.getOrdinate());
+                 }
+            }
+            
+            BloodRequest updatedRequest = requestService.createRequest(request);
+            return ResponseEntity.ok(updatedRequest);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
