@@ -21,6 +21,9 @@ public class BloodRequestServiceImpl implements BloodRequestService {
     @Autowired
     private com.vitaflow.repositories.DoctorRepository doctorRepository;
 
+    @Autowired
+    private com.vitaflow.repositories.RiderRepository riderRepository;
+
     @Override
     public BloodRequest createRequest(BloodRequest request) {
         if (request.getRequestId() == null || request.getRequestId().isEmpty()) {
@@ -130,5 +133,20 @@ public class BloodRequestServiceImpl implements BloodRequestService {
         List<BloodRequest> requests = requestRepository.findByRiderIdAndStatusIn(riderId, historyStatuses);
         requests.forEach(this::populateHospitalName);
         return requests;
+    }
+
+    @Override
+    public BloodRequest assignRider(String requestId, String riderId) {
+        BloodRequest request = requestRepository.findById(requestId).orElseThrow(() -> new RuntimeException("Request not found"));
+        
+        com.vitaflow.entities.user.Rider rider = riderRepository.findById(riderId).orElseThrow(() -> new RuntimeException("Rider not found"));
+        
+        request.setRiderId(riderId);
+        request.setRiderName(rider.getName());
+        request.setRiderPhoneNumber(rider.getPhoneNumber());
+        request.setRiderBikeNumber(rider.getBikeNumber());
+        request.setStatus("RIDER_ASSIGNED");
+        
+        return requestRepository.save(request);
     }
 }

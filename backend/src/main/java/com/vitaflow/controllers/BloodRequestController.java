@@ -25,6 +25,9 @@ public class BloodRequestController {
     @Autowired
     private com.vitaflow.repositories.DoctorRepository doctorRepository;
 
+    @Autowired
+    private com.vitaflow.services.UserService userService;
+
     @PostMapping("/create")
     public ResponseEntity<?> createRequest(@RequestBody BloodRequest request) {
         try {
@@ -208,30 +211,13 @@ public class BloodRequestController {
         }
     }
 
-    @Autowired
-    private com.vitaflow.services.UserService userService;
-
     @PostMapping("/assign/rider")
     public ResponseEntity<?> assignRider(@RequestBody Map<String, String> payload) {
         try {
             String requestId = payload.get("requestId");
             String riderId = payload.get("riderId");
-            String riderName = payload.get("riderName");
 
-            BloodRequest request = requestService.getRequestById(requestId);
-            if (request == null) return ResponseEntity.badRequest().body(Map.of("error", "Request not found"));
-            
-            request.setRiderId(riderId);
-            request.setRiderName(riderName);
-            request.setStatus("RIDER_ASSIGNED"); // Or ON_THE_WAY_TO_DONOR
-            
-            com.vitaflow.entities.user.Rider rider = userService.getRiderById(riderId);
-            if (rider != null) {
-                request.setRiderPhoneNumber(rider.getPhoneNumber());
-                request.setRiderBikeNumber(rider.getBikeNumber());
-            }
-            
-            BloodRequest updatedRequest = requestService.createRequest(request);
+            BloodRequest updatedRequest = requestService.assignRider(requestId, riderId);
             return ResponseEntity.ok(updatedRequest);
         } catch (Exception e) {
              return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
@@ -374,4 +360,5 @@ public class BloodRequestController {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
+    
 }

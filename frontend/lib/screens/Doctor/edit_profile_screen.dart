@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:vita_flow/services/api_service.dart';
-import 'package:vita_flow/screens/Common/location_picker_screen.dart';
+import 'package:vita_flow/screens/Location/location_picker_screen.dart';
 
 class EditDoctorProfileScreen extends StatefulWidget {
   final Map<String, dynamic> currentUser;

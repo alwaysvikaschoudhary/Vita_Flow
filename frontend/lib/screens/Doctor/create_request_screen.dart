@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:vita_flow/config.dart';
 import 'package:intl/intl.dart';
-import 'package:vita_flow/screens/Common/location_picker_screen.dart';
+import 'package:vita_flow/screens/Location/location_picker_screen.dart';
 
 class CreateBloodRequestScreen extends StatefulWidget {
   final Map<String, dynamic> currentUser;

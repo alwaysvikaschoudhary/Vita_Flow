@@ -10,6 +10,12 @@ android {
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
+    val googleMapsApiKey = projectDir.resolve("../../lib/config.dart")
+        .readLines()
+        .firstNotNullOfOrNull { line ->
+            Regex("""static const String googleApiKey = "(.*)";""").find(line)?.groupValues?.get(1)
+        } ?: ""
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -28,6 +34,8 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+        manifestPlaceholders["googleMapsApiKey"] = googleMapsApiKey
     }
 
     buildTypes {

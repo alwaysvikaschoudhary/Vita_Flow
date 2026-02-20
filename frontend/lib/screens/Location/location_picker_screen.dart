@@ -1,11 +1,16 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
-import 'dart:async';
+import '../../services/location_service.dart';
+
 
 class LocationPickerScreen extends StatefulWidget {
-  const LocationPickerScreen({super.key});
+  final double? initialLat;
+  final double? initialLng;
+
+  const LocationPickerScreen({super.key, this.initialLat, this.initialLng});
 
   @override
   State<LocationPickerScreen> createState() => _LocationPickerScreenState();
@@ -14,21 +19,21 @@ class LocationPickerScreen extends StatefulWidget {
 class _LocationPickerScreenState extends State<LocationPickerScreen> {
   final Completer<GoogleMapController> _controller = Completer();
   final TextEditingController _searchController = TextEditingController();
+
   LatLng? _pickedLocation;
   bool _isLoading = true;
-  
-  // Default to Jaipur if location permission denied or error
-  static const CameraPosition _kDefaultLocation = CameraPosition(
-    target: LatLng(26.9124, 75.7873),
-    zoom: 14.4746,
+
+  static const CameraPosition _defaultLocation = CameraPosition(
+    target: LatLng(26.9124, 75.7873), // Jaipur fallback
+    zoom: 14,
   );
 
-  CameraPosition _initialPosition = _kDefaultLocation;
+  CameraPosition _initialPosition = _defaultLocation;
 
   @override
   void initState() {
     super.initState();
-    _determinePosition();
+    _initializeLocation();
   }
 
   @override
@@ -37,81 +42,108 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     super.dispose();
   }
 
-  Future<void> _determinePosition() async {
-    bool serviceEnabled;
-    LocationPermission permission;
+  Future<void> _initializeLocation() async {
+    // If initial coordinates passed
+    if (widget.initialLat != null && widget.initialLng != null) {
+      final latLng = LatLng(widget.initialLat!, widget.initialLng!);
 
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      if (mounted) setState(() => _isLoading = false);
-      return;
-    }
-
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-         if (mounted) setState(() => _isLoading = false);
-        return;
-      }
-    }
-
-    if (permission == LocationPermission.deniedForever) {
-       if (mounted) setState(() => _isLoading = false);
-      return;
-    }
-
-    try {
-      Position position = await Geolocator.getCurrentPosition();
       setState(() {
-        _initialPosition = CameraPosition(
-          target: LatLng(position.latitude, position.longitude),
-          zoom: 15,
-        );
-        _pickedLocation = LatLng(position.latitude, position.longitude); // Default to current
+        _pickedLocation = latLng;
+        _initialPosition = CameraPosition(target: latLng, zoom: 15);
         _isLoading = false;
       });
-      
-      final GoogleMapController controller = await _controller.future;
-      controller.animateCamera(CameraUpdate.newCameraPosition(_initialPosition));
-      
+
+      return;
+    }
+
+    await _determinePosition();
+  }
+
+  Future<void> _determinePosition() async {
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        _finishLoading();
+        return;
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        _finishLoading();
+        return;
+      }
+
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      final latLng = LatLng(position.latitude, position.longitude);
+
+      setState(() {
+        _pickedLocation = latLng;
+        _initialPosition = CameraPosition(target: latLng, zoom: 15);
+        _isLoading = false;
+      });
+
+      final controller = await _controller.future;
+      controller.animateCamera(
+        CameraUpdate.newCameraPosition(_initialPosition),
+      );
     } catch (e) {
-      print("Error getting location: $e");
-       if (mounted) setState(() => _isLoading = false);
+      _finishLoading();
     }
   }
 
-  Future<void> _searchAndNavigate() async {
+  void _finishLoading() {
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _searchLocation() async {
     final query = _searchController.text.trim();
     if (query.isEmpty) return;
 
     try {
-      List<Location> locations = await locationFromAddress(query);
-      if (locations.isNotEmpty) {
-        final loc = locations.first;
-        final newLatLng = LatLng(loc.latitude, loc.longitude);
-        
-        setState(() {
-          _pickedLocation = newLatLng;
-        });
+      LatLng? latLng;
 
-        final GoogleMapController controller = await _controller.future;
-        controller.animateCamera(CameraUpdate.newCameraPosition(
-          CameraPosition(target: newLatLng, zoom: 16),
-        ));
-      } else {
-        if(mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Location not found")),
-          );
+      try {
+        // Try native geocoding first (Works on iOS/Android for free without API key)
+        final locations = await locationFromAddress(query);
+        if (locations.isNotEmpty) {
+          latLng = LatLng(locations.first.latitude, locations.first.longitude);
         }
+      } catch (e) {
+        print('Native geocoding failed: $e');
       }
+
+      // If native geocoding failed (e.g., on Web) or returned nothing, try HTTP fallback
+      if (latLng == null) {
+        latLng = await LocationService.geocodeAddress(query);
+      }
+
+      if (latLng == null) {
+        _showSnackBar("Location not found");
+        return;
+      }
+
+      setState(() => _pickedLocation = latLng!);
+
+      final controller = await _controller.future;
+      controller.animateCamera(
+        CameraUpdate.newCameraPosition(
+          CameraPosition(target: latLng, zoom: 16),
+        ),
+      );
     } catch (e) {
-        if(mounted){
-             ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text("Error searching location: $e")),
-            );
-        }
+      print('Geocoding error: $e');
+      _showSnackBar("Error searching location");
     }
   }
 
@@ -122,115 +154,81 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
   }
 
   void _onTap(LatLng position) {
-    setState(() {
-      _pickedLocation = position;
+    setState(() => _pickedLocation = position);
+  }
+
+  void _confirmLocation() {
+    if (_pickedLocation == null) return;
+
+    Navigator.pop(context, {
+      "latitude": _pickedLocation!.latitude,
+      "longitude": _pickedLocation!.longitude,
     });
+  }
+
+  void _showSnackBar(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Pick Location'),
+        title: TextField(
+          controller: _searchController,
+          decoration: const InputDecoration(
+            hintText: "Search location...",
+            border: InputBorder.none,
+          ),
+          textInputAction: TextInputAction.search,
+          onSubmitted: (_) => _searchLocation(),
+        ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: _searchLocation,
+          ),
           if (_pickedLocation != null)
             TextButton(
-              onPressed: () {
-                Navigator.pop(context, {
-                  'latitude': _pickedLocation!.latitude,
-                  'longitude': _pickedLocation!.longitude,
-                });
-              },
-              child: const Text(
-                'Done',
-                style: TextStyle(color: Colors.white, fontSize: 16),
-              ),
+              onPressed: _confirmLocation,
+              child: const Text("Done", style: TextStyle(color: Colors.white)),
             ),
         ],
       ),
+
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : Stack(
               children: [
                 GoogleMap(
-                  mapType: MapType.normal,
                   initialCameraPosition: _initialPosition,
                   onMapCreated: _onMapCreated,
                   onTap: _onTap,
-                  markers: _pickedLocation != null
-                      ? {
-                          Marker(
-                            markerId: const MarkerId('picked'),
-                            position: _pickedLocation!,
-                          ),
-                        }
-                      : {},
                   myLocationEnabled: true,
                   myLocationButtonEnabled: true,
-                ),
-                Positioned(
-                  top: 10,
-                  left: 15,
-                  right: 15,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Colors.black26,
-                          blurRadius: 5,
-                          offset: Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _searchController,
-                            decoration: const InputDecoration(
-                              hintText: "Search address...",
-                              border: InputBorder.none,
-                              contentPadding: EdgeInsets.symmetric(vertical: 14),
-                            ),
-                            textInputAction: TextInputAction.search,
-                            onSubmitted: (_) => _searchAndNavigate(),
+                  markers: _pickedLocation == null
+                      ? {}
+                      : {
+                          Marker(
+                            markerId: const MarkerId("picked"),
+                            position: _pickedLocation!,
                           ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.search),
-                          onPressed: _searchAndNavigate,
-                        ),
-                      ],
-                    ),
-                  ),
+                        },
                 ),
                 if (_pickedLocation != null)
-                  Positioned(
-                    bottom: 30,
-                    left: 20,
-                    right: 20,
-                    child: SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFE0463A),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        onPressed: () {
-                          Navigator.pop(context, {
-                            'latitude': _pickedLocation!.latitude,
-                            'longitude': _pickedLocation!.longitude,
-                          });
-                        },
-                        child: const Text(
-                          "Confirm Location",
-                          style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                  Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 20),
+                      child: SizedBox(
+                        height: 40,
+                        width: 170,
+                        child: ElevatedButton(
+                          onPressed: _confirmLocation,
+                          child: const Text("Confirm Location"),
                         ),
                       ),
                     ),

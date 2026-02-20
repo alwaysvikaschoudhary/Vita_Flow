@@ -14,4 +14,5 @@ public interface BloodRequestService {
     List<BloodRequest> findActiveRequestsForDonor(String donorId);
     List<BloodRequest> findHistoryForDonor(String donorId);
     List<BloodRequest> findHistoryForRider(String riderId);
+    BloodRequest assignRider(String requestId, String riderId);
 }
