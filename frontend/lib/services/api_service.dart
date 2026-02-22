@@ -283,6 +283,28 @@ class ApiService {
     }
   }
 
+  static Future<Map<String, dynamic>> verifyDeliveryOtp(String requestId, String otp) async {
+    final url = Uri.parse("$baseUrl/request/delivery/verify");
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          "requestId": requestId,
+          "otp": otp,
+        }),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        final errorMsg = jsonDecode(response.body)['error'] ?? "Delivery OTP Verification Failed: ${response.body}";
+        throw Exception(errorMsg);
+      }
+    } catch (e) {
+      throw Exception("$e"); // Keeps the actual message formatted from backend
+    }
+  }
+
   static Future<Map<String, dynamic>> completeRequest(String requestId) async {
     final url = Uri.parse("$baseUrl/request/complete");
     try {

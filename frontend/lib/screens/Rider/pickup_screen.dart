@@ -351,6 +351,71 @@ class _PickupVerificationScreenState extends State<PickupVerificationScreen> {
     _updateRoute();
   }
 
+  void _showDeliveryOtpDialog() {
+    final TextEditingController otpController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Enter Delivery OTP"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text("Ask the Doctor/Hospital for the 4-digit OTP to confirm delivery."),
+            const SizedBox(height: 10),
+            TextField(
+              controller: otpController,
+              keyboardType: TextInputType.number,
+              maxLength: 4,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: "OTP",
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context); // Close dialog
+              _verifyDeliveryOtp(otpController.text.trim());
+            },
+            child: const Text("Verify"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _verifyDeliveryOtp(String otp) async {
+    if (otp.isEmpty) return;
+    
+    setState(() => _isLoading = true);
+    try {
+      await ApiService.verifyDeliveryOtp(_requestId, otp);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Delivery Completed Successfully!")),
+        );
+        Navigator.pop(context); // Go back to Home
+      }
+    } catch (e) {
+      if (mounted) {
+        // Strip out Exception: prefix if present
+        String msg = e.toString().replaceAll("Exception: ", "");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(msg)),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
   @override
   void dispose() {
     _positionStream?.cancel();
@@ -615,24 +680,8 @@ class _PickupVerificationScreenState extends State<PickupVerificationScreen> {
             padding: const EdgeInsets.symmetric(vertical: 16),
              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           ),
-          onPressed: () async {
-             setState(() => _isLoading = true);
-             try {
-               await ApiService.completeRequest(_requestId);
-               if (context.mounted) {
-                 ScaffoldMessenger.of(context).showSnackBar(
-                   const SnackBar(content: Text("Delivery Completed!")),
-                 );
-                 Navigator.pop(context); // Go back to Home
-               }
-             } catch (e) {
-               if (context.mounted) {
-                 ScaffoldMessenger.of(context).showSnackBar(
-                   SnackBar(content: Text("Error completing delivery: $e")),
-                 );
-               }
-               setState(() => _isLoading = false);
-             }
+          onPressed: () {
+             _showDeliveryOtpDialog();
           },
           child: const Text("Complete Delivery", style: TextStyle(fontSize: 16, color: Colors.white)),
         ),

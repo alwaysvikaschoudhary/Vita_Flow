@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 
 class DoctorLiveTrackingScreen extends StatelessWidget {
-  const DoctorLiveTrackingScreen({super.key});
+  final Map<String, dynamic> requestData;
+
+  const DoctorLiveTrackingScreen({super.key, required this.requestData});
 
   @override
   Widget build(BuildContext context) {
+    String status = requestData['status'] ?? "";
+    String deliveryOtp = requestData['deliveryOtp'] ?? "----";
     return Scaffold(
       backgroundColor: const Color(0xFFF1F2F6),
       body: SafeArea(
@@ -26,8 +30,8 @@ class DoctorLiveTrackingScreen extends StatelessWidget {
                   const SizedBox(width: 4),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text(
+                    children: [
+                      const Text(
                         "Live Tracking",
                         style: TextStyle(
                           fontSize: 22,
@@ -35,8 +39,8 @@ class DoctorLiveTrackingScreen extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        "Request #VF-2345",
-                        style: TextStyle(
+                        "Request #${requestData['requestId']?.substring(0, 8) ?? 'VF-2345'}",
+                        style: const TextStyle(
                           fontSize: 14,
                           color: Colors.black54,
                         ),
@@ -47,6 +51,42 @@ class DoctorLiveTrackingScreen extends StatelessWidget {
               ),
 
               const SizedBox(height: 12),
+
+              // -----------------------------------------
+              // DELIVERY OTP (Only show if PICKED_UP)
+              // -----------------------------------------
+              if (status == "PICKED_UP") ...[
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.shade50,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.orange.shade200),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        "Delivery OTP",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.orange,
+                        ),
+                      ),
+                      Text(
+                        deliveryOtp,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 4.0,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
 
               // -----------------------------------------
               // PROGRESS BAR
@@ -98,9 +138,9 @@ class DoctorLiveTrackingScreen extends StatelessWidget {
               // -----------------------------------------
               _infoCard(
                 title: "Donor Information",
-                name: "Jitesh Kumar",
-                bloodType: "O+",
-                id: "VF-D-1234",
+                name: requestData['donorName'] ?? "Donor",
+                bloodType: requestData['bloodGroup'],
+                id: requestData['donorId'] ?? "N/A",
                 icon: Icons.person,
               ),
 
@@ -111,10 +151,10 @@ class DoctorLiveTrackingScreen extends StatelessWidget {
               // -----------------------------------------
               _infoCard(
                 title: "Rider Information",
-                name: "Rahul Singh",
+                name: requestData['riderName'] ?? "Rider",
                 bloodType: null,
-                id: "VF-R-2341",
-                vehicle: "MH-12-AB-1234",
+                id: requestData['riderId'] ?? "N/A",
+                vehicle: requestData['riderBikeNumber'] ?? "N/A",
                 icon: Icons.pedal_bike,
               ),
 

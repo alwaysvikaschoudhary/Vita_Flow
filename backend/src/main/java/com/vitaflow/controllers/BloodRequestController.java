@@ -239,6 +239,12 @@ public class BloodRequestController {
 
             if (request.getOtp() != null && request.getOtp().equals(otp)) {
                 request.setStatus("PICKED_UP");
+                
+                // Generate Delivery OTP
+                String deliveryOtp = String.format("%04d", new java.util.Random().nextInt(10000));
+                request.setDeliveryOtp(deliveryOtp);
+                request.setDeliveryOtpAttempts(0);
+                
                 BloodRequest updatedRequest = requestService.createRequest(request);
                 
                 // Increment Donor Donation Count
@@ -261,6 +267,53 @@ public class BloodRequestController {
                 return ResponseEntity.ok(Map.of("message", "OTP Verified", "request", updatedRequest));
             } else {
                 return ResponseEntity.badRequest().body(Map.of("error", "Invalid OTP"));
+            }
+        } catch (Exception e) {
+             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/delivery/verify")
+    public ResponseEntity<?> verifyDeliveryOtp(@RequestBody Map<String, String> payload) {
+        try {
+            String requestId = payload.get("requestId");
+            String otp = payload.get("otp");
+
+            BloodRequest request = requestService.getRequestById(requestId);
+            if (request == null) return ResponseEntity.badRequest().body(Map.of("error", "Request not found"));
+
+            if ("COMPLETED".equals(request.getStatus())) {
+                 return ResponseEntity.ok(Map.of("message", "Request is already completed", "request", request));
+            }
+            
+            if (request.getDeliveryOtpAttempts() >= 3) {
+                 return ResponseEntity.badRequest().body(Map.of("error", "Maximum limits reached. Please contact support."));
+            }
+
+            if (request.getDeliveryOtp() != null && request.getDeliveryOtp().equals(otp)) {
+                request.setStatus("COMPLETED");
+                BloodRequest updatedRequest = requestService.createRequest(request);
+                
+                // Increment Rider Deliveries
+                if (updatedRequest.getRiderId() != null) {
+                    com.vitaflow.entities.user.Rider rider = userService.getRiderById(updatedRequest.getRiderId());
+                    if (rider != null) {
+                        try {
+                            int count = rider.getTotalDeliveries() != null ? Integer.parseInt(rider.getTotalDeliveries()) : 0;
+                            rider.setTotalDeliveries(String.valueOf(count + 1));
+                            userService.saveRider(rider);
+                        } catch (NumberFormatException e) {
+                            rider.setTotalDeliveries("1");
+                            userService.saveRider(rider);
+                        }
+                    }
+                }
+                
+                return ResponseEntity.ok(Map.of("message", "Delivery OTP Verified", "request", updatedRequest));
+            } else {
+                request.setDeliveryOtpAttempts(request.getDeliveryOtpAttempts() + 1);
+                requestService.createRequest(request);
+                return ResponseEntity.badRequest().body(Map.of("error", "Invalid Delivery OTP"));
             }
         } catch (Exception e) {
              return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));

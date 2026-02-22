@@ -41,6 +41,12 @@ public class BloodRequest {
     private String hospitalName;
 
     private String otp;
+    
+    // Delivery OTP generated when rider picks up, verified when rider arrives at hospital
+    private String deliveryOtp;
+    
+    // Retry attempts for the delivery OTP
+    private int deliveryOtpAttempts;
 
     private String donorName;
 

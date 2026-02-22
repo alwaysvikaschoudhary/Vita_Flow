@@ -224,7 +224,7 @@ class _DoctorRequestsScreenState extends State<DoctorRequestsScreen> {
                                         Navigator.push(
                                           context,
                                           MaterialPageRoute(
-                                            builder: (c) => const DoctorLiveTrackingScreen(),
+                                            builder: (c) => DoctorLiveTrackingScreen(requestData: req),
                                           ),
                                         );
                                       }

@@ -137,6 +137,8 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                                 fontSize: 24,
                                 fontWeight: FontWeight.w700,
                               ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                             ),
                             Text(
                               "Dr. ${widget.currentUser['name']}",
@@ -144,6 +146,8 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                                 fontSize: 15,
                                 color: Colors.grey,
                               ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ],
                         ),
