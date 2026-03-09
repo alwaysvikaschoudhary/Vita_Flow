@@ -286,7 +286,7 @@ public class BloodRequestController {
                  return ResponseEntity.ok(Map.of("message", "Request is already completed", "request", request));
             }
             
-            if (request.getDeliveryOtpAttempts() >= 3) {
+            if (request.getDeliveryOtpAttempts() != null && request.getDeliveryOtpAttempts() >= 3) {
                  return ResponseEntity.badRequest().body(Map.of("error", "Maximum limits reached. Please contact support."));
             }
 
@@ -311,7 +311,8 @@ public class BloodRequestController {
                 
                 return ResponseEntity.ok(Map.of("message", "Delivery OTP Verified", "request", updatedRequest));
             } else {
-                request.setDeliveryOtpAttempts(request.getDeliveryOtpAttempts() + 1);
+                int currentAttempts = request.getDeliveryOtpAttempts() != null ? request.getDeliveryOtpAttempts() : 0;
+                request.setDeliveryOtpAttempts(currentAttempts + 1);
                 requestService.createRequest(request);
                 return ResponseEntity.badRequest().body(Map.of("error", "Invalid Delivery OTP"));
             }

@@ -46,7 +46,7 @@ public class BloodRequest {
     private String deliveryOtp;
     
     // Retry attempts for the delivery OTP
-    private int deliveryOtpAttempts;
+    private Integer deliveryOtpAttempts;
 
     private String donorName;
 

@@ -278,10 +278,20 @@ class _DoctorRequestsScreenState extends State<DoctorRequestsScreen> {
         final timeParts = timeStr.split(':'); // HH:mm or HH:mm:ss
 
         if (dateParts.length == 3 && timeParts.length >= 2) {
+          int year, month, day;
+          if (dateParts[0].length == 4) {
+            year = int.parse(dateParts[0]);
+            month = int.parse(dateParts[1]);
+            day = int.parse(dateParts[2]);
+          } else {
+            year = int.parse(dateParts[2]);
+            month = int.parse(dateParts[1]);
+            day = int.parse(dateParts[0]);
+          }
           final dt = DateTime(
-            int.parse(dateParts[0]), 
-            int.parse(dateParts[1]), 
-            int.parse(dateParts[2]),
+            year, 
+            month, 
+            day,
             int.parse(timeParts[0]),
             int.parse(timeParts[1])
           );

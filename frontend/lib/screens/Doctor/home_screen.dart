@@ -61,7 +61,17 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
           // If time is also present, we might need to combine them, but usually date is enough for "2 days ago"
            final parts = req['date'].toString().split('-');
            if (parts.length == 3) {
-             final date = DateTime(int.parse(parts[0]), int.parse(parts[1]), int.parse(parts[2]));
+             int year, month, day;
+             if (parts[0].length == 4) {
+               year = int.parse(parts[0]);
+               month = int.parse(parts[1]);
+               day = int.parse(parts[2]);
+             } else {
+               year = int.parse(parts[2]);
+               month = int.parse(parts[1]);
+               day = int.parse(parts[0]);
+             }
+             final date = DateTime(year, month, day);
              final diff = now.difference(date).inDays;
              if (diff <= 2) {
                withinTwoDays = true;
@@ -473,9 +483,16 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
       final timeParts = timeStr.split(':');
 
       if (dateParts.length == 3 && timeParts.length >= 2) {
-        final year = int.parse(dateParts[0]);
-        final month = int.parse(dateParts[1]);
-        final day = int.parse(dateParts[2]);
+        int year, month, day;
+        if (dateParts[0].length == 4) {
+          year = int.parse(dateParts[0]);
+          month = int.parse(dateParts[1]);
+          day = int.parse(dateParts[2]);
+        } else {
+          year = int.parse(dateParts[2]);
+          month = int.parse(dateParts[1]);
+          day = int.parse(dateParts[0]);
+        }
         final hour = int.parse(timeParts[0]);
         final minute = int.parse(timeParts[1]);
         final dt = DateTime(year, month, day, hour, minute);
