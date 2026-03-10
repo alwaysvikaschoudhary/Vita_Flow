@@ -13,7 +13,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/request")
-@CrossOrigin(originPatterns = "*")
 public class BloodRequestController {
 
     @Autowired

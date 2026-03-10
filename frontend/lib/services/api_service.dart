@@ -58,10 +58,49 @@ class ApiService {
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       } else {
-        throw Exception("Invalid OTP");
+        return null;
       }
     } catch (e) {
       throw Exception("Error verifying OTP: $e");
+    }
+  }
+
+  static Future<Map<String, dynamic>> getBloodStock(String hospitalId) async {
+    final url = Uri.parse("$baseUrl/stock/$hospitalId");
+    try {
+      final response = await http.get(url, headers: {'Content-Type': 'application/json'});
+      if (response.statusCode == 200) {
+        if (response.body.isEmpty) return {};
+        return jsonDecode(response.body);
+      } else {
+        throw Exception("Failed to fetch stock: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("API getBloodStock error: $e");
+      return {}; // return empty map gracefully
+    }
+  }
+
+  static Future<Map<String, dynamic>> updateBloodStock(String hospitalId, String bloodGroup, int units) async {
+    final url = Uri.parse("$baseUrl/stock/update");
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          "hospitalId": hospitalId,
+          "bloodGroup": bloodGroup,
+          "units": units,
+        }),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception("Failed to update stock: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("API updateBloodStock error: $e");
+      throw Exception("Failed to connect to server: $e");
     }
   }
 

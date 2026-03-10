@@ -3,10 +3,15 @@ com/vitaflow/repositories/DoctorRepository.class
 com/vitaflow/entities/Role.class
 com/vitaflow/services/impl/UserServiceImpl.class
 com/vitaflow/payload/LocationDTO.class
+FixDb.class
 com/vitaflow/entities/user/Donor$DonorBuilder.class
+com/vitaflow/services/impl/BloodStockServiceImpl.class
 com/vitaflow/controllers/UserController$1.class
 com/vitaflow/config/CorsConfig.class
+com/vitaflow/entities/BloodStock.class
+com/vitaflow/controllers/BloodStockController.class
 com/vitaflow/entities/Ordinate.class
+com/vitaflow/repositories/BloodStockRepository.class
 com/vitaflow/config/SecurityConfig.class
 com/vitaflow/services/UserService.class
 com/vitaflow/entities/user/Donor.class
@@ -15,7 +20,9 @@ com/vitaflow/controllers/UserController.class
 com/vitaflow/entities/user/Doctor$DoctorBuilder.class
 com/vitaflow/services/OtpService.class
 com/vitaflow/entities/user/Rider.class
+InspectDb.class
 com/vitaflow/repositories/RiderRepository.class
 com/vitaflow/repositories/DonorRepository.class
 com/vitaflow/VitaFlowApplication.class
+com/vitaflow/services/BloodStockService.class
 com/vitaflow/entities/user/Doctor.class

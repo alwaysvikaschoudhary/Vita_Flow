@@ -12,7 +12,10 @@ class DoctorHomeScreen extends StatefulWidget {
 
 class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
   List<dynamic> _requests = [];
+  Map<String, dynamic> _bloodStockMap = {};
   bool _isLoading = true;
+  
+  final List<String> _allBloodGroups = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
   
   // Filters
   String _selectedStatus = 'All';
@@ -35,10 +38,12 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
   Future<void> _fetchRequests() async {
     try {
       final requests = await ApiService.getRequestsByHospital(widget.currentUser['userId']);
+      final stockData = await ApiService.getBloodStock(widget.currentUser['userId']);
       if (mounted) {
         setState(() {
           // Sort reverse to show newest first
           _requests = requests.reversed.toList();
+          _bloodStockMap = stockData;
           _isLoading = false;
         });
       }
@@ -54,39 +59,31 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
     final now = DateTime.now();
     return _requests.where((req) {
       // 1. Date Filter (Last 2 days)
-      bool withinTwoDays = false;
+      bool withinTwoDays = true; // default show if date missing/unparseable
       if (req['date'] != null) {
         try {
-          // Assuming date is in YYYY-MM-DD format
-          // If time is also present, we might need to combine them, but usually date is enough for "2 days ago"
-           final parts = req['date'].toString().split('-');
-           if (parts.length == 3) {
-             int year, month, day;
-             if (parts[0].length == 4) {
-               year = int.parse(parts[0]);
-               month = int.parse(parts[1]);
-               day = int.parse(parts[2]);
-             } else {
-               year = int.parse(parts[2]);
-               month = int.parse(parts[1]);
-               day = int.parse(parts[0]);
-             }
-             final date = DateTime(year, month, day);
-             final diff = now.difference(date).inDays;
-             if (diff <= 2) {
-               withinTwoDays = true;
-             }
-           }
-        } catch (e) {
-          // Relaxed filter for debugging: Includes requests with invalid dates
-          withinTwoDays = true; 
+          final parts = req['date'].toString().split('-');
+          if (parts.length == 3) {
+            int year, month, day;
+            if (parts[0].length == 4) {
+              // YYYY-MM-DD
+              year = int.parse(parts[0]);
+              month = int.parse(parts[1]);
+              day = int.parse(parts[2]);
+            } else {
+              // DD-MM-YYYY
+              day = int.parse(parts[0]);
+              month = int.parse(parts[1]);
+              year = int.parse(parts[2]);
+            }
+            final date = DateTime(year, month, day);
+            final diff = now.difference(date).inDays;
+            withinTwoDays = (diff >= 0 && diff <= 2);
+          }
+        } catch (_) {
+          withinTwoDays = true;
         }
-      } else {
-        // Relaxed filter: Includes requests with no date
-        withinTwoDays = true; 
       }
-      
-      // 2. Status Filter
       String statusToCheck = req['status']?.toString().toUpperCase() ?? '';
       bool statusMatches = false;
       if (_selectedStatus == 'All') {
@@ -97,7 +94,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
         statusMatches = statusToCheck == _selectedStatus.toUpperCase();
       }
       
-      // 3. Search Filter (Blood Group)
+      // 2. Search Filter (Blood Group)
       bool searchMatches = true;
       if (_searchQuery.isNotEmpty) {
         final bg = req['bloodGroup']?.toString().toLowerCase() ?? '';
@@ -235,12 +232,11 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
-                    children: [
-                      _stockCard("A+", "18 units"),
-                      _stockCard("B+", "17 units"),
-                      _stockCard("O+", "2 units"),
-                      _stockCard("AB+", "17 units"),
-                    ],
+                    children: _allBloodGroups.map((bg) {
+                      final String key = bg.toLowerCase().replaceAll('+', 'p').replaceAll('-', 'n');
+                      int units = _bloodStockMap[key] ?? 0;
+                      return _stockCard(bg, units);
+                    }).toList(),
                   ),
                 ),
 
@@ -526,25 +522,107 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
   // -----------------------------------------
   // STOCK CARD
   // -----------------------------------------
-  Widget _stockCard(String type, String units) {
-    return Container(
-      margin: const EdgeInsets.only(right: 12),
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+  Widget _stockCard(String type, int units) {
+    return GestureDetector(
+      onTap: () => _updateStockPopup(type, units),
+      child: Container(
+        margin: const EdgeInsets.only(right: 12),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.05),
+              spreadRadius: 1,
+              blurRadius: 5,
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Text(
+              type,
+              style: const TextStyle(
+                  color: Colors.red, fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 6),
+            Text("$units units"),
+          ],
+        ),
       ),
-      child: Column(
-        children: [
-          Text(
-            type,
-            style: const TextStyle(
-                color: Colors.red, fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 6),
-          Text(units),
-        ],
-      ),
+    );
+  }
+
+  void _updateStockPopup(String bloodGroup, int currentUnits) {
+    final TextEditingController _unitsController = TextEditingController(text: currentUnits.toString());
+    bool isUpdating = false;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: Text("Update $bloodGroup Stock", style: const TextStyle(fontWeight: FontWeight.bold)),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: _unitsController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: "Units Available",
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Colors.red),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isUpdating ? null : () => Navigator.pop(ctx),
+                  child: const Text("Cancel", style: TextStyle(color: Colors.grey)),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  onPressed: isUpdating ? null : () async {
+                    setState(() => isUpdating = true);
+                    final newUnits = int.tryParse(_unitsController.text) ?? 0;
+                    try {
+                      final updatedStock = await ApiService.updateBloodStock(widget.currentUser['userId'], bloodGroup, newUnits);
+                      if (ctx.mounted) {
+                        Navigator.pop(ctx);
+                      }
+                      
+                      // Immediately patch the main screen's state natively!
+                      this.setState(() {
+                        _bloodStockMap = updatedStock;
+                      });
+                    } catch (e) {
+                      if (ctx.mounted) {
+                        setState(() => isUpdating = false);
+                        ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content: Text("Error: $e")));
+                      }
+                    }
+                  },
+                  child: isUpdating 
+                      ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      : const Text("Save", style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            );
+          }
+        );
+      }
     );
   }
   
