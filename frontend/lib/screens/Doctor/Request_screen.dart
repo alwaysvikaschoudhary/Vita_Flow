@@ -220,7 +220,7 @@ class _DoctorRequestsScreenState extends State<DoctorRequestsScreen> {
                                    if (_selectedTab == "Available") {
                                       _acceptRequest(req['requestId'] ?? req['id']);
                                    } else {
-                                      if (status == "ACCEPTED" || status == "PICKED_UP") {
+                                      if (status == "ACCEPTED" || status == "PICKED_UP" || status == "COMPLETED" || status == "CANCELLED" ) {
                                         Navigator.push(
                                           context,
                                           MaterialPageRoute(

@@ -1,5 +1,6 @@
 import 'package:vita_flow/services/api_service.dart';
 import 'package:vita_flow/screens/Doctor/create_request_screen.dart';
+import 'package:vita_flow/screens/Doctor/track_delivery_screen.dart';
 import 'package:flutter/material.dart';
 
 class DoctorHomeScreen extends StatefulWidget {
@@ -333,7 +334,19 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                       final req = filteredRequests[index];
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 12.0),
-                        child: _requestCard(req),
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => DoctorLiveTrackingScreen(
+                                  requestData: Map<String, dynamic>.from(req),
+                                ),
+                              ),
+                            );
+                          },
+                          child: _requestCard(req),
+                        ),
                       );
                     },
                   ),

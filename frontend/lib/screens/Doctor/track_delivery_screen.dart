@@ -91,45 +91,46 @@ class DoctorLiveTrackingScreen extends StatelessWidget {
               // -----------------------------------------
               // PROGRESS BAR
               // -----------------------------------------
-              ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: LinearProgressIndicator(
-                  value: 0.55,
-                  minHeight: 6,
-                  color: Colors.black,
-                  backgroundColor: Colors.grey.shade300,
-                ),
-              ),
-
-              const SizedBox(height: 10),
-
-              // -----------------------------------------
-              // STATUS STEPS
-              // -----------------------------------------
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _statusStep(true, "Request\nCreated"),
-                  _statusStep(true, "Donor\nAccepted"),
-                  _statusStep(false, "Rider\nRoute", stepNum: "3"),
-                  _statusStep(false, "Delivered\nSuccessfull", stepNum: "4"),
-                ],
-              ),
-
-              const SizedBox(height: 10),
-
-              // -----------------------------------------
-              // MAP IMAGE
-              // -----------------------------------------
-              ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: Image.asset(
-                  "assets/images/map_demo.png",
-                  height: 230,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                ),
-              ),
+              Builder(builder: (context) {
+                final double progress;
+                final bool step1, step2, step3, step4;
+                switch (status.toUpperCase()) {
+                  case 'ACCEPTED':
+                    progress = 0.50; step1 = true; step2 = true; step3 = false; step4 = false;
+                    break;
+                  case 'PICKED_UP':
+                    progress = 0.75; step1 = true; step2 = true; step3 = true; step4 = false;
+                    break;
+                  case 'COMPLETED':
+                    progress = 1.0; step1 = true; step2 = true; step3 = true; step4 = true;
+                    break;
+                  default: // PENDING
+                    progress = 0.25; step1 = true; step2 = false; step3 = false; step4 = false;
+                }
+                return Column(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: LinearProgressIndicator(
+                        value: progress,
+                        minHeight: 6,
+                        color: Colors.black,
+                        backgroundColor: Colors.grey.shade300,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _statusStep(step1, "Request\nCreated"),
+                        _statusStep(step2, "Donor\nAccepted"),
+                        _statusStep(step3, "Rider\nRoute", stepNum: "3"),
+                        _statusStep(step4, "Delivered\nSuccessfull", stepNum: "4"),
+                      ],
+                    ),
+                  ],
+                );
+              }),
 
               const SizedBox(height: 10),
 
