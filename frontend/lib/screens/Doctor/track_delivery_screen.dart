@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class DoctorLiveTrackingScreen extends StatelessWidget {
   final Map<String, dynamic> requestData;
@@ -122,8 +123,8 @@ class DoctorLiveTrackingScreen extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        _statusStep(step1, "Request\nCreated"),
-                        _statusStep(step2, "Donor\nAccepted"),
+                        _statusStep(step1, "Request\nCreated", stepNum: "1"),
+                        _statusStep(step2, "Donor\nAccepted", stepNum: "2"),
                         _statusStep(step3, "Rider\nRoute", stepNum: "3"),
                         _statusStep(step4, "Delivered\nSuccessfull", stepNum: "4"),
                       ],
@@ -142,7 +143,8 @@ class DoctorLiveTrackingScreen extends StatelessWidget {
                 name: requestData['donorName'] ?? "Donor",
                 bloodType: requestData['bloodGroup'],
                 id: requestData['donorId'] ?? "N/A",
-                icon: Icons.person,
+                icon: Icons.favorite,
+                phoneNumber: requestData['donorPhoneNumber'],
               ),
 
               const SizedBox(height: 10),
@@ -156,7 +158,8 @@ class DoctorLiveTrackingScreen extends StatelessWidget {
                 bloodType: null,
                 id: requestData['riderId'] ?? "N/A",
                 vehicle: requestData['riderBikeNumber'] ?? "N/A",
-                icon: Icons.pedal_bike,
+                icon: Icons.delivery_dining,
+                phoneNumber: requestData['riderPhoneNumber'],
               ),
 
             ],
@@ -204,7 +207,15 @@ class DoctorLiveTrackingScreen extends StatelessWidget {
     required IconData icon,
     String? bloodType,
     String? vehicle,
+    String? phoneNumber,
   }) {
+    Future<void> makeCall() async {
+      if (phoneNumber == null || phoneNumber.isEmpty) return;
+      final uri = Uri(scheme: 'tel', path: phoneNumber);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri);
+      }
+    }
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -258,10 +269,20 @@ class DoctorLiveTrackingScreen extends StatelessWidget {
                 ),
               ),
 
-              CircleAvatar(
-                radius: 22,
-                backgroundColor: Colors.green.shade100,
-                child: const Icon(Icons.phone, color: Colors.green),
+              GestureDetector(
+                onTap: makeCall,
+                child: CircleAvatar(
+                  radius: 22,
+                  backgroundColor: (phoneNumber != null && phoneNumber.isNotEmpty)
+                      ? Colors.green.shade100
+                      : Colors.grey.shade200,
+                  child: Icon(
+                    Icons.phone,
+                    color: (phoneNumber != null && phoneNumber.isNotEmpty)
+                        ? Colors.green
+                        : Colors.grey,
+                  ),
+                ),
               ),
             ],
           ),

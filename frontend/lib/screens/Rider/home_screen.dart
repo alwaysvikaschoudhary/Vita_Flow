@@ -78,8 +78,131 @@ class _RiderHomeScreenState extends State<RiderHomeScreen> {
 
                 const SizedBox(height: 16),
 
+                // ----------------------------
+                // ACTIVE REQUEST BANNER
+                // ----------------------------
+                if (_activeTask != null)
+                  GestureDetector(
+                    onTap: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => PickupVerificationScreen(
+                            requestData: _activeTask!,
+                            riderId: widget.currentUser['userId'] ?? widget.currentUser['id'],
+                          ),
+                        ),
+                      );
+                      _loadData();
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 10),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFE0463A), Color(0xFFFF6B6B)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.red.withOpacity(0.3),
+                            blurRadius: 10,
+                            offset: const Offset(0, 5),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    "🚨 Active Request",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    "Status: ${_activeTask!['status'] ?? 'Active'}  •  Blood: ${_activeTask!['bloodGroup'] ?? ''}",
+                                    style: const TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              const CircleAvatar(
+                                radius: 18,
+                                backgroundColor: Colors.white,
+                                child: Icon(Icons.local_hospital, color: Color(0xFFE0463A), size: 20),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  "Hospital: ${_activeTask!['hospitalName'] ?? _activeTask!['doctorName'] ?? 'Hospital'}",
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                foregroundColor: const Color(0xFFE0463A),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                padding: const EdgeInsets.symmetric(vertical: 10),
+                              ),
+                              onPressed: () async {
+                                await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => PickupVerificationScreen(
+                                      requestData: _activeTask!,
+                                      riderId: widget.currentUser['userId'] ?? widget.currentUser['id'],
+                                    ),
+                                  ),
+                                );
+                                _loadData();
+                              },
+                              child: const Text(
+                                "Continue Delivery →",
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                const SizedBox(height: 16),
+
                 const Text(
-                  "Nearby Requests", // Changed from Active Tasks to avoid confusion
+                  "Nearby Requests",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
                 ),
 

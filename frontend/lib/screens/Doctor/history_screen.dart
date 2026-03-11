@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import 'package:vita_flow/services/api_service.dart';
+import 'package:vita_flow/screens/Doctor/track_delivery_screen.dart';
 
 class DoctorHistoryScreen extends StatefulWidget {
   final Map<String, dynamic> currentUser;
@@ -500,9 +501,19 @@ class _DoctorHistoryScreenState extends State<DoctorHistoryScreen> {
                     itemCount: filteredRequests.length,
                     itemBuilder: (context, index) {
                       final req = filteredRequests[index];
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12.0),
-                        child: _requestCard(req),
+                      return GestureDetector(
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => DoctorLiveTrackingScreen(
+                              requestData: Map<String, dynamic>.from(req),
+                            ),
+                          ),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 12.0),
+                          child: _requestCard(req),
+                        ),
                       );
                     },
                   ),
