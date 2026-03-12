@@ -437,5 +437,21 @@ class ApiService {
       throw Exception("Error connecting to server: $e");
     }
   }
+
+  static Future<List<dynamic>> getRequestsByDonor(String donorId) async {
+    final response = await http.get(Uri.parse('$baseUrl/request/donor/$donorId'));
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to load donor requests');
+    }
+  }
+
+  static Future<void> cancelRequest(String requestId) async {
+    final response = await http.put(Uri.parse('$baseUrl/request/cancel/$requestId'));
+    if (response.statusCode != 200) {
+      throw Exception('Failed to cancel request');
+    }
+  }
 }
 

@@ -266,94 +266,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     );
                   }).toList(),
 
-                // ------------------------
-                // VERIFIED DONOR CARD
-                // ------------------------
-                if (isVerified)
-                Container(
-                  margin: EdgeInsets.only(left: 10, right: 10),
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Color.fromARGB(255, 209, 239, 209),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 22,
-                        backgroundColor: const Color.fromARGB(255, 29, 187, 50),
-                        child: Icon(
-                          Icons.shield_outlined,
-                          color: const Color.fromARGB(255, 240, 243, 240),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      const Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Verified Donor",
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            SizedBox(height: 4),
-                            Text(
-                              "Your profile is verified and active",
-                              style: TextStyle(fontSize: 15, color: Colors.grey),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Icon(Icons.check_circle, color: Colors.green),
-                    ],
-                  ),
-                )
-                else
-                 Container(
-                  margin: EdgeInsets.only(left: 10, right: 10),
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.orange.shade50,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 22,
-                        backgroundColor: Colors.orange,
-                        child: Icon(
-                          Icons.warning_amber_rounded,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      const Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Complete Profile",
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            SizedBox(height: 4),
-                            Text(
-                              "Please complete your profile to verify.",
-                              style: TextStyle(fontSize: 15, color: Colors.grey),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Icon(Icons.arrow_forward_ios, size: 16, color: Colors.orange),
-                    ],
-                  ),
-                ),
-
                 const SizedBox(height: 15),
 
                 // ------------------------
@@ -463,67 +375,67 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 const SizedBox(height: 15),
 
-                // ------------------------
-                // REWARDS CARD
-                // ------------------------
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => RewardsScreen()),
-                    );
-                  },
-                  child: Container(
-                  margin: EdgeInsets.only(left: 10, right: 10),
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Color(0xFFFFF5D6),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: const [
-                          Icon(Icons.emoji_events, color: Colors.orange),
-                          SizedBox(width: 10),
-                          Text(
-                            "Rewards & Points",
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          Spacer(),
-                          Icon(Icons.arrow_forward_ios, size: 16),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        "2,350 VitaPoints earned",
-                        style: TextStyle(fontSize: 15),
-                      ),
-                      const SizedBox(height: 12),
-                      Wrap(
-                        spacing: 10,
-                        children: [
-                          Chip(
-                            label: Text("4 Badges Unlocked"),
-                            backgroundColor: Colors.orange.shade100,
-                          ),
-                          Chip(
-                            label: Text("3 Rewards Available"),
-                            backgroundColor: Colors.orange.shade100,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                ),
+                // // ------------------------
+                // // REWARDS CARD
+                // // ------------------------
+                // GestureDetector(
+                //   onTap: () {
+                //     Navigator.push(
+                //       context,
+                //       MaterialPageRoute(builder: (_) => RewardsScreen()),
+                //     );
+                //   },
+                //   child: Container(
+                //   margin: EdgeInsets.only(left: 10, right: 10),
+                //   padding: const EdgeInsets.all(10),
+                //   decoration: BoxDecoration(
+                //     color: Color(0xFFFFF5D6),
+                //     borderRadius: BorderRadius.circular(20),
+                //   ),
+                //   child: Column(
+                //     crossAxisAlignment: CrossAxisAlignment.start,
+                //     children: [
+                //       Row(
+                //         children: const [
+                //           Icon(Icons.emoji_events, color: Colors.orange),
+                //           SizedBox(width: 10),
+                //           Text(
+                //             "Rewards & Points",
+                //             style: TextStyle(
+                //               fontSize: 18,
+                //               fontWeight: FontWeight.w600,
+                //             ),
+                //           ),
+                //           Spacer(),
+                //           Icon(Icons.arrow_forward_ios, size: 16),
+                //         ],
+                //       ),
+                //       const SizedBox(height: 8),
+                //       const Text(
+                //         "2,350 VitaPoints earned",
+                //         style: TextStyle(fontSize: 15),
+                //       ),
+                //       const SizedBox(height: 12),
+                //       Wrap(
+                //         spacing: 10,
+                //         children: [
+                //           Chip(
+                //             label: Text("4 Badges Unlocked"),
+                //             backgroundColor: Colors.orange.shade100,
+                //           ),
+                //           Chip(
+                //             label: Text("3 Rewards Available"),
+                //             backgroundColor: Colors.orange.shade100,
+                //           ),
+                //         ],
+                //       ),
+                //     ],
+                //   ),
+                // ),
+                // ),
                 
 
-                const SizedBox(height: 15),
+                // const SizedBox(height: 15),
 
               // ------------------------
               // URGENT / BLOOD REQUESTS

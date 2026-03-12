@@ -63,6 +63,30 @@ public class BloodRequestController {
         return ResponseEntity.ok(requestService.getRequestsByHospital(hospitalId));
     }
 
+    @GetMapping("/donor/{donorId}")
+    public ResponseEntity<List<BloodRequest>> getRequestsByDonor(@PathVariable String donorId) {
+        List<BloodRequest> all = requestService.getAllRequests();
+        List<BloodRequest> donorRequests = all.stream()
+            .filter(r -> donorId.equals(r.getDonorId()))
+            .collect(java.util.stream.Collectors.toList());
+        return ResponseEntity.ok(donorRequests);
+    }
+
+    @PutMapping("/cancel/{requestId}")
+    public ResponseEntity<?> cancelRequest(@PathVariable String requestId) {
+        try {
+            BloodRequest req = requestService.getAllRequests().stream()
+                .filter(r -> requestId.equals(r.getRequestId()))
+                .findFirst().orElse(null);
+            if (req == null) return ResponseEntity.badRequest().body(Map.of("error", "Request not found"));
+            req.setStatus("CANCELLED");
+            requestService.createRequest(req);
+            return ResponseEntity.ok(Map.of("message", "Request cancelled successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
     @Autowired
     private com.vitaflow.repositories.DonorRepository donorRepository;
 

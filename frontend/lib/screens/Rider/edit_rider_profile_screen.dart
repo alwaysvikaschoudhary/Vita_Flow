@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:vita_flow/services/api_service.dart';
+import 'package:vita_flow/services/location_service.dart';
 import 'package:vita_flow/screens/Location/location_picker_screen.dart';
 
 class EditRiderProfileScreen extends StatefulWidget {
@@ -60,9 +61,16 @@ class _EditRiderProfileScreenState extends State<EditRiderProfileScreen> {
     );
 
     if (result != null && result is Map) {
+      final lat = (result['latitude'] as num).toDouble();
+      final lng = (result['longitude'] as num).toDouble();
+      final address = result['address'] as String?;
+      
       setState(() {
-        latController.text = result['latitude'].toString();
-        lngController.text = result['longitude'].toString();
+        latController.text = lat.toString();
+        lngController.text = lng.toString();
+        if (address != null && address.isNotEmpty) {
+          addressController.text = address;
+        }
       });
     }
   }

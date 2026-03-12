@@ -3,6 +3,8 @@ import 'package:vita_flow/services/api_service.dart';
 import 'package:vita_flow/screens/Doctor/navbar.dart';
 import 'package:vita_flow/screens/Donar/donor_navbar.dart';
 import 'package:vita_flow/screens/Rider/navbar.dart';
+import 'package:vita_flow/screens/Location/location_picker_screen.dart';
+import 'package:vita_flow/services/location_service.dart';
 import 'package:intl/intl.dart';
 
 class Register extends StatefulWidget {
@@ -18,7 +20,6 @@ class _RegisterState extends State<Register> {
   final _formKey = GlobalKey<FormState>();
   final nameController = TextEditingController();
   final emailController = TextEditingController();
-  final aboutController = TextEditingController();
 
   // Role Specific Controllers
   final hospitalNameController = TextEditingController();
@@ -27,6 +28,12 @@ class _RegisterState extends State<Register> {
 
   String? selectedBloodGroup;
   String? selectedSpecialization;
+
+  // Location
+  double? _latitude;
+  double? _longitude;
+  String? _pickedAddress;
+  bool _geocoding = false;
 
   bool isLoading = false;
 
@@ -42,13 +49,18 @@ class _RegisterState extends State<Register> {
         "email": emailController.text.trim(),
         "role": widget.role,
         "phoneNumber": widget.phoneNumber,
-        "about": aboutController.text.trim(),
+        
         // Role Params
         "bloodGroup": selectedBloodGroup,
         "dob": dobController.text.trim(),
         "hospitalName": hospitalNameController.text.trim(),
         "specialization": selectedSpecialization,
         "bikeNumber": bikeNumberController.text.trim(),
+        // Location
+        if (_latitude != null && _longitude != null)
+          "ordinate": {"latitude": _latitude, "longitude": _longitude},
+        if (_pickedAddress != null)
+          "address": _pickedAddress,
       });
 
       setState(() => isLoading = false);
@@ -95,6 +107,31 @@ class _RegisterState extends State<Register> {
     }
   }
 
+  Future<void> _pickLocation() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => LocationPickerScreen(
+          initialLat: _latitude,
+          initialLng: _longitude,
+        ),
+      ),
+    );
+    if (result != null && result is Map) {
+      final lat = (result['latitude'] as num).toDouble();
+      final lng = (result['longitude'] as num).toDouble();
+      final address = result['address'] as String?;
+      
+      setState(() {
+        _latitude = lat;
+        _longitude = lng;
+        if (address != null && address.isNotEmpty) {
+          _pickedAddress = address;
+        }
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -131,6 +168,13 @@ class _RegisterState extends State<Register> {
 
                   TextFormField(
                     controller: emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    validator: (v) {
+                      if (v == null || v.trim().isEmpty) return null; // optional
+                      final emailRegex = RegExp(r'^[\w\.-]+@[\w\.-]+\.\w{2,}$');
+                      if (!emailRegex.hasMatch(v.trim())) return "Enter a valid email address";
+                      return null;
+                    },
                     decoration: _input("Email (Optional)"),
                   ),
                   const SizedBox(height: 16),
@@ -192,11 +236,56 @@ class _RegisterState extends State<Register> {
                     const SizedBox(height: 16),
                   ],
 
-                  TextFormField(
-                    controller: aboutController,
-                    decoration: _input("About (Optional)"),
-                    maxLines: 3,
+                  // LOCATION
+                  const SizedBox(height: 4),
+                  const Text(
+                    "Location",
+                    style: TextStyle(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.w500),
                   ),
+                  const SizedBox(height: 8),
+                  GestureDetector(
+                    onTap: _pickLocation,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: _latitude != null ? Colors.green : Colors.grey.shade400,
+                          width: 1.5,
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        color: _latitude != null ? Colors.green.shade50 : Colors.white,
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            _latitude != null ? Icons.location_on : Icons.add_location_alt_outlined,
+                            color: _latitude != null ? Colors.green : Colors.grey,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _geocoding
+                                ? const SizedBox(
+                                    height: 16,
+                                    width: 16,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  )
+                                : Text(
+                                    _latitude != null
+                                        ? (_pickedAddress ?? "${_latitude!.toStringAsFixed(5)}, ${_longitude!.toStringAsFixed(5)}")
+                                        : "Tap to pick location on map",
+                                    style: TextStyle(
+                                      color: _latitude != null ? Colors.green.shade800 : Colors.grey,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                          ),
+                          if (_latitude != null && !_geocoding)
+                            const Icon(Icons.check_circle, color: Colors.green, size: 20),
+                        ],
+                      ),
+                    ),
+                  ),
+                
                   const SizedBox(height: 32),
 
                   SizedBox(
@@ -207,6 +296,15 @@ class _RegisterState extends State<Register> {
                           ? null
                           : () {
                               if (_formKey.currentState!.validate()) {
+                                if (_latitude == null) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text("Please pick your location on the map"),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                  return;
+                                }
                                 save();
                               }
                             },

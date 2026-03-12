@@ -21,7 +21,9 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
   final TextEditingController _searchController = TextEditingController();
 
   LatLng? _pickedLocation;
+  String? _pickedPoiName;
   bool _isLoading = true;
+  bool _isFetchingAddress = false;
 
   static const CameraPosition _defaultLocation = CameraPosition(
     target: LatLng(26.9124, 75.7873), // Jaipur fallback
@@ -39,6 +41,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
   @override
   void dispose() {
     _searchController.dispose();
+    _tapDebounce?.cancel();
     super.dispose();
   }
 
@@ -153,8 +156,48 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     }
   }
 
+  Timer? _tapDebounce;
+
+  String? _pickedAddress;
+
   void _onTap(LatLng position) {
-    setState(() => _pickedLocation = position);
+    _tapDebounce?.cancel();
+
+    _tapDebounce = Timer(const Duration(milliseconds: 400), () async {
+      if (!mounted) return;
+      setState(() {
+        _pickedLocation = position;
+        _pickedPoiName = null;
+        _pickedAddress = null;
+        _isFetchingAddress = true;
+      });
+
+      try {
+        final name = await LocationService.getPlaceName(
+          position.latitude,
+          position.longitude,
+        );
+
+        final address = await LocationService.reverseGeocode(
+          position.latitude,
+          position.longitude,
+          poiName: name,
+        );
+
+        if (mounted) {
+          setState(() {
+            _pickedPoiName = name;
+            _pickedAddress = address;
+            _isFetchingAddress = false;
+          });
+        }
+      } catch (e) {
+        print('Error in _onTap: $e');
+        if (mounted) {
+          setState(() => _isFetchingAddress = false);
+        }
+      }
+    });
   }
 
   void _confirmLocation() {
@@ -163,6 +206,8 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
     Navigator.pop(context, {
       "latitude": _pickedLocation!.latitude,
       "longitude": _pickedLocation!.longitude,
+      "poiName": _pickedPoiName,
+      "address": _pickedAddress,
     });
   }
 
@@ -223,13 +268,32 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                     alignment: Alignment.bottomCenter,
                     child: Padding(
                       padding: const EdgeInsets.only(bottom: 20),
-                      child: SizedBox(
-                        height: 40,
-                        width: 170,
-                        child: ElevatedButton(
-                          onPressed: _confirmLocation,
-                          child: const Text("Confirm Location"),
-                        ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (_pickedPoiName != null)
+                            Card(
+                              elevation: 4,
+                              margin: const EdgeInsets.only(bottom: 12),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                child: Text(
+                                  _pickedPoiName!,
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
+                          SizedBox(
+                            height: 40,
+                            width: 170,
+                            child: ElevatedButton(
+                              onPressed: _confirmLocation,
+                              child: const Text("Confirm Location"),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),

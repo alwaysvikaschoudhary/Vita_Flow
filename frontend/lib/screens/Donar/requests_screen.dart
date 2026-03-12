@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:vita_flow/config.dart';
 import 'package:vita_flow/screens/Location/location_picker_screen.dart';
+import 'package:vita_flow/services/api_service.dart';
 import 'package:intl/intl.dart';
 
 class RequestsScreen extends StatefulWidget {
@@ -17,6 +18,8 @@ class _RequestsScreenState extends State<RequestsScreen> {
   // Form State
   String selectedBlood = "";
   bool _isLoading = false;
+  List<dynamic> _myRequests = [];
+  bool _requestsLoading = false;
   
   // Toggle States
   String _locationType = "current"; // "current" | "new"
@@ -32,6 +35,55 @@ class _RequestsScreenState extends State<RequestsScreen> {
   final List<String> bloodTypes = [
     "A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchMyRequests();
+  }
+
+  Future<void> _fetchMyRequests() async {
+    setState(() => _requestsLoading = true);
+    try {
+      final donorId = widget.currentUser['userId'] ?? widget.currentUser['id'];
+      final requests = await ApiService.getRequestsByDonor(donorId);
+      if (mounted) setState(() => _myRequests = requests);
+    } catch (_) {}
+    if (mounted) setState(() => _requestsLoading = false);
+  }
+
+  Future<void> _confirmDelete(dynamic req) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text("Cancel Request?"),
+        content: Text(
+          "Cancel your ${req['bloodGroup']} donation request? This cannot be undone.",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text("No"),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text("Yes, Cancel", style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      try {
+        await ApiService.cancelRequest(req['requestId'] ?? req['id']);
+        _showSnack("Request cancelled.");
+        _fetchMyRequests();
+      } catch (e) {
+        _showSnack("Error: $e");
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -145,17 +197,17 @@ class _RequestsScreenState extends State<RequestsScreen> {
 
       if (response.statusCode == 200) {
         _showSnack("Donation Request Sent Successfully!");
-        // Reset form or navigate away? 
-        // User didn't specify, staying on screen or resetting is safe.
         setState(() {
           _locationType = "current";
           _nameType = "current";
           _phoneType = "current";
+          selectedBlood = "";
           _latController.clear();
           _lngController.clear();
           _nameController.clear();
           _phoneController.clear();
         });
+        _fetchMyRequests(); // Refresh requests list after submit
       } else {
         _showSnack("Failed: ${response.body}");
       }
@@ -199,7 +251,113 @@ class _RequestsScreenState extends State<RequestsScreen> {
                 ),
               ),
 
-              const SizedBox(height: 20),
+              // ----------------------------
+              // MY ACTIVE REQUESTS
+              // ----------------------------
+              if (_requestsLoading)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              else if (_myRequests.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                const Text(
+                  "My Requests",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 8),
+                ..._myRequests.where((req) {
+                  final s = (req['status'] ?? '').toString().toUpperCase();
+                  return s != 'COMPLETED' && s != 'CANCELLED';
+                }).map((req) {
+                  final status = req['status'] ?? 'PENDING';
+                  Color statusColor = Colors.orange;
+                  if (status == 'ACCEPTED') statusColor = Colors.blue;
+                  if (status == 'COMPLETED') statusColor = Colors.green;
+                  if (status == 'CANCELLED') statusColor = Colors.grey;
+                  if (status == 'PICKED_UP') statusColor = Colors.purple;
+
+                  final canDelete = status == 'PENDING';
+
+                  return GestureDetector(
+                    onTap: canDelete ? () => _confirmDelete(req) : null,
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 10),
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: canDelete
+                            ? Border.all(color: Colors.red.shade200)
+                            : null,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.04),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 22,
+                            backgroundColor: Colors.red.shade50,
+                            child: Text(
+                              req['bloodGroup'] ?? '?',
+                              style: const TextStyle(
+                                color: Colors.red,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "${req['bloodGroup']} Donation",
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                                ),
+                                Text(
+                                  req['date'] ?? '',
+                                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: statusColor.withOpacity(0.12),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Text(
+                                  status,
+                                  style: TextStyle(color: statusColor, fontSize: 11, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                              if (canDelete) ...[
+                                const SizedBox(height: 4),
+                                const Text(
+                                  "Tap to cancel",
+                                  style: TextStyle(color: Colors.red, fontSize: 11),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList(),
+                const SizedBox(height: 8),
+              ],
 
               // BLOOD TYPE
               _sectionTitle("Allot Blood Group"),
