@@ -97,16 +97,22 @@ class DoctorLiveTrackingScreen extends StatelessWidget {
                 final bool step1, step2, step3, step4;
                 switch (status.toUpperCase()) {
                   case 'ACCEPTED':
-                    progress = 0.50; step1 = true; step2 = true; step3 = false; step4 = false;
+                    progress = 0.40; step1 = true; step2 = true; step3 = false; step4 = false;
+                    break;
+                  case 'RIDER_ASSIGNED':
+                  case 'ON_THE_WAY':
+                    progress = 0.65; step1 = true; step2 = true; step3 = true; step4 = false;
                     break;
                   case 'PICKED_UP':
-                    progress = 0.75; step1 = true; step2 = true; step3 = true; step4 = false;
+                  case 'COLLECTED':
+                    progress = 0.80; step1 = true; step2 = true; step3 = true; step4 = false;
                     break;
                   case 'COMPLETED':
+                  case 'DELIVERED':
                     progress = 1.0; step1 = true; step2 = true; step3 = true; step4 = true;
                     break;
                   default: // PENDING
-                    progress = 0.25; step1 = true; step2 = false; step3 = false; step4 = false;
+                    progress = 0.20; step1 = true; step2 = false; step3 = false; step4 = false;
                 }
                 return Column(
                   children: [

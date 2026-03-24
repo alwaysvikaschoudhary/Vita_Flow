@@ -1,0 +1,14 @@
+# ── Secrets (NEVER commit these) ──────────────────────────────────────────────
+frontend/lib/secrets.dart
+
+# ── Flutter build outputs ──────────────────────────────────────────────────────
+frontend/build/
+frontend/.dart_tool/
+frontend/.flutter-plugins
+frontend/.flutter-plugins-dependencies
+
+# ── macOS metadata ─────────────────────────────────────────────────────────────
+**/.DS_Store
+
+# ── Backend compiled classes ───────────────────────────────────────────────────
+backend/target/

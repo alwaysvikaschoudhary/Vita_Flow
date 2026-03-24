@@ -234,27 +234,31 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      "🚨 Active Request",
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        "🚨 Active Request",
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      "Status: $status  •  Blood: $bloodGroup",
-                                      style: const TextStyle(
-                                        color: Colors.white70,
-                                        fontSize: 13,
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        "Status: $status  •  Blood: $bloodGroup",
+                                        style: const TextStyle(
+                                          color: Colors.white70,
+                                          fontSize: 13,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
+                                const SizedBox(width: 8),
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                   decoration: BoxDecoration(
@@ -262,6 +266,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: Row(
+                                    mainAxisSize: MainAxisSize.min,
                                     children: [
                                       const Icon(Icons.lock, color: Colors.white, size: 16),
                                       const SizedBox(width: 5),

@@ -369,11 +369,14 @@ class _NearbyRequestsScreenState extends State<NearbyRequestsScreen> {
                            ),
                          );
                          
-                         if (result != null && result is Map<String, double>) {
+                         if (result != null && result is Map) {
                            setState(() {
-                             selectedLat = result['latitude'];
-                             selectedLng = result['longitude'];
-                             locationText = "Location Selected";
+                             selectedLat = (result['latitude'] as num?)?.toDouble();
+                             selectedLng = (result['longitude'] as num?)?.toDouble();
+                             final poi = result['poiName'] as String?;
+                             locationText = (poi != null && poi.isNotEmpty)
+                                 ? poi
+                                 : "Location Selected ✓";
                            });
                          }
                       },
