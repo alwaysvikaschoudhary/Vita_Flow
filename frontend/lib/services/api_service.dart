@@ -65,6 +65,40 @@ class ApiService {
     }
   }
 
+  static Future<Map<String, dynamic>> loginWithPassword(
+      String phoneNumber, String password) async {
+    final url = Uri.parse("$baseUrl/user/login-with-password");
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({"phoneNumber": phoneNumber, "password": password}),
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      final msg = jsonDecode(response.body)['message'] ?? 'Login failed';
+      throw Exception(msg);
+    }
+  }
+
+  static Future<void> resetPassword(
+      String phoneNumber, String otp, String newPassword) async {
+    final url = Uri.parse("$baseUrl/user/reset-password");
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        "phoneNumber": phoneNumber,
+        "otp": otp,
+        "newPassword": newPassword,
+      }),
+    );
+    if (response.statusCode != 200) {
+      final msg = jsonDecode(response.body)['message'] ?? 'Reset failed';
+      throw Exception(msg);
+    }
+  }
+
   static Future<Map<String, dynamic>> getBloodStock(String hospitalId) async {
     final url = Uri.parse("$baseUrl/stock/$hospitalId");
     try {

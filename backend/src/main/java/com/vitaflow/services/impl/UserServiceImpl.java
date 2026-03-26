@@ -86,6 +86,75 @@ public class UserServiceImpl implements UserService {
         response.put("user", null);
         return response;
     }
+
+    @Override
+    public java.util.Map<String, Object> loginWithPassword(String phoneNumberInput, String password) {
+        String phoneNumber = phoneNumberInput.trim();
+        System.out.println("Password login for: '" + phoneNumber + "'");
+
+        Optional<Doctor> doctor = doctorRepository.findByPhoneNumber(phoneNumber);
+        if (doctor.isPresent()) {
+            if (doctor.get().getPassword() == null || !doctor.get().getPassword().equals(password)) {
+                throw new RuntimeException("Incorrect password");
+            }
+            java.util.Map<String, Object> response = new java.util.HashMap<>();
+            response.put("token", "dummy-token");
+            response.put("user", doctor.get());
+            return response;
+        }
+
+        Optional<Donor> donor = donorRepository.findByPhoneNumber(phoneNumber);
+        if (donor.isPresent()) {
+            if (donor.get().getPassword() == null || !donor.get().getPassword().equals(password)) {
+                throw new RuntimeException("Incorrect password");
+            }
+            java.util.Map<String, Object> response = new java.util.HashMap<>();
+            response.put("token", "dummy-token");
+            response.put("user", donor.get());
+            return response;
+        }
+
+        Optional<Rider> rider = riderRepository.findByPhoneNumber(phoneNumber);
+        if (rider.isPresent()) {
+            if (rider.get().getPassword() == null || !rider.get().getPassword().equals(password)) {
+                throw new RuntimeException("Incorrect password");
+            }
+            java.util.Map<String, Object> response = new java.util.HashMap<>();
+            response.put("token", "dummy-token");
+            response.put("user", rider.get());
+            return response;
+        }
+
+        throw new RuntimeException("No account found with this phone number");
+    }
+
+    @Override
+    public boolean resetPassword(String phoneNumberInput, String newPassword) {
+        String phoneNumber = phoneNumberInput.trim();
+
+        Optional<Doctor> doctor = doctorRepository.findByPhoneNumber(phoneNumber);
+        if (doctor.isPresent()) {
+            doctor.get().setPassword(newPassword);
+            doctorRepository.save(doctor.get());
+            return true;
+        }
+
+        Optional<Donor> donor = donorRepository.findByPhoneNumber(phoneNumber);
+        if (donor.isPresent()) {
+            donor.get().setPassword(newPassword);
+            donorRepository.save(donor.get());
+            return true;
+        }
+
+        Optional<Rider> rider = riderRepository.findByPhoneNumber(phoneNumber);
+        if (rider.isPresent()) {
+            rider.get().setPassword(newPassword);
+            riderRepository.save(rider.get());
+            return true;
+        }
+
+        return false;
+    }
     
     @Override
     public Doctor saveDoctor(Doctor doctor) {

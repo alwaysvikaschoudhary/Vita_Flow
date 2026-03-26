@@ -9,9 +9,13 @@ import java.util.List;
 @Service
 public interface UserService {
 
-    // Auth
+    // Auth — OTP
     java.util.Map<String, Object> verifyOtp(String phoneNumber, String otp);
     boolean sendOtp(String phoneNumber);
+
+    // Auth — Password
+    java.util.Map<String, Object> loginWithPassword(String phoneNumber, String password);
+    boolean resetPassword(String phoneNumber, String newPassword);
     
     // Role Specific Save Methods
     com.vitaflow.entities.user.Doctor saveDoctor(com.vitaflow.entities.user.Doctor doctor);

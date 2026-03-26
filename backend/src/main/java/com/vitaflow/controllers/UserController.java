@@ -41,6 +41,37 @@ public class UserController {
         }
     }
 
+    @PostMapping("/login-with-password")
+    public ResponseEntity<?> loginWithPassword(@RequestBody Map<String, String> payload) {
+        String phoneNumber = payload.get("phoneNumber");
+        String password = payload.get("password");
+        try {
+            Map<String, Object> response = userService.loginWithPassword(phoneNumber, password);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> payload) {
+        String phoneNumber = payload.get("phoneNumber");
+        String otp       = payload.get("otp");
+        String newPassword = payload.get("newPassword");
+        // First validate OTP
+        try {
+            userService.verifyOtp(phoneNumber, otp);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Invalid OTP: " + e.getMessage()));
+        }
+        boolean updated = userService.resetPassword(phoneNumber, newPassword);
+        if (updated) {
+            return ResponseEntity.ok(Map.of("message", "Password reset successfully"));
+        } else {
+            return ResponseEntity.badRequest().body(Map.of("message", "No account found with this phone number"));
+        }
+    }
+
     // Role Specific Registration
     @PostMapping("/register/doctor")
     public Map<String, Object> registerDoctor(@RequestBody Doctor doctor) {
