@@ -12,3 +12,5 @@ frontend/.flutter-plugins-dependencies
 
 # ── Backend compiled classes ───────────────────────────────────────────────────
 backend/target/
+backend/.env
+frontend/.env

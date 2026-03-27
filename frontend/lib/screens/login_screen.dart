@@ -3,14 +3,15 @@ import 'package:vita_flow/screens/role_select.dart';
 import 'package:vita_flow/screens/Doctor/navbar.dart';
 import 'package:vita_flow/screens/Donar/donor_navbar.dart';
 import 'package:vita_flow/screens/Rider/navbar.dart';
+import 'package:vita_flow/screens/register_screen.dart';
 import 'package:vita_flow/services/api_service.dart';
 
 // ─────────────────────────────────────────────────────────
 // Screen modes
 // ─────────────────────────────────────────────────────────
-enum _LoginMode { password, otp }
+enum _ForgotStep { idle, selectMethod, otpSent, newPassword }
 
-enum _ForgotStep { idle, otpSent, newPassword }
+enum _ForgotMethod { phone, email }
 
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);
@@ -22,16 +23,16 @@ class Login extends StatefulWidget {
 class _LoginState extends State<Login> {
   final _formKey = GlobalKey<FormState>();
   final _phoneCtrl = TextEditingController();
+  final _emailCtrl = TextEditingController(); // For forgot password via email
   final _passwordCtrl = TextEditingController();
   final _otpCtrl = TextEditingController();
   final _newPassCtrl = TextEditingController();
   final _confirmPassCtrl = TextEditingController();
 
-  _LoginMode _mode = _LoginMode.password;
   _ForgotStep _forgotStep = _ForgotStep.idle;
+  _ForgotMethod _forgotMethod = _ForgotMethod.phone;
 
   bool _isLoading = false;
-  bool _isOtpSent = false; // for OTP login flow
   bool _obscurePassword = true;
   bool _obscureNewPass = true;
 
@@ -90,73 +91,35 @@ class _LoginState extends State<Login> {
     }
   }
 
-  // ───────── OTP login ─────────
-  Future<void> _sendOtp() async {
-    if (_phoneCtrl.text.trim().isEmpty) {
-      _showSnack('Enter phone number first.', error: true);
-      return;
-    }
+  // ───────── Forgot password ─────────
+  Future<void> _sendForgotOtp() async {
     setState(() => _isLoading = true);
     try {
-      final success = await ApiService.sendOtp(_phoneCtrl.text.trim());
+      bool success = false;
+      if (_forgotMethod == _ForgotMethod.phone) {
+        if (_phoneCtrl.text.trim().isEmpty) {
+          _showSnack('Enter phone number first.', error: true);
+          setState(() => _isLoading = false);
+          return;
+        }
+        success = await ApiService.sendOtp(_phoneCtrl.text.trim());
+      } else {
+        if (_emailCtrl.text.trim().isEmpty) {
+          _showSnack('Enter email address first.', error: true);
+          setState(() => _isLoading = false);
+          return;
+        }
+        success = await ApiService.sendEmailOtp(_emailCtrl.text.trim());
+      }
+
       if (success) {
-        setState(() => _isOtpSent = true);
-        _showSnack('OTP sent!');
+        setState(() => _forgotStep = _ForgotStep.otpSent);
+        _showSnack('OTP sent successfully!');
       } else {
         _showSnack('Failed to send OTP', error: true);
       }
     } catch (e) {
-      _showSnack(e.toString(), error: true);
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  Future<void> _verifyOtp() async {
-    if (!_formKey.currentState!.validate()) return;
-    setState(() => _isLoading = true);
-    try {
-      final data = await ApiService.verifyOtp(
-        _phoneCtrl.text.trim(),
-        _otpCtrl.text.trim(),
-      );
-      if (!mounted) return;
-      if (data != null) {
-        if (data['token'] != null) {
-          _showSnack('Login Successful!');
-          _navigateByRole(data);
-        } else {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (_) =>
-                  RoleSelectScreen(phoneNumber: _phoneCtrl.text.trim()),
-            ),
-          );
-        }
-      } else {
-        _showSnack('Invalid OTP', error: true);
-      }
-    } catch (e) {
-      _showSnack(e.toString(), error: true);
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  // ───────── Forgot password ─────────
-  Future<void> _sendForgotOtp() async {
-    if (_phoneCtrl.text.trim().isEmpty) {
-      _showSnack('Enter phone number first.', error: true);
-      return;
-    }
-    setState(() => _isLoading = true);
-    try {
-      await ApiService.sendOtp(_phoneCtrl.text.trim());
-      setState(() => _forgotStep = _ForgotStep.otpSent);
-      _showSnack('OTP sent to your number!');
-    } catch (e) {
-      _showSnack(e.toString(), error: true);
+      _showSnack(e.toString().replaceFirst('Exception: ', ''), error: true);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -173,15 +136,22 @@ class _LoginState extends State<Login> {
     }
     setState(() => _isLoading = true);
     try {
-      await ApiService.resetPassword(
-        _phoneCtrl.text.trim(),
-        _otpCtrl.text.trim(),
-        _newPassCtrl.text.trim(),
-      );
+      if (_forgotMethod == _ForgotMethod.phone) {
+        await ApiService.resetPassword(
+          _phoneCtrl.text.trim(),
+          _otpCtrl.text.trim(),
+          _newPassCtrl.text.trim(),
+        );
+      } else {
+        await ApiService.resetPasswordByEmail(
+          _emailCtrl.text.trim(),
+          _otpCtrl.text.trim(),
+          _newPassCtrl.text.trim(),
+        );
+      }
       _showSnack('Password reset successfully! Please login.');
       setState(() {
         _forgotStep = _ForgotStep.idle;
-        _mode = _LoginMode.password;
         _otpCtrl.clear();
         _newPassCtrl.clear();
         _confirmPassCtrl.clear();
@@ -230,33 +200,57 @@ class _LoginState extends State<Login> {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  _forgotStep != _ForgotStep.idle
-                      ? 'Enter the OTP sent to your number'
-                      : _mode == _LoginMode.password
-                          ? 'Login with Phone & Password'
-                          : _isOtpSent
-                              ? 'Enter OTP to verify'
-                              : 'Login with OTP',
+                  _forgotStep == _ForgotStep.selectMethod
+                      ? 'Choose how to receive OTP'
+                      : _forgotStep == _ForgotStep.otpSent || _forgotStep == _ForgotStep.newPassword
+                          ? 'Enter the OTP sent to your ${_forgotMethod == _ForgotMethod.phone ? 'phone' : 'email'}'
+                          : 'Login with Phone & Password',
                   style: const TextStyle(color: Colors.grey, fontSize: 14),
                 ),
 
                 const SizedBox(height: 32),
 
-                // ── Phone field (always shown) ──
-                _buildField(
-                  controller: _phoneCtrl,
-                  label: 'Phone Number',
-                  icon: Icons.phone_outlined,
-                  keyboardType: TextInputType.phone,
-                  enabled: !_isOtpSent || _forgotStep != _ForgotStep.idle,
-                  validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'Phone is required' : null,
-                ),
-
-                // ─── FORGOT PASSWORD FLOW ───────────────────────
-                if (_forgotStep == _ForgotStep.otpSent ||
-                    _forgotStep == _ForgotStep.newPassword) ...[
+                // ─── FORGOT PASSWORD METHOD SELECTION ───────────
+                if (_forgotStep == _ForgotStep.selectMethod) ...[
+                  _buildMethodCard(
+                    title: 'Phone Number',
+                    subtitle: 'Send OTP via SMS',
+                    icon: Icons.phone_android,
+                    selected: _forgotMethod == _ForgotMethod.phone,
+                    onTap: () => setState(() => _forgotMethod = _ForgotMethod.phone),
+                  ),
                   const SizedBox(height: 16),
+                  _buildMethodCard(
+                    title: 'Email Address',
+                    subtitle: 'Send OTP via Email',
+                    icon: Icons.email_outlined,
+                    selected: _forgotMethod == _ForgotMethod.email,
+                    onTap: () => setState(() => _forgotMethod = _ForgotMethod.email),
+                  ),
+                  const SizedBox(height: 24),
+                  if (_forgotMethod == _ForgotMethod.phone)
+                    _buildField(
+                      controller: _phoneCtrl,
+                      label: 'Phone Number',
+                      icon: Icons.phone_outlined,
+                      keyboardType: TextInputType.phone,
+                      validator: (v) =>
+                          (v == null || v.trim().isEmpty) ? 'Phone is required' : null,
+                    )
+                  else
+                    _buildField(
+                      controller: _emailCtrl,
+                      label: 'Email Address',
+                      icon: Icons.email_outlined,
+                      keyboardType: TextInputType.emailAddress,
+                      validator: (v) =>
+                          (v == null || v.trim().isEmpty) ? 'Email is required' : null,
+                    ),
+                ]
+
+                // ─── OTP / NEW PASSWORD FLOW ─────────────────────
+                else if (_forgotStep == _ForgotStep.otpSent ||
+                    _forgotStep == _ForgotStep.newPassword) ...[
                   _buildField(
                     controller: _otpCtrl,
                     label: 'Enter OTP',
@@ -291,24 +285,16 @@ class _LoginState extends State<Login> {
                   ),
                 ]
 
-                // ─── OTP LOGIN FLOW ─────────────────────────────
-                else if (_mode == _LoginMode.otp) ...[
-                  if (_isOtpSent) ...[
-                    const SizedBox(height: 16),
-                    _buildField(
-                      controller: _otpCtrl,
-                      label: 'Enter OTP',
-                      icon: Icons.lock_outline,
-                      keyboardType: TextInputType.number,
-                      validator: (v) => (v == null || v.trim().isEmpty)
-                          ? 'OTP is required'
-                          : null,
-                    ),
-                  ],
-                ]
-
-                // ─── PASSWORD LOGIN FLOW ─────────────────────────
+                // ─── LOGIN FLOW ─────────────────────────────────
                 else ...[
+                  _buildField(
+                    controller: _phoneCtrl,
+                    label: 'Phone Number',
+                    icon: Icons.phone_outlined,
+                    keyboardType: TextInputType.phone,
+                    validator: (v) =>
+                        (v == null || v.trim().isEmpty) ? 'Phone is required' : null,
+                  ),
                   const SizedBox(height: 16),
                   _buildField(
                     controller: _passwordCtrl,
@@ -321,18 +307,16 @@ class _LoginState extends State<Login> {
                         ? 'Password is required'
                         : null,
                   ),
-                  // Forgot password link
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
                       onPressed: () {
                         setState(() {
-                          _forgotStep = _ForgotStep.otpSent;
+                          _forgotStep = _ForgotStep.selectMethod;
                           _otpCtrl.clear();
                           _newPassCtrl.clear();
                           _confirmPassCtrl.clear();
                         });
-                        _sendForgotOtp();
                       },
                       child: const Text(
                         'Forgot Password?',
@@ -342,7 +326,7 @@ class _LoginState extends State<Login> {
                   ),
                 ],
 
-                const SizedBox(height: 12),
+                const SizedBox(height: 32),
 
                 // ── Main Action Button ──
                 SizedBox(
@@ -389,23 +373,38 @@ class _LoginState extends State<Login> {
                       child: const Text('← Back to Login'),
                     ),
                   ),
-                ] else ...[
+                ],
+
+                // ── Register link (only on main login screen) ──
+                if (_forgotStep == _ForgotStep.idle) ...[
+                  const SizedBox(height: 8),
+                  const Divider(thickness: 1),
+                  const SizedBox(height: 4),
                   Center(
-                    child: TextButton(
-                      onPressed: () => setState(() {
-                        _mode = _mode == _LoginMode.password
-                            ? _LoginMode.otp
-                            : _LoginMode.password;
-                        _isOtpSent = false;
-                        _otpCtrl.clear();
-                        _passwordCtrl.clear();
-                      }),
-                      child: Text(
-                        _mode == _LoginMode.password
-                            ? 'Login with OTP instead'
-                            : 'Login with Password instead',
-                        style: const TextStyle(color: Color(0xFFE0463A)),
-                      ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          "Don't have an account? ",
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => const RoleSelectScreen()),
+                            );
+                          },
+                          child: const Text(
+                            'Register',
+                            style: TextStyle(
+                              color: Color(0xFFE0463A),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -419,19 +418,65 @@ class _LoginState extends State<Login> {
 
   // ── primary button label & action ──
   String get _primaryLabel {
-    if (_forgotStep != _ForgotStep.idle) return 'Reset Password';
-    if (_mode == _LoginMode.password) return 'Login';
-    return _isOtpSent ? 'Verify & Login' : 'Get OTP';
+    if (_forgotStep == _ForgotStep.selectMethod) return 'Send OTP';
+    if (_forgotStep == _ForgotStep.otpSent || _forgotStep == _ForgotStep.newPassword) return 'Reset Password';
+    return 'Login';
   }
 
   void _primaryAction() {
-    if (_forgotStep != _ForgotStep.idle) {
+    if (_forgotStep == _ForgotStep.selectMethod) {
+      _sendForgotOtp();
+    } else if (_forgotStep == _ForgotStep.otpSent || _forgotStep == _ForgotStep.newPassword) {
       _resetPassword();
-    } else if (_mode == _LoginMode.password) {
-      _loginWithPassword();
     } else {
-      _isOtpSent ? _verifyOtp() : _sendOtp();
+      _loginWithPassword();
     }
+  }
+
+  Widget _buildMethodCard({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: selected ? const Color(0xFFE0463A) : Colors.grey.shade300,
+            width: selected ? 2 : 1,
+          ),
+          color: selected ? const Color(0xFFFFEEEE).withOpacity(0.3) : Colors.white,
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: selected ? const Color(0xFFE0463A) : Colors.grey),
+            const SizedBox(width: 16),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: selected ? const Color(0xFFE0463A) : Colors.black87,
+                  ),
+                ),
+                Text(subtitle, style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+              ],
+            ),
+            const Spacer(),
+            if (selected)
+              const Icon(Icons.check_circle, color: Color(0xFFE0463A)),
+          ],
+        ),
+      ),
+    );
   }
 
   // ── field builder ──
@@ -481,6 +526,7 @@ class _LoginState extends State<Login> {
   @override
   void dispose() {
     _phoneCtrl.dispose();
+    _emailCtrl.dispose();
     _passwordCtrl.dispose();
     _otpCtrl.dispose();
     _newPassCtrl.dispose();

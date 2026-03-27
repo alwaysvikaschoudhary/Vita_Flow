@@ -13,9 +13,14 @@ public interface UserService {
     java.util.Map<String, Object> verifyOtp(String phoneNumber, String otp);
     boolean sendOtp(String phoneNumber);
 
+    // Auth — Email OTP
+    boolean sendEmailOtp(String email);
+    java.util.Map<String, Object> verifyEmailOtp(String email, String otp);
+
     // Auth — Password
     java.util.Map<String, Object> loginWithPassword(String phoneNumber, String password);
     boolean resetPassword(String phoneNumber, String newPassword);
+    boolean resetPasswordByEmail(String email, String newPassword);
     
     // Role Specific Save Methods
     com.vitaflow.entities.user.Doctor saveDoctor(com.vitaflow.entities.user.Doctor doctor);
@@ -28,4 +33,5 @@ public interface UserService {
     com.vitaflow.entities.user.Rider getRiderById(String userId);
 
     public boolean updateUserLocation(String phoneNumber, LocationDTO location);
+    boolean existsByPhoneNumber(String phoneNumber);
 }

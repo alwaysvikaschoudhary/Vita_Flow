@@ -10,10 +10,10 @@ android {
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
-    val googleMapsApiKey = projectDir.resolve("../../lib/config.dart")
+    val googleMapsApiKey = projectDir.resolve("../../.env")
         .readLines()
         .firstNotNullOfOrNull { line ->
-            Regex("""static const String googleApiKey = "(.*)";""").find(line)?.groupValues?.get(1)
+            Regex("""GOOGLE_MAPS_API_KEY=(.*)""").find(line)?.groupValues?.get(1)
         } ?: ""
 
     compileOptions {

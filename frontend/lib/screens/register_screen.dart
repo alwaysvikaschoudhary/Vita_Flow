@@ -20,6 +20,10 @@ class _RegisterState extends State<Register> {
   final _formKey = GlobalKey<FormState>();
   final nameController = TextEditingController();
   final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+  final confirmPasswordController = TextEditingController();
+  bool _obscurePassword = true;
+  bool _obscureConfirm = true;
 
   // Role Specific Controllers
   final hospitalNameController = TextEditingController();
@@ -49,6 +53,7 @@ class _RegisterState extends State<Register> {
         "email": emailController.text.trim(),
         "role": widget.role,
         "phoneNumber": widget.phoneNumber,
+        "password": passwordController.text.trim(),
         
         // Role Params
         "bloodGroup": selectedBloodGroup,
@@ -176,6 +181,32 @@ class _RegisterState extends State<Register> {
                       return null;
                     },
                     decoration: _input("Email (Optional)"),
+                  ),
+                  const SizedBox(height: 16),
+
+                  TextFormField(
+                    controller: passwordController,
+                    obscureText: _obscurePassword,
+                    validator: (v) => (v == null || v.length < 6) ? "Password must be at least 6 characters" : null,
+                    decoration: _input("Password").copyWith(
+                      suffixIcon: IconButton(
+                        icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
+                        onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  TextFormField(
+                    controller: confirmPasswordController,
+                    obscureText: _obscureConfirm,
+                    validator: (v) => v != passwordController.text ? "Passwords do not match" : null,
+                    decoration: _input("Confirm Password").copyWith(
+                      suffixIcon: IconButton(
+                        icon: Icon(_obscureConfirm ? Icons.visibility_off : Icons.visibility),
+                        onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 16),
 

@@ -1,11 +1,13 @@
 import 'package:vita_flow/screens/register_screen.dart';
+import 'package:vita_flow/screens/login_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:vita_flow/services/api_service.dart';
 import 'package:vita_flow/constants/app_colors.dart';
 import 'package:vita_flow/constants/app_constants.dart';
 
 class RoleSelectScreen extends StatefulWidget {
-  final String phoneNumber;
-  const RoleSelectScreen({super.key, required this.phoneNumber});
+  final String? phoneNumber;
+  const RoleSelectScreen({super.key, this.phoneNumber});
 
   @override
   State<RoleSelectScreen> createState() => _RoleSelectScreenState();
@@ -13,6 +15,22 @@ class RoleSelectScreen extends StatefulWidget {
 
 class _RoleSelectScreenState extends State<RoleSelectScreen> {
   String? selectedRole;
+  final TextEditingController _phoneController = TextEditingController();
+  bool _checkingPhone = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.phoneNumber != null) {
+      _phoneController.text = widget.phoneNumber!;
+    }
+  }
+
+  @override
+  void dispose() {
+    _phoneController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,6 +66,24 @@ class _RoleSelectScreenState extends State<RoleSelectScreen> {
                 ),
               ),
 
+              if (widget.phoneNumber == null) ...[
+                const SizedBox(height: 16),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 28),
+                  child: TextFormField(
+                    controller: _phoneController,
+                    keyboardType: TextInputType.phone,
+                    decoration: InputDecoration(
+                      hintText: "Enter your phone number",
+                      prefixIcon: const Icon(Icons.phone_outlined),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(AppConstants.borderRadiusLarge),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+
               const SizedBox(height: 30),
 
               // Roles
@@ -69,21 +105,93 @@ class _RoleSelectScreenState extends State<RoleSelectScreen> {
                         borderRadius: BorderRadius.circular(AppConstants.borderRadiusLarge),
                       ),
                     ),
-                    onPressed: selectedRole == null ? null : () {
+                    onPressed: (selectedRole == null || _checkingPhone) ? null : () async {
+                      final phone = _phoneController.text.trim();
+                      if (phone.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Please enter your phone number")),
+                        );
+                        return;
+                      }
+
+                      setState(() => _checkingPhone = true);
+                      try {
+                        // Check if user already exists
+                        final exists = await ApiService.checkUserExists(phone);
+                        if (exists) {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("A user with this phone number already exists. Please login instead."),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                          setState(() => _checkingPhone = false);
+                          return;
+                        }
+                      } catch (e) {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text("Check failed: $e")),
+                            );
+                          }
+                          setState(() => _checkingPhone = false);
+                          return;
+                      }
+
+                      if (!mounted) return;
+                      setState(() => _checkingPhone = false);
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (c) => Register(
-                            phoneNumber: widget.phoneNumber,
+                            phoneNumber: phone,
                             role: selectedRole!,
                           ),
                         ),
                       );
                     },
-                    child: const Text("Continue", style: TextStyle(color: AppColors.white, fontSize: 18)),
+                    child: _checkingPhone 
+                      ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                      : const Text("Continue", style: TextStyle(color: AppColors.white, fontSize: 18)),
                   ),
                 ),
-              )
+              ),
+
+              const SizedBox(height: 16),
+              Center(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      "Already have an account? ",
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        // Navigate back or to Login if it's the root
+                        if (Navigator.canPop(context)) {
+                          Navigator.pop(context);
+                        } else {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (_) => const Login()),
+                          );
+                        }
+                      },
+                      child: const Text(
+                        'Login',
+                        style: TextStyle(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
 
             ],
           ),

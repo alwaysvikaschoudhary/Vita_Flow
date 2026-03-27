@@ -4,11 +4,23 @@ import 'package:http/http.dart' as http;
 import 'package:vita_flow/config.dart';
 
 class ApiService {
-  // Use 10.0.2.2 for Android Emulator, localhost for iOS Simulator
-  // static const String baseUrl = "http://10.0.2.2:8080"; 
-  // static const String baseUrl = Config.baseUrl; 
-  // static const String baseUrl = Config.baseUrl; 
-  static const String baseUrl = Config.baseUrl; 
+  static String get baseUrl => Config.baseUrl; 
+
+  static Future<bool> checkUserExists(String phoneNumber) async {
+    final url = Uri.parse("$baseUrl/user/exists/$phoneNumber");
+    print("Checking existence: $url");
+    try {
+      final response = await http.get(url);
+      print("Check response: ${response.statusCode} - ${response.body}");
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body) == true;
+      }
+      throw Exception("Server returned ${response.statusCode}");
+    } catch (e) {
+      print("Check error: $e");
+      rethrow;
+    }
+  }
 
   static Future<Map<String, dynamic>> login(String email, String password) async {
     final url = Uri.parse("$baseUrl/user/login");
@@ -43,6 +55,20 @@ class ApiService {
       return response.statusCode == 200;
     } catch (e) {
       throw Exception("Error sending OTP: $e");
+    }
+  }
+
+  static Future<bool> sendEmailOtp(String email) async {
+    final url = Uri.parse("$baseUrl/user/send-email-otp");
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({"email": email}),
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      throw Exception("Error sending email OTP: $e");
     }
   }
 
@@ -99,6 +125,24 @@ class ApiService {
     }
   }
 
+  static Future<void> resetPasswordByEmail(
+      String email, String otp, String newPassword) async {
+    final url = Uri.parse("$baseUrl/user/reset-password-email");
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        "email": email,
+        "otp": otp,
+        "newPassword": newPassword,
+      }),
+    );
+    if (response.statusCode != 200) {
+      final msg = jsonDecode(response.body)['message'] ?? 'Reset failed';
+      throw Exception(msg);
+    }
+  }
+
   static Future<Map<String, dynamic>> getBloodStock(String hospitalId) async {
     final url = Uri.parse("$baseUrl/stock/$hospitalId");
     try {
@@ -111,7 +155,7 @@ class ApiService {
       }
     } catch (e) {
       print("API getBloodStock error: $e");
-      return {}; // return empty map gracefully
+      return {}; 
     }
   }
 
@@ -374,7 +418,7 @@ class ApiService {
         throw Exception(errorMsg);
       }
     } catch (e) {
-      throw Exception("$e"); // Keeps the actual message formatted from backend
+      throw Exception("$e"); 
     }
   }
 
@@ -402,8 +446,8 @@ class ApiService {
       final response = await http.get(url);
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
-      } else if (response.statusCode == 204) {
-        return null; // No active request
+      } else if (response.statusCode == 240) {
+        return null; 
       } else {
         throw Exception("Failed to fetch active request");
       }
@@ -488,4 +532,3 @@ class ApiService {
     }
   }
 }
-

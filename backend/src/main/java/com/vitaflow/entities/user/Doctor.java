@@ -19,7 +19,7 @@ public class Doctor {
 
     private String name;
 
-    // Email is now optional
+    @Column(unique = true)
     private String email;
 
     private String password; // Optional if using OTP only

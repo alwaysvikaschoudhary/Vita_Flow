@@ -30,6 +30,9 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private OtpService otpService;
 
+    @Autowired
+    private com.vitaflow.services.EmailService emailService;
+
     // @Autowired
     // private JwtUtil jwtUtil; // Not using JWT anymore
 
@@ -85,6 +88,56 @@ public class UserServiceImpl implements UserService {
         response.put("token", null);
         response.put("user", null);
         return response;
+    }
+
+    @Override
+    public boolean sendEmailOtp(String email) {
+        // Check if email exists in any repository
+        boolean exists = doctorRepository.findByEmail(email).isPresent() ||
+                         donorRepository.findByEmail(email).isPresent() ||
+                         riderRepository.findByEmail(email).isPresent();
+        
+        if (!exists) {
+            throw new RuntimeException("No account found with this email address");
+        }
+
+        String otp = otpService.generateOtp(email);
+        emailService.sendEmail(email, "VitaFlow Password Reset OTP", "Your OTP for password reset is: " + otp);
+        return true;
+    }
+
+    @Override
+    public java.util.Map<String, Object> verifyEmailOtp(String emailInput, String otp) {
+        String email = emailInput.trim();
+        if (!otpService.validateOtp(email, otp)) {
+            throw new RuntimeException("Invalid OTP");
+        }
+
+        Optional<Doctor> doctor = doctorRepository.findByEmail(email);
+        if (doctor.isPresent()) {
+            java.util.Map<String, Object> response = new java.util.HashMap<>();
+            response.put("token", "dummy-token");
+            response.put("user", doctor.get());
+            return response;
+        }
+
+        Optional<Donor> donor = donorRepository.findByEmail(email);
+        if (donor.isPresent()) {
+            java.util.Map<String, Object> response = new java.util.HashMap<>();
+            response.put("token", "dummy-token");
+            response.put("user", donor.get());
+            return response;
+        }
+
+        Optional<Rider> rider = riderRepository.findByEmail(email);
+        if (rider.isPresent()) {
+            java.util.Map<String, Object> response = new java.util.HashMap<>();
+            response.put("token", "dummy-token");
+            response.put("user", rider.get());
+            return response;
+        }
+
+        throw new RuntimeException("User not found after OTP verification");
     }
 
     @Override
@@ -155,6 +208,34 @@ public class UserServiceImpl implements UserService {
 
         return false;
     }
+
+    @Override
+    public boolean resetPasswordByEmail(String emailInput, String newPassword) {
+        String email = emailInput.trim();
+
+        Optional<Doctor> doctor = doctorRepository.findByEmail(email);
+        if (doctor.isPresent()) {
+            doctor.get().setPassword(newPassword);
+            doctorRepository.save(doctor.get());
+            return true;
+        }
+
+        Optional<Donor> donor = donorRepository.findByEmail(email);
+        if (donor.isPresent()) {
+            donor.get().setPassword(newPassword);
+            donorRepository.save(donor.get());
+            return true;
+        }
+
+        Optional<Rider> rider = riderRepository.findByEmail(email);
+        if (rider.isPresent()) {
+            rider.get().setPassword(newPassword);
+            riderRepository.save(rider.get());
+            return true;
+        }
+
+        return false;
+    }
     
     @Override
     public Doctor saveDoctor(Doctor doctor) {
@@ -176,8 +257,19 @@ public class UserServiceImpl implements UserService {
             if (doctor.getDegree() != null) dbDoctor.setDegree(doctor.getDegree());
             if (doctor.getExperience() != null) dbDoctor.setExperience(doctor.getExperience());
             if (doctor.getOrdinate() != null) dbDoctor.setOrdinate(doctor.getOrdinate());
+            if (doctor.getPassword() != null) dbDoctor.setPassword(doctor.getPassword());
             
             return doctorRepository.save(dbDoctor);
+        }
+        
+        // Check if email already exists globally for new user
+        if (doctor.getEmail() != null && !doctor.getEmail().trim().isEmpty()) {
+            String email = doctor.getEmail().trim();
+            if (doctorRepository.findByEmail(email).isPresent() ||
+                donorRepository.findByEmail(email).isPresent() ||
+                riderRepository.findByEmail(email).isPresent()) {
+                throw new RuntimeException("Email already in use");
+            }
         }
         
         if (doctor.getUserId() == null) {
@@ -207,8 +299,19 @@ public class UserServiceImpl implements UserService {
             if (donor.getNumberOfDonation() != null) dbDonor.setNumberOfDonation(donor.getNumberOfDonation());
             if (donor.getLastDonationDate() != null) dbDonor.setLastDonationDate(donor.getLastDonationDate());
             if (donor.getOrdinate() != null) dbDonor.setOrdinate(donor.getOrdinate());
+            if (donor.getPassword() != null) dbDonor.setPassword(donor.getPassword());
             
             return donorRepository.save(dbDonor);
+        }
+        
+        // Check if email already exists globally for new user
+        if (donor.getEmail() != null && !donor.getEmail().trim().isEmpty()) {
+            String email = donor.getEmail().trim();
+            if (doctorRepository.findByEmail(email).isPresent() ||
+                donorRepository.findByEmail(email).isPresent() ||
+                riderRepository.findByEmail(email).isPresent()) {
+                throw new RuntimeException("Email already in use");
+            }
         }
 
         if (donor.getUserId() == null) {
@@ -236,8 +339,19 @@ public class UserServiceImpl implements UserService {
             if (rider.getRating() != null) dbRider.setRating(rider.getRating());
             if (rider.getVehicleType() != null) dbRider.setVehicleType(rider.getVehicleType());
             if (rider.getOrdinate() != null) dbRider.setOrdinate(rider.getOrdinate());
+            if (rider.getPassword() != null) dbRider.setPassword(rider.getPassword());
             
             return riderRepository.save(dbRider);
+        }
+        
+        // Check if email already exists globally for new user
+        if (rider.getEmail() != null && !rider.getEmail().trim().isEmpty()) {
+            String email = rider.getEmail().trim();
+            if (doctorRepository.findByEmail(email).isPresent() ||
+                donorRepository.findByEmail(email).isPresent() ||
+                riderRepository.findByEmail(email).isPresent()) {
+                throw new RuntimeException("Email already in use");
+            }
         }
 
         if (rider.getUserId() == null) {
@@ -294,5 +408,12 @@ public class UserServiceImpl implements UserService {
         }
 
         return false;
+    }
+
+    @Override
+    public boolean existsByPhoneNumber(String phoneNumber) {
+        return doctorRepository.findByPhoneNumber(phoneNumber).isPresent() ||
+               donorRepository.findByPhoneNumber(phoneNumber).isPresent() ||
+               riderRepository.findByPhoneNumber(phoneNumber).isPresent();
     }
 }

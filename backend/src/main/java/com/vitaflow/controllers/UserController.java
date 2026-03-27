@@ -29,12 +29,35 @@ public class UserController {
         }
     }
 
+    @PostMapping("/send-email-otp")
+    public ResponseEntity<?> sendEmailOtp(@RequestBody Map<String, String> payload) {
+        String email = payload.get("email");
+        try {
+            boolean sent = userService.sendEmailOtp(email);
+            return ResponseEntity.ok(Map.of("message", "OTP sent to email successfully"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
     @PostMapping("/verify-otp")
     public ResponseEntity<?> verifyOtp(@RequestBody Map<String, String> payload) {
         String phoneNumber = payload.get("phoneNumber");
         String otp = payload.get("otp");
         try {
             Map<String, Object> response = userService.verifyOtp(phoneNumber, otp);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/verify-email-otp")
+    public ResponseEntity<?> verifyEmailOtp(@RequestBody Map<String, String> payload) {
+        String email = payload.get("email");
+        String otp = payload.get("otp");
+        try {
+            Map<String, Object> response = userService.verifyEmailOtp(email, otp);
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
@@ -69,6 +92,25 @@ public class UserController {
             return ResponseEntity.ok(Map.of("message", "Password reset successfully"));
         } else {
             return ResponseEntity.badRequest().body(Map.of("message", "No account found with this phone number"));
+        }
+    }
+
+    @PostMapping("/reset-password-email")
+    public ResponseEntity<?> resetPasswordEmail(@RequestBody Map<String, String> payload) {
+        String email = payload.get("email");
+        String otp       = payload.get("otp");
+        String newPassword = payload.get("newPassword");
+        // First validate OTP
+        try {
+            userService.verifyEmailOtp(email, otp);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Invalid OTP: " + e.getMessage()));
+        }
+        boolean updated = userService.resetPasswordByEmail(email, newPassword);
+        if (updated) {
+            return ResponseEntity.ok(Map.of("message", "Password reset successfully"));
+        } else {
+            return ResponseEntity.badRequest().body(Map.of("message", "No account found with this email"));
         }
     }
 
@@ -179,5 +221,11 @@ public class UserController {
         } else {
             return ResponseEntity.badRequest().body(Map.of("message", "User not found"));
         }
+    }
+
+    @GetMapping("/exists/{phoneNumber}")
+    public ResponseEntity<Boolean> existsByPhoneNumber(@PathVariable String phoneNumber) {
+        System.out.println("Checking existence for phone: " + phoneNumber);
+        return ResponseEntity.ok(userService.existsByPhoneNumber(phoneNumber));
     }
 }

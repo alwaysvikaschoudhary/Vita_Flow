@@ -10,6 +10,7 @@
         "cupertino_icons",
         "fl_chart",
         "flutter",
+        "flutter_dotenv",
         "flutter_polyline_points",
         "geocoding",
         "geolocator",
@@ -823,6 +824,13 @@
       "dependencies": [
         "meta",
         "path"
+      ]
+    },
+    {
+      "name": "flutter_dotenv",
+      "version": "5.2.1",
+      "dependencies": [
+        "flutter"
       ]
     }
   ],

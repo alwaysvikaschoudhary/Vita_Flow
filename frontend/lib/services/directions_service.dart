@@ -7,7 +7,7 @@ import 'package:vita_flow/config.dart'; // Ensure you have Config for API keys
 class DirectionsService {
   // Key from AndroidManifest.xml
   // Key from Config (Update in lib/config.dart)
-  static const String _apiKey = Config.googleApiKey;
+  static String get _apiKey => Config.googleApiKey;
 
   static Future<List<LatLng>> getPolylineCoordinates(LatLng origin, LatLng destination) async {
     List<LatLng> polylineCoordinates = [];
