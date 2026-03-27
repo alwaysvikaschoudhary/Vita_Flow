@@ -21,6 +21,7 @@ public interface UserService {
     java.util.Map<String, Object> loginWithPassword(String phoneNumber, String password);
     boolean resetPassword(String phoneNumber, String newPassword);
     boolean resetPasswordByEmail(String email, String newPassword);
+    boolean changePassword(String phoneNumber, String oldPassword, String newPassword);
     
     // Role Specific Save Methods
     com.vitaflow.entities.user.Doctor saveDoctor(com.vitaflow.entities.user.Doctor doctor);

@@ -75,6 +75,88 @@ class _EditRiderProfileScreenState extends State<EditRiderProfileScreen> {
     }
   }
 
+  Future<void> _showChangePasswordDialog() async {
+    final oldPasswordController = TextEditingController();
+    final newPasswordController = TextEditingController();
+    final confirmPasswordController = TextEditingController();
+    bool isUpdating = false;
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text("Change Password"),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: oldPasswordController,
+                  obscureText: true,
+                  decoration: const InputDecoration(labelText: "Old Password"),
+                ),
+                TextField(
+                  controller: newPasswordController,
+                  obscureText: true,
+                  decoration: const InputDecoration(labelText: "New Password"),
+                ),
+                TextField(
+                  controller: confirmPasswordController,
+                  obscureText: true,
+                  decoration: const InputDecoration(labelText: "Confirm New Password"),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel"),
+            ),
+            ElevatedButton(
+              onPressed: isUpdating ? null : () async {
+                if (newPasswordController.text != confirmPasswordController.text) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("New passwords do not match")),
+                  );
+                  return;
+                }
+                if (newPasswordController.text.length < 6) {
+                   ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Password must be at least 6 characters")),
+                  );
+                  return;
+                }
+
+                setDialogState(() => isUpdating = true);
+                try {
+                  await ApiService.changePassword(
+                    widget.currentUser['phoneNumber'],
+                    oldPasswordController.text,
+                    newPasswordController.text,
+                  );
+                  if (!mounted) return;
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Password changed successfully!")),
+                  );
+                } catch (e) {
+                  setDialogState(() => isUpdating = false);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(e.toString().replaceAll("Exception: ", ""))),
+                  );
+                }
+              },
+              child: isUpdating 
+                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                : const Text("Update"),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<void> save() async {
     if (_formKey.currentState!.validate()) {
       setState(() => isLoading = true);
@@ -158,12 +240,22 @@ class _EditRiderProfileScreenState extends State<EditRiderProfileScreen> {
                   foregroundColor: Colors.white,
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 1),
 
               _buildTextField("Address", addressController),
               _buildTextField("About", aboutController, maxLines: 3),
 
               const SizedBox(height: 20),
+              
+              TextButton.icon(
+                onPressed: _showChangePasswordDialog,
+                icon: const Icon(Icons.lock_outline, size: 18),
+                label: const Text("Change Password"),
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.redAccent,
+                ),
+              ),
+              const SizedBox(height: 12),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -176,7 +268,7 @@ class _EditRiderProfileScreenState extends State<EditRiderProfileScreen> {
                     ? const CircularProgressIndicator(color: Colors.white) 
                     : const Text("Save Changes", style: TextStyle(fontSize: 16)),
                 ),
-              )
+              ),
             ],
           ),
         ),

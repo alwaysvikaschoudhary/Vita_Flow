@@ -228,4 +228,22 @@ public class UserController {
         System.out.println("Checking existence for phone: " + phoneNumber);
         return ResponseEntity.ok(userService.existsByPhoneNumber(phoneNumber));
     }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(@RequestBody Map<String, String> payload) {
+        String phoneNumber = payload.get("phoneNumber");
+        String oldPassword = payload.get("oldPassword");
+        String newPassword = payload.get("newPassword");
+
+        if (phoneNumber == null || oldPassword == null || newPassword == null) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Phone number, old password, and new password are required"));
+        }
+
+        boolean updated = userService.changePassword(phoneNumber, oldPassword, newPassword);
+        if (updated) {
+            return ResponseEntity.ok(Map.of("message", "Password changed successfully"));
+        } else {
+            return ResponseEntity.badRequest().body(Map.of("message", "Incorrect old password or user not found"));
+        }
+    }
 }

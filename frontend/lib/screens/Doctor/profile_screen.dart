@@ -255,24 +255,7 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                   ],
                 ),
 
-                const SizedBox(height: 10),
-
-                // ------------------------------
-                // NOTIFICATION SETTINGS
-                // ------------------------------
-//               _infoSection(
-//                 title: "Notification Preferences",
-//                 children: [
-//                   _toggleItem(
-//                     "Donor Matches",
-//                     notifyDonorMatches,
-//                     (v) => setState(() => notifyDonorMatches = v),
-//                   ),
-//                   // ... other toggles
-//                 ],
-//               ),
-
-                const SizedBox(height: 10),
+                const SizedBox(height: 1),
 
                 Container(
                   alignment: Alignment.center,

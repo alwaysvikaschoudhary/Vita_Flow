@@ -416,4 +416,44 @@ public class UserServiceImpl implements UserService {
                donorRepository.findByPhoneNumber(phoneNumber).isPresent() ||
                riderRepository.findByPhoneNumber(phoneNumber).isPresent();
     }
+
+    @Override
+    public boolean changePassword(String phoneNumber, String oldPassword, String newPassword) {
+        phoneNumber = phoneNumber.trim();
+        
+        Optional<Doctor> doctor = doctorRepository.findByPhoneNumber(phoneNumber);
+        if (doctor.isPresent()) {
+            Doctor d = doctor.get();
+            if (d.getPassword() != null && d.getPassword().equals(oldPassword)) {
+                d.setPassword(newPassword);
+                doctorRepository.save(d);
+                return true;
+            }
+            return false;
+        }
+
+        Optional<Donor> donor = donorRepository.findByPhoneNumber(phoneNumber);
+        if (donor.isPresent()) {
+            Donor d = donor.get();
+            if (d.getPassword() != null && d.getPassword().equals(oldPassword)) {
+                d.setPassword(newPassword);
+                donorRepository.save(d);
+                return true;
+            }
+            return false;
+        }
+
+        Optional<Rider> rider = riderRepository.findByPhoneNumber(phoneNumber);
+        if (rider.isPresent()) {
+            Rider r = rider.get();
+            if (r.getPassword() != null && r.getPassword().equals(oldPassword)) {
+                r.setPassword(newPassword);
+                riderRepository.save(r);
+                return true;
+            }
+            return false;
+        }
+
+        return false;
+    }
 }

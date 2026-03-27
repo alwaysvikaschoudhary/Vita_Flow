@@ -182,7 +182,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                     const SizedBox(width: 12),
                     Expanded(child: _statCard(Icons.access_time, Colors.orange, "${_requests.where((r) => r['status'] == 'PENDING').length}", "Pending"),),
                     const SizedBox(width: 12),
-                    Expanded(child: _statCard(Icons.check_circle, Colors.green, "${_requests.where((r) => r['status'] == 'COMPLETED').length}", "Today"),),
+                    Expanded(child: _statCard(Icons.check_circle, Colors.green, "${_requests.where((r) => r['status'] == 'COMPLETED').length}", "Completed"),),
                   ],
                 ),
 

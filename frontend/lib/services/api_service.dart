@@ -143,6 +143,24 @@ class ApiService {
     }
   }
 
+  static Future<void> changePassword(
+      String phoneNumber, String oldPassword, String newPassword) async {
+    final url = Uri.parse("$baseUrl/user/change-password");
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        "phoneNumber": phoneNumber,
+        "oldPassword": oldPassword,
+        "newPassword": newPassword,
+      }),
+    );
+    if (response.statusCode != 200) {
+      final msg = jsonDecode(response.body)['message'] ?? 'Update failed';
+      throw Exception(msg);
+    }
+  }
+
   static Future<Map<String, dynamic>> getBloodStock(String hospitalId) async {
     final url = Uri.parse("$baseUrl/stock/$hospitalId");
     try {

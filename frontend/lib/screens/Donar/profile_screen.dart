@@ -247,7 +247,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             
 
-              const SizedBox(height: 10),
+              const SizedBox(height: 1),
 
               Container(
                 alignment: Alignment.center,

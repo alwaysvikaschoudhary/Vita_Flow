@@ -240,7 +240,7 @@ class _RiderProfileScreenState extends State<RiderProfileScreen> {
                   ],
                 ),
 
-                const SizedBox(height: 10),
+                const SizedBox(height: 1),
 
                 Container(
                   alignment: Alignment.center,
