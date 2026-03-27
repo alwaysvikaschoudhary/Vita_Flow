@@ -10,6 +10,7 @@ import com.vitaflow.repositories.RiderRepository;
 import com.vitaflow.services.OtpService;
 import com.vitaflow.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -32,6 +33,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private com.vitaflow.services.EmailService emailService;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     // @Autowired
     // private JwtUtil jwtUtil; // Not using JWT anymore
@@ -147,7 +151,7 @@ public class UserServiceImpl implements UserService {
 
         Optional<Doctor> doctor = doctorRepository.findByPhoneNumber(phoneNumber);
         if (doctor.isPresent()) {
-            if (doctor.get().getPassword() == null || !doctor.get().getPassword().equals(password)) {
+            if (doctor.get().getPassword() == null || !passwordEncoder.matches(password, doctor.get().getPassword())) {
                 throw new RuntimeException("Incorrect password");
             }
             java.util.Map<String, Object> response = new java.util.HashMap<>();
@@ -158,7 +162,7 @@ public class UserServiceImpl implements UserService {
 
         Optional<Donor> donor = donorRepository.findByPhoneNumber(phoneNumber);
         if (donor.isPresent()) {
-            if (donor.get().getPassword() == null || !donor.get().getPassword().equals(password)) {
+            if (donor.get().getPassword() == null || !passwordEncoder.matches(password, donor.get().getPassword())) {
                 throw new RuntimeException("Incorrect password");
             }
             java.util.Map<String, Object> response = new java.util.HashMap<>();
@@ -169,7 +173,7 @@ public class UserServiceImpl implements UserService {
 
         Optional<Rider> rider = riderRepository.findByPhoneNumber(phoneNumber);
         if (rider.isPresent()) {
-            if (rider.get().getPassword() == null || !rider.get().getPassword().equals(password)) {
+            if (rider.get().getPassword() == null || !passwordEncoder.matches(password, rider.get().getPassword())) {
                 throw new RuntimeException("Incorrect password");
             }
             java.util.Map<String, Object> response = new java.util.HashMap<>();
@@ -184,24 +188,25 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean resetPassword(String phoneNumberInput, String newPassword) {
         String phoneNumber = phoneNumberInput.trim();
+        String hashedPass = passwordEncoder.encode(newPassword);
 
         Optional<Doctor> doctor = doctorRepository.findByPhoneNumber(phoneNumber);
         if (doctor.isPresent()) {
-            doctor.get().setPassword(newPassword);
+            doctor.get().setPassword(hashedPass);
             doctorRepository.save(doctor.get());
             return true;
         }
 
         Optional<Donor> donor = donorRepository.findByPhoneNumber(phoneNumber);
         if (donor.isPresent()) {
-            donor.get().setPassword(newPassword);
+            donor.get().setPassword(hashedPass);
             donorRepository.save(donor.get());
             return true;
         }
 
         Optional<Rider> rider = riderRepository.findByPhoneNumber(phoneNumber);
         if (rider.isPresent()) {
-            rider.get().setPassword(newPassword);
+            rider.get().setPassword(hashedPass);
             riderRepository.save(rider.get());
             return true;
         }
@@ -212,24 +217,25 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean resetPasswordByEmail(String emailInput, String newPassword) {
         String email = emailInput.trim();
+        String hashedPass = passwordEncoder.encode(newPassword);
 
         Optional<Doctor> doctor = doctorRepository.findByEmail(email);
         if (doctor.isPresent()) {
-            doctor.get().setPassword(newPassword);
+            doctor.get().setPassword(hashedPass);
             doctorRepository.save(doctor.get());
             return true;
         }
 
         Optional<Donor> donor = donorRepository.findByEmail(email);
         if (donor.isPresent()) {
-            donor.get().setPassword(newPassword);
+            donor.get().setPassword(hashedPass);
             donorRepository.save(donor.get());
             return true;
         }
 
         Optional<Rider> rider = riderRepository.findByEmail(email);
         if (rider.isPresent()) {
-            rider.get().setPassword(newPassword);
+            rider.get().setPassword(hashedPass);
             riderRepository.save(rider.get());
             return true;
         }
@@ -257,7 +263,7 @@ public class UserServiceImpl implements UserService {
             if (doctor.getDegree() != null) dbDoctor.setDegree(doctor.getDegree());
             if (doctor.getExperience() != null) dbDoctor.setExperience(doctor.getExperience());
             if (doctor.getOrdinate() != null) dbDoctor.setOrdinate(doctor.getOrdinate());
-            if (doctor.getPassword() != null) dbDoctor.setPassword(doctor.getPassword());
+            if (doctor.getPassword() != null) dbDoctor.setPassword(passwordEncoder.encode(doctor.getPassword()));
             
             return doctorRepository.save(dbDoctor);
         }
@@ -274,6 +280,9 @@ public class UserServiceImpl implements UserService {
         
         if (doctor.getUserId() == null) {
             doctor.setUserId(UUID.randomUUID().toString());
+        }
+        if (doctor.getPassword() != null) {
+            doctor.setPassword(passwordEncoder.encode(doctor.getPassword()));
         }
         return doctorRepository.save(doctor);
     }
@@ -299,7 +308,7 @@ public class UserServiceImpl implements UserService {
             if (donor.getNumberOfDonation() != null) dbDonor.setNumberOfDonation(donor.getNumberOfDonation());
             if (donor.getLastDonationDate() != null) dbDonor.setLastDonationDate(donor.getLastDonationDate());
             if (donor.getOrdinate() != null) dbDonor.setOrdinate(donor.getOrdinate());
-            if (donor.getPassword() != null) dbDonor.setPassword(donor.getPassword());
+            if (donor.getPassword() != null) dbDonor.setPassword(passwordEncoder.encode(donor.getPassword()));
             
             return donorRepository.save(dbDonor);
         }
@@ -316,6 +325,9 @@ public class UserServiceImpl implements UserService {
 
         if (donor.getUserId() == null) {
             donor.setUserId(UUID.randomUUID().toString());
+        }
+        if (donor.getPassword() != null) {
+            donor.setPassword(passwordEncoder.encode(donor.getPassword()));
         }
         return donorRepository.save(donor);
     }
@@ -339,7 +351,7 @@ public class UserServiceImpl implements UserService {
             if (rider.getRating() != null) dbRider.setRating(rider.getRating());
             if (rider.getVehicleType() != null) dbRider.setVehicleType(rider.getVehicleType());
             if (rider.getOrdinate() != null) dbRider.setOrdinate(rider.getOrdinate());
-            if (rider.getPassword() != null) dbRider.setPassword(rider.getPassword());
+            if (rider.getPassword() != null) dbRider.setPassword(passwordEncoder.encode(rider.getPassword()));
             
             return riderRepository.save(dbRider);
         }
@@ -356,6 +368,9 @@ public class UserServiceImpl implements UserService {
 
         if (rider.getUserId() == null) {
             rider.setUserId(UUID.randomUUID().toString());
+        }
+        if (rider.getPassword() != null) {
+            rider.setPassword(passwordEncoder.encode(rider.getPassword()));
         }
         return riderRepository.save(rider);
     }
@@ -424,8 +439,8 @@ public class UserServiceImpl implements UserService {
         Optional<Doctor> doctor = doctorRepository.findByPhoneNumber(phoneNumber);
         if (doctor.isPresent()) {
             Doctor d = doctor.get();
-            if (d.getPassword() != null && d.getPassword().equals(oldPassword)) {
-                d.setPassword(newPassword);
+            if (d.getPassword() != null && passwordEncoder.matches(oldPassword, d.getPassword())) {
+                d.setPassword(passwordEncoder.encode(newPassword));
                 doctorRepository.save(d);
                 return true;
             }
@@ -435,8 +450,8 @@ public class UserServiceImpl implements UserService {
         Optional<Donor> donor = donorRepository.findByPhoneNumber(phoneNumber);
         if (donor.isPresent()) {
             Donor d = donor.get();
-            if (d.getPassword() != null && d.getPassword().equals(oldPassword)) {
-                d.setPassword(newPassword);
+            if (d.getPassword() != null && passwordEncoder.matches(oldPassword, d.getPassword())) {
+                d.setPassword(passwordEncoder.encode(newPassword));
                 donorRepository.save(d);
                 return true;
             }
@@ -446,8 +461,8 @@ public class UserServiceImpl implements UserService {
         Optional<Rider> rider = riderRepository.findByPhoneNumber(phoneNumber);
         if (rider.isPresent()) {
             Rider r = rider.get();
-            if (r.getPassword() != null && r.getPassword().equals(oldPassword)) {
-                r.setPassword(newPassword);
+            if (r.getPassword() != null && passwordEncoder.matches(oldPassword, r.getPassword())) {
+                r.setPassword(passwordEncoder.encode(newPassword));
                 riderRepository.save(r);
                 return true;
             }
