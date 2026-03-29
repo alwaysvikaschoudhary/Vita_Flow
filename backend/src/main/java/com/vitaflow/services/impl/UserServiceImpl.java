@@ -252,7 +252,17 @@ public class UserServiceImpl implements UserService {
             Doctor dbDoctor = existing.get();
             // Update fields only if they are not null
             if (doctor.getName() != null) dbDoctor.setName(doctor.getName());
-            if (doctor.getEmail() != null) dbDoctor.setEmail(doctor.getEmail());
+            if (doctor.getEmail() != null) {
+                String newEmail = doctor.getEmail().trim().isEmpty() ? null : doctor.getEmail().trim();
+                if (newEmail != null && !newEmail.equalsIgnoreCase(dbDoctor.getEmail())) {
+                    if (doctorRepository.findByEmail(newEmail).isPresent() ||
+                        donorRepository.findByEmail(newEmail).isPresent() ||
+                        riderRepository.findByEmail(newEmail).isPresent()) {
+                        throw new RuntimeException("Email already in use");
+                    }
+                }
+                dbDoctor.setEmail(newEmail);
+            }
             if (doctor.getHospitalName() != null) dbDoctor.setHospitalName(doctor.getHospitalName());
             if (doctor.getSpecialization() != null) dbDoctor.setSpecialization(doctor.getSpecialization());
             if (doctor.getAbout() != null) dbDoctor.setAbout(doctor.getAbout());
@@ -284,6 +294,9 @@ public class UserServiceImpl implements UserService {
         if (doctor.getPassword() != null) {
             doctor.setPassword(passwordEncoder.encode(doctor.getPassword()));
         }
+        if (doctor.getEmail() != null && doctor.getEmail().trim().isEmpty()) {
+            doctor.setEmail(null);
+        }
         return doctorRepository.save(doctor);
     }
 
@@ -295,7 +308,17 @@ public class UserServiceImpl implements UserService {
         if (existing.isPresent()) {
             Donor dbDonor = existing.get();
             if (donor.getName() != null) dbDonor.setName(donor.getName());
-            if (donor.getEmail() != null) dbDonor.setEmail(donor.getEmail());
+            if (donor.getEmail() != null) {
+                String newEmail = donor.getEmail().trim().isEmpty() ? null : donor.getEmail().trim();
+                if (newEmail != null && !newEmail.equalsIgnoreCase(dbDonor.getEmail())) {
+                    if (doctorRepository.findByEmail(newEmail).isPresent() ||
+                        donorRepository.findByEmail(newEmail).isPresent() ||
+                        riderRepository.findByEmail(newEmail).isPresent()) {
+                        throw new RuntimeException("Email already in use");
+                    }
+                }
+                dbDonor.setEmail(newEmail);
+            }
             if (donor.getBloodGroup() != null) dbDonor.setBloodGroup(donor.getBloodGroup());
             if (donor.getAbout() != null) dbDonor.setAbout(donor.getAbout());
             if (donor.getProfilePic() != null) dbDonor.setProfilePic(donor.getProfilePic());
@@ -329,6 +352,9 @@ public class UserServiceImpl implements UserService {
         if (donor.getPassword() != null) {
             donor.setPassword(passwordEncoder.encode(donor.getPassword()));
         }
+        if (donor.getEmail() != null && donor.getEmail().trim().isEmpty()) {
+            donor.setEmail(null);
+        }
         return donorRepository.save(donor);
     }
 
@@ -340,7 +366,17 @@ public class UserServiceImpl implements UserService {
         if (existing.isPresent()) {
             Rider dbRider = existing.get();
             if (rider.getName() != null) dbRider.setName(rider.getName());
-            if (rider.getEmail() != null) dbRider.setEmail(rider.getEmail());
+            if (rider.getEmail() != null) {
+                String newEmail = rider.getEmail().trim().isEmpty() ? null : rider.getEmail().trim();
+                if (newEmail != null && !newEmail.equalsIgnoreCase(dbRider.getEmail())) {
+                    if (doctorRepository.findByEmail(newEmail).isPresent() ||
+                        donorRepository.findByEmail(newEmail).isPresent() ||
+                        riderRepository.findByEmail(newEmail).isPresent()) {
+                        throw new RuntimeException("Email already in use");
+                    }
+                }
+                dbRider.setEmail(newEmail);
+            }
             if (rider.getBikeNumber() != null) dbRider.setBikeNumber(rider.getBikeNumber());
             if (rider.getAbout() != null) dbRider.setAbout(rider.getAbout());
             if (rider.getProfilePic() != null) dbRider.setProfilePic(rider.getProfilePic());
@@ -371,6 +407,9 @@ public class UserServiceImpl implements UserService {
         }
         if (rider.getPassword() != null) {
             rider.setPassword(passwordEncoder.encode(rider.getPassword()));
+        }
+        if (rider.getEmail() != null && rider.getEmail().trim().isEmpty()) {
+            rider.setEmail(null);
         }
         return riderRepository.save(rider);
     }
