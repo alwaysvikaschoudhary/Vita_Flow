@@ -245,6 +245,31 @@ public class UserServiceImpl implements UserService {
 
         return false;
     }
+
+    private void validateEmailIsUnique(String email, String userId, String phoneNumber) {
+        if (email == null || email.trim().isEmpty()) return;
+        
+        Optional<Doctor> existingDoc = doctorRepository.findByEmail(email);
+        if (existingDoc.isPresent() && 
+            (userId == null || !existingDoc.get().getUserId().equals(userId)) &&
+            (phoneNumber == null || !existingDoc.get().getPhoneNumber().equals(phoneNumber))) {
+            throw new RuntimeException("Email already in use");
+        }
+        
+        Optional<Donor> existingDon = donorRepository.findByEmail(email);
+        if (existingDon.isPresent() && 
+            (userId == null || !existingDon.get().getUserId().equals(userId)) &&
+            (phoneNumber == null || !existingDon.get().getPhoneNumber().equals(phoneNumber))) {
+            throw new RuntimeException("Email already in use");
+        }
+        
+        Optional<Rider> existingRid = riderRepository.findByEmail(email);
+        if (existingRid.isPresent() && 
+            (userId == null || !existingRid.get().getUserId().equals(userId)) &&
+            (phoneNumber == null || !existingRid.get().getPhoneNumber().equals(phoneNumber))) {
+            throw new RuntimeException("Email already in use");
+        }
+    }
     
     @Override
     public Doctor saveDoctor(Doctor doctor) {
@@ -258,11 +283,7 @@ public class UserServiceImpl implements UserService {
             if (doctor.getEmail() != null) {
                 String newEmail = doctor.getEmail().trim().isEmpty() ? null : doctor.getEmail().trim();
                 if (newEmail != null && !newEmail.equalsIgnoreCase(dbDoctor.getEmail())) {
-                    if (doctorRepository.findByEmail(newEmail).isPresent() ||
-                        donorRepository.findByEmail(newEmail).isPresent() ||
-                        riderRepository.findByEmail(newEmail).isPresent()) {
-                        throw new RuntimeException("Email already in use");
-                    }
+                    validateEmailIsUnique(newEmail, dbDoctor.getUserId(), dbDoctor.getPhoneNumber());
                 }
                 dbDoctor.setEmail(newEmail);
             }
@@ -284,11 +305,7 @@ public class UserServiceImpl implements UserService {
         // Check if email already exists globally for new user
         if (doctor.getEmail() != null && !doctor.getEmail().trim().isEmpty()) {
             String email = doctor.getEmail().trim();
-            if (doctorRepository.findByEmail(email).isPresent() ||
-                donorRepository.findByEmail(email).isPresent() ||
-                riderRepository.findByEmail(email).isPresent()) {
-                throw new RuntimeException("Email already in use");
-            }
+            validateEmailIsUnique(email, null, phoneNumber);
         }
         
         if (doctor.getUserId() == null) {
@@ -314,11 +331,7 @@ public class UserServiceImpl implements UserService {
             if (donor.getEmail() != null) {
                 String newEmail = donor.getEmail().trim().isEmpty() ? null : donor.getEmail().trim();
                 if (newEmail != null && !newEmail.equalsIgnoreCase(dbDonor.getEmail())) {
-                    if (doctorRepository.findByEmail(newEmail).isPresent() ||
-                        donorRepository.findByEmail(newEmail).isPresent() ||
-                        riderRepository.findByEmail(newEmail).isPresent()) {
-                        throw new RuntimeException("Email already in use");
-                    }
+                    validateEmailIsUnique(newEmail, dbDonor.getUserId(), dbDonor.getPhoneNumber());
                 }
                 dbDonor.setEmail(newEmail);
             }
@@ -342,11 +355,7 @@ public class UserServiceImpl implements UserService {
         // Check if email already exists globally for new user
         if (donor.getEmail() != null && !donor.getEmail().trim().isEmpty()) {
             String email = donor.getEmail().trim();
-            if (doctorRepository.findByEmail(email).isPresent() ||
-                donorRepository.findByEmail(email).isPresent() ||
-                riderRepository.findByEmail(email).isPresent()) {
-                throw new RuntimeException("Email already in use");
-            }
+            validateEmailIsUnique(email, null, phoneNumber);
         }
 
         if (donor.getUserId() == null) {
@@ -372,11 +381,7 @@ public class UserServiceImpl implements UserService {
             if (rider.getEmail() != null) {
                 String newEmail = rider.getEmail().trim().isEmpty() ? null : rider.getEmail().trim();
                 if (newEmail != null && !newEmail.equalsIgnoreCase(dbRider.getEmail())) {
-                    if (doctorRepository.findByEmail(newEmail).isPresent() ||
-                        donorRepository.findByEmail(newEmail).isPresent() ||
-                        riderRepository.findByEmail(newEmail).isPresent()) {
-                        throw new RuntimeException("Email already in use");
-                    }
+                    validateEmailIsUnique(newEmail, dbRider.getUserId(), dbRider.getPhoneNumber());
                 }
                 dbRider.setEmail(newEmail);
             }
@@ -398,11 +403,7 @@ public class UserServiceImpl implements UserService {
         // Check if email already exists globally for new user
         if (rider.getEmail() != null && !rider.getEmail().trim().isEmpty()) {
             String email = rider.getEmail().trim();
-            if (doctorRepository.findByEmail(email).isPresent() ||
-                donorRepository.findByEmail(email).isPresent() ||
-                riderRepository.findByEmail(email).isPresent()) {
-                throw new RuntimeException("Email already in use");
-            }
+            validateEmailIsUnique(email, null, phoneNumber);
         }
 
         if (rider.getUserId() == null) {

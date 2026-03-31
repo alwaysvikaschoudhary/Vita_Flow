@@ -102,7 +102,12 @@ class ApiService {
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
-      final msg = jsonDecode(response.body)['message'] ?? 'Login failed';
+      String msg = 'Login failed. Try again.';
+      try {
+        msg = jsonDecode(response.body)['message'] ?? msg;
+      } catch (_) {
+        msg = 'Server error (${response.statusCode}). Try again.';
+      }
       throw Exception(msg);
     }
   }
