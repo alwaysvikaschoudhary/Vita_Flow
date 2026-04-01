@@ -1,5 +1,6 @@
 import 'package:vita_flow/services/api_service.dart';
 import 'package:vita_flow/screens/Rider/pickup_screen.dart';
+import 'package:vita_flow/screens/Rider/history_screen.dart';
 import 'package:flutter/material.dart';
 
 class RiderHomeScreen extends StatefulWidget {
@@ -36,10 +37,15 @@ class _RiderHomeScreenState extends State<RiderHomeScreen> {
       // 2. Fetch Nearby Tasks
       final nearby = await ApiService.getRiderNearbyRequests(userId);
 
+      // 3. Fetch Fresh User Profile for Stats
+      final updatedUser = await ApiService.getRiderById(userId);
+
       if (mounted) {
         setState(() {
           _activeTask = active;
           _tasks = nearby;
+          // Note: We don't overwrite widget.currentUser, but we can use updatedUser for stats
+          widget.currentUser.addAll(updatedUser); 
           _isLoading = false;
         });
       }
@@ -64,17 +70,70 @@ class _RiderHomeScreenState extends State<RiderHomeScreen> {
               children: [
                 _buildHeader(),
 
-                // const SizedBox(height: 16),
+                const SizedBox(height: 16),
 
-                // // _buildStatsRow(),
-
-                // const SizedBox(height: 16),
-
-                // // Show Active Delivery Card OR Online Card
-                // if (_activeTask != null) 
-                //   _activeDeliveryCard()
-                // else 
-                //   _buildOnlineCard(),
+                // ------------------------
+                // TOTAL DELIVERIES + REWARDS
+                // ------------------------
+                Row(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => RiderHistoryScreen(currentUser: widget.currentUser),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          margin: const EdgeInsets.only(left: 4, right: 2),
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Column(
+                            children: [
+                              const Icon(Icons.local_shipping, color: Colors.blue),
+                              const SizedBox(height: 10),
+                              const Text(
+                                "Total Deliveries",
+                                style: TextStyle(fontWeight: FontWeight.w600),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(widget.currentUser['totalDeliveries']?.toString() ?? "0"),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Container(
+                        margin: const EdgeInsets.only(left: 2, right: 4),
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Column(
+                          children: [
+                            const Icon(Icons.emoji_events, color: Colors.green),
+                            const SizedBox(height: 10),
+                            const Text(
+                              "Rewards",
+                              style: TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(((int.tryParse(widget.currentUser['totalDeliveries']?.toString() ?? '0') ?? 0) * 3).toString()),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
 
                 const SizedBox(height: 16),
 
@@ -264,11 +323,11 @@ class _RiderHomeScreenState extends State<RiderHomeScreen> {
               ],
             ),
           ),
-          CircleAvatar(
-            radius: 20,
-            backgroundColor: Colors.red.shade50,
-            child: const Icon(Icons.notifications, color: Colors.red),
-          ),
+          // CircleAvatar(
+          //   radius: 20,
+          //   backgroundColor: Colors.red.shade50,
+          //   child: const Icon(Icons.notifications, color: Colors.red),
+          // ),
         ],
       ),
     );

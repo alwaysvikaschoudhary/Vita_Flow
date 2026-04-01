@@ -161,11 +161,11 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                         ),
                       ),
 
-                      CircleAvatar(
-                        radius: 25,
-                        backgroundColor: Colors.red.shade50,
-                        child: const Icon(Icons.notifications, color: Colors.red),
-                      )
+                      // CircleAvatar(
+                      //   radius: 25,
+                      //   backgroundColor: Colors.red.shade50,
+                      //   child: const Icon(Icons.notifications, color: Colors.red),
+                      // )
                     ],
                   ),
                 ),

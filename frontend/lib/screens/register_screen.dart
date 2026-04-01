@@ -40,6 +40,7 @@ class _RegisterState extends State<Register> {
   bool _geocoding = false;
 
   bool isLoading = false;
+  bool isReverseGeocoding = false;
 
   final List<String> bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
   final List<String> specializations = ['Cardiologist', 'Neurologist', 'General Physician', 'Orthopedic', 'Pediatrician', 'Other'];
@@ -123,17 +124,32 @@ class _RegisterState extends State<Register> {
       ),
     );
     if (result != null && result is Map) {
-      final lat = (result['latitude'] as num).toDouble();
-      final lng = (result['longitude'] as num).toDouble();
-      final address = result['address'] as String?;
-      
       setState(() {
-        _latitude = lat;
-        _longitude = lng;
-        if (address != null && address.isNotEmpty) {
-          _pickedAddress = address;
+        _latitude = (result['latitude'] as num).toDouble();
+        _longitude = (result['longitude'] as num).toDouble();
+        if (result['address'] != null && result['address'].toString().isNotEmpty) {
+          _pickedAddress = result['address'];
+        } else {
+          _updateAddressFromCoords();
         }
       });
+    }
+  }
+
+  Future<void> _updateAddressFromCoords() async {
+    if (_latitude == null || _longitude == null) return;
+    setState(() => _geocoding = true);
+    try {
+      final address = await LocationService.reverseGeocode(_latitude!, _longitude!);
+      if (address != null && mounted) {
+        setState(() {
+          _pickedAddress = address;
+        });
+      }
+    } catch (e) {
+      print("Error reverse geocoding: $e");
+    } finally {
+      if (mounted) setState(() => _geocoding = false);
     }
   }
 

@@ -63,15 +63,32 @@ class _EditRiderProfileScreenState extends State<EditRiderProfileScreen> {
     if (result != null && result is Map) {
       final lat = (result['latitude'] as num).toDouble();
       final lng = (result['longitude'] as num).toDouble();
-      final address = result['address'] as String?;
       
       setState(() {
         latController.text = lat.toString();
         lngController.text = lng.toString();
-        if (address != null && address.isNotEmpty) {
-          addressController.text = address;
+        if (result['address'] != null && result['address'].toString().isNotEmpty) {
+          addressController.text = result['address'];
+        } else {
+          _updateAddressFromCoords(lat, lng);
         }
       });
+    }
+  }
+
+  Future<void> _updateAddressFromCoords(double lat, double lng) async {
+    setState(() => isLoading = true);
+    try {
+      final address = await LocationService.reverseGeocode(lat, lng);
+      if (address != null && mounted) {
+        setState(() {
+          addressController.text = address;
+        });
+      }
+    } catch (e) {
+      print("Error reverse geocoding: $e");
+    } finally {
+      if (mounted) setState(() => isLoading = false);
     }
   }
 

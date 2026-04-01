@@ -1,4 +1,5 @@
 import 'package:vita_flow/screens/Donar/reward_screen.dart';
+import 'package:vita_flow/screens/Donar/history_screen.dart';
 import 'package:flutter/material.dart';
 import 'nearby_requests_screen.dart';
 import 'package:vita_flow/services/api_service.dart';
@@ -127,14 +128,14 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ],
                       ),
-                      CircleAvatar(
-                        radius: 22,
-                        backgroundColor: Color(0xFFFFECEC),
-                        child: Icon(
-                          Icons.notifications_none,
-                          color: Color(0xFFE0463A),
-                        ),
-                      ),
+                      // CircleAvatar(
+                      //   radius: 22,
+                      //   backgroundColor: Color(0xFFFFECEC),
+                      //   child: Icon(
+                      //     Icons.notifications_none,
+                      //     color: Color(0xFFE0463A),
+                      //   ),
+                      // ),
                     ],
                   ),
                 ),
@@ -326,47 +327,68 @@ class _HomeScreenState extends State<HomeScreen> {
                 Row(
                   children: [
                     Expanded(
-                      child: Container(
-                        margin: EdgeInsets.only(left: 10, right: 2),
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Column(
-                          children: [
-                            Icon(Icons.favorite_border, color: Colors.red),
-                            SizedBox(height: 10),
-                            Text(
-                              "Total Donations",
-                              style: TextStyle(fontWeight: FontWeight.w600),
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => HistoryScreen(currentUser: widget.currentUser),
                             ),
-                            SizedBox(height: 4),
-                            Text(donations.toString()),
-                          ],
+                          );
+                        },
+                        child: Container(
+                          margin: EdgeInsets.only(left: 10, right: 2),
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Column(
+                            children: [
+                              Icon(Icons.favorite_border, color: Colors.red),
+                              SizedBox(height: 10),
+                              Text(
+                                "Total Donations",
+                                style: TextStyle(fontWeight: FontWeight.w600),
+                              ),
+                              SizedBox(height: 4),
+                              Text(donations.toString()),
+                            ],
+                          ),
                         ),
                       ),
                     ),
                     const SizedBox(width: 16),
+
                     Expanded(
-                      child: Container(
-                        margin: EdgeInsets.only(left: 2, right: 10),
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Column(
-                          children: [
-                            Icon(Icons.emoji_events, color: Colors.green),
-                            SizedBox(height: 10),
-                            Text(
-                              "Lives Saved",
-                              style: TextStyle(fontWeight: FontWeight.w600),
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => RewardsScreen(),
                             ),
-                            SizedBox(height: 4),
-                            Text(livesSaved.toString()),
-                          ],
+                          );
+                        },
+                        child: Container(
+                          margin: EdgeInsets.only(left: 2, right: 10),
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Column(
+                            children: [
+                              Icon(Icons.emoji_events, color: Colors.green),
+                              SizedBox(height: 10),
+                              Text(
+                                "Rewards",
+                                style: TextStyle(fontWeight: FontWeight.w600),
+                              ),
+                              SizedBox(height: 4),
+                              Text(livesSaved.toString()),
+                            ],
+                          ),
                         ),
                       ),
                     ),

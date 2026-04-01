@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:vita_flow/config.dart';
 import 'package:intl/intl.dart';
 import 'package:vita_flow/screens/Location/location_picker_screen.dart';
+import 'package:vita_flow/services/location_service.dart';
 
 class CreateBloodRequestScreen extends StatefulWidget {
   final Map<String, dynamic> currentUser;
@@ -49,10 +50,34 @@ class _CreateBloodRequestScreenState extends State<CreateBloodRequestScreen> {
     );
 
     if (result != null && result is Map) {
+      final lat = (result['latitude'] as num).toDouble();
+      final lng = (result['longitude'] as num).toDouble();
       setState(() {
-        _latController.text = result['latitude'].toString();
-        _lngController.text = result['longitude'].toString();
+        _latController.text = lat.toString();
+        _lngController.text = lng.toString();
+        if (result['address'] != null) {
+          _newAddress = result['address'];
+        } else {
+          _updateAddressFromCoords(lat, lng);
+        }
       });
+    }
+  }
+
+  String? _newAddress;
+  Future<void> _updateAddressFromCoords(double lat, double lng) async {
+    setState(() => _isLoading = true);
+    try {
+      final address = await LocationService.reverseGeocode(lat, lng);
+      if (address != null && mounted) {
+        setState(() {
+          _newAddress = address;
+        });
+      }
+    } catch (e) {
+      print("Error reverse geocoding: $e");
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -133,7 +158,8 @@ class _CreateBloodRequestScreenState extends State<CreateBloodRequestScreen> {
       "ordinate": {
         "latitude": latitude, 
         "longitude": longitude
-      }
+      },
+      "address": _locationType == "new" ? (_newAddress ?? "Address not specified") : widget.currentUser['address']
     };
 
     try {
