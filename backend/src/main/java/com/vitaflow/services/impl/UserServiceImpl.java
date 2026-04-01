@@ -321,7 +321,14 @@ public class UserServiceImpl implements UserService {
         if (saved.getEmail() != null) {
             String subject = "Welcome to VitaFlow - Profile Completed!";
             String content = "Hello " + (saved.getName() != null ? saved.getName() : "User") + ",\n\n" +
-                             "Thank you for completing your profile on VitaFlow as a " + saved.getRole() + ".\n" +
+                             "Thank you for completing your profile on VitaFlow as a " + saved.getRole() + ".\n\n" +
+                             "Here are your registration details:\n" +
+                             "Name: " + saved.getName() + "\n" +
+                             "Phone: " + saved.getPhoneNumber() + "\n" +
+                             "Email: " + saved.getEmail() + "\n" +
+                             "Hospital: " + (saved.getHospitalName() != null ? saved.getHospitalName() : "N/A") + "\n" +
+                             "Specialization: " + (saved.getSpecialization() != null ? saved.getSpecialization() : "N/A") + "\n" +
+                             "Address: " + (saved.getAddress() != null ? saved.getAddress() : "N/A") + "\n\n" +
                              "You can now access all our features and help save lives.\n\n" +
                              "Best regards,\nVitaFlow Team";
             emailService.sendEmail(saved.getEmail(), subject, content);
@@ -380,8 +387,14 @@ public class UserServiceImpl implements UserService {
         if (saved.getEmail() != null) {
             String subject = "Welcome to VitaFlow - Profile Completed!";
             String content = "Hello " + (saved.getName() != null ? saved.getName() : "User") + ",\n\n" +
-                             "Thank you for completing your profile on VitaFlow as a " + saved.getRole() + ".\n" +
-                             "Your blood group is set as " + saved.getBloodGroup() + ". Your contribution can save many lives.\n\n" +
+                             "Thank you for completing your profile on VitaFlow as a " + saved.getRole() + ".\n\n" +
+                             "Here are your registration details:\n" +
+                             "Name: " + saved.getName() + "\n" +
+                             "Phone: " + saved.getPhoneNumber() + "\n" +
+                             "Email: " + saved.getEmail() + "\n" +
+                             "Blood Group: " + (saved.getBloodGroup() != null ? saved.getBloodGroup() : "N/A") + "\n" +
+                             "Address: " + (saved.getAddress() != null ? saved.getAddress() : "N/A") + "\n\n" +
+                             "Your contribution can save many lives. Thank you for joining us!\n\n" +
                              "Best regards,\nVitaFlow Team";
             emailService.sendEmail(saved.getEmail(), subject, content);
         }
@@ -437,7 +450,13 @@ public class UserServiceImpl implements UserService {
         if (saved.getEmail() != null) {
             String subject = "Welcome to VitaFlow - Profile Completed!";
             String content = "Hello " + (saved.getName() != null ? saved.getName() : "User") + ",\n\n" +
-                             "Thank you for completing your profile on VitaFlow as a " + saved.getRole() + ".\n" +
+                             "Thank you for completing your profile on VitaFlow as a " + saved.getRole() + ".\n\n" +
+                             "Here are your registration details:\n" +
+                             "Name: " + saved.getName() + "\n" +
+                             "Phone: " + saved.getPhoneNumber() + "\n" +
+                             "Email: " + saved.getEmail() + "\n" +
+                             "Vehicle Number: " + (saved.getBikeNumber() != null ? saved.getBikeNumber() : "N/A") + "\n" +
+                             "Address: " + (saved.getAddress() != null ? saved.getAddress() : "N/A") + "\n\n" +
                              "As a rider, you play a crucial role in our mission. Get ready for your first delivery!\n\n" +
                              "Best regards,\nVitaFlow Team";
             emailService.sendEmail(saved.getEmail(), subject, content);
