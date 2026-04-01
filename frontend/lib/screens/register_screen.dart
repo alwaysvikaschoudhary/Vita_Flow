@@ -175,13 +175,14 @@ class _RegisterState extends State<Register> {
                     controller: emailController,
                     keyboardType: TextInputType.emailAddress,
                     validator: (v) {
-                      if (v == null || v.trim().isEmpty) return null; // optional
+                      if (v == null || v.trim().isEmpty) return "Email is required";
                       final emailRegex = RegExp(r'^[\w\.-]+@[\w\.-]+\.\w{2,}$');
                       if (!emailRegex.hasMatch(v.trim())) return "Enter a valid email address";
                       return null;
                     },
-                    decoration: _input("Email (Optional)"),
+                    decoration: _input("Email Address"),
                   ),
+                  
                   const SizedBox(height: 16),
 
                   TextFormField(

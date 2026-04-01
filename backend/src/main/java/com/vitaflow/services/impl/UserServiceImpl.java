@@ -317,7 +317,16 @@ public class UserServiceImpl implements UserService {
         if (doctor.getEmail() != null && doctor.getEmail().trim().isEmpty()) {
             doctor.setEmail(null);
         }
-        return doctorRepository.save(doctor);
+        Doctor saved = doctorRepository.save(doctor);
+        if (saved.getEmail() != null) {
+            String subject = "Welcome to VitaFlow - Profile Completed!";
+            String content = "Hello " + (saved.getName() != null ? saved.getName() : "User") + ",\n\n" +
+                             "Thank you for completing your profile on VitaFlow as a " + saved.getRole() + ".\n" +
+                             "You can now access all our features and help save lives.\n\n" +
+                             "Best regards,\nVitaFlow Team";
+            emailService.sendEmail(saved.getEmail(), subject, content);
+        }
+        return saved;
     }
 
     @Override
@@ -367,7 +376,16 @@ public class UserServiceImpl implements UserService {
         if (donor.getEmail() != null && donor.getEmail().trim().isEmpty()) {
             donor.setEmail(null);
         }
-        return donorRepository.save(donor);
+        Donor saved = donorRepository.save(donor);
+        if (saved.getEmail() != null) {
+            String subject = "Welcome to VitaFlow - Profile Completed!";
+            String content = "Hello " + (saved.getName() != null ? saved.getName() : "User") + ",\n\n" +
+                             "Thank you for completing your profile on VitaFlow as a " + saved.getRole() + ".\n" +
+                             "Your blood group is set as " + saved.getBloodGroup() + ". Your contribution can save many lives.\n\n" +
+                             "Best regards,\nVitaFlow Team";
+            emailService.sendEmail(saved.getEmail(), subject, content);
+        }
+        return saved;
     }
 
     @Override
@@ -415,7 +433,16 @@ public class UserServiceImpl implements UserService {
         if (rider.getEmail() != null && rider.getEmail().trim().isEmpty()) {
             rider.setEmail(null);
         }
-        return riderRepository.save(rider);
+        Rider saved = riderRepository.save(rider);
+        if (saved.getEmail() != null) {
+            String subject = "Welcome to VitaFlow - Profile Completed!";
+            String content = "Hello " + (saved.getName() != null ? saved.getName() : "User") + ",\n\n" +
+                             "Thank you for completing your profile on VitaFlow as a " + saved.getRole() + ".\n" +
+                             "As a rider, you play a crucial role in our mission. Get ready for your first delivery!\n\n" +
+                             "Best regards,\nVitaFlow Team";
+            emailService.sendEmail(saved.getEmail(), subject, content);
+        }
+        return saved;
     }
 
     @Override
