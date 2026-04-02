@@ -6,302 +6,264 @@ class RewardsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F6FA),
-      bottomNavigationBar: _shareButton(),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _header(context),
-              const SizedBox(height: 10),
-              _livesSavedCard(),
-              const SizedBox(height: 10),
-              const Text(
-                "Achievement Badges",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-              ),
-              const SizedBox(height: 10),
-              _badgesRow(),
-              const SizedBox(height: 10),
-              const Text(
-                "Rewards & Vouchers",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-              ),
-              const SizedBox(height: 10),
-              _voucherCard("Apollo Pharmacy", "₹150 OFF"),
-              const SizedBox(height: 10),
-              _voucherCard("HealthCare Lab", "Free Test"),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // -----------------------------------------
-  // HEADER
-  // -----------------------------------------
-  Widget _header(BuildContext context) {
-    return Row(
-      children: [
-        IconButton(
-          icon: const Icon(Icons.arrow_back),
+      backgroundColor: const Color(0xFFF8F9FE),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
-        const Column(
+        title: const Text(
+          "Rewards & Achievements",
+          style: TextStyle(color: Colors.black, fontSize: 18, fontWeight: FontWeight.w700),
+        ),
+        centerTitle: false,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              "Rewards & Achievements",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+            _loyaltyCard(),
+
+            const SizedBox(height: 25),
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  "Best Buy",
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                ),
+                const Icon(Icons.arrow_forward_ios, size: 18),
+              ],
             ),
+
+            const SizedBox(height: 20),
+
+            _bestBuyGrid(),
+
+            const SizedBox(height: 30),
           ],
         ),
-        Spacer(),
-        Stack(
-          children: [
-            const Icon(Icons.notifications_outlined, size: 30),
-            Positioned(
-              right: 0,
-              child: Container(
-                padding: const EdgeInsets.all(3),
-                decoration: const BoxDecoration(
-                  color: Colors.red,
-                  shape: BoxShape.circle,
-                ),
-                child: const Text(
-                  "2",
-                  style: TextStyle(color: Colors.white, fontSize: 10),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ],
+      ),
     );
   }
 
   // -----------------------------------------
-  // LIVES SAVED CARD
+  // LOYALTY CARD (Matching the Image)
   // -----------------------------------------
-  Widget _livesSavedCard() {
+  Widget _loyaltyCard() {
     return Container(
+      width: double.infinity,
+      height: 220,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(24),
+        gradient: const LinearGradient(
+          colors: [Color(0xFFE0463A), Color(0xFFB33229)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFE0463A).withOpacity(0.3),
+            blurRadius: 15,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
-      child: Column(
+      child: Stack(
         children: [
-          const Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              "Hi Jitesh 👋",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+          // Background abstract pattern (simplified with Opacity)
+          Positioned(
+            right: -20,
+            bottom: -20,
+            child: Opacity(
+              opacity: 0.1,
+              child: const Icon(Icons.flash_on, size: 250, color: Colors.white),
             ),
           ),
-
-          const SizedBox(height: 20),
-
-          // Circular counter
-          SizedBox(
-            height: 150,
-            width: 150,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                SizedBox(
-                  height: 120,
-                  width: 120,
-                  child: CircularProgressIndicator(
-                    value: 12 / 20, // example percent
-                    strokeWidth: 10,
-                    valueColor: AlwaysStoppedAnimation(Color(0xFFE0463A)),
-                    backgroundColor: Colors.red.shade100,
-                  ),
-                ),
-
-                const Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "12",
-                      style: TextStyle(
-                        fontSize: 34,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text("Lives Saved", style: TextStyle(color: Colors.grey)),
-                  ],
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          // Points
-          const Text(
-            "🏆 2,350 VitaPoints",
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-          ),
-
-          const SizedBox(height: 6),
-
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.red.shade50,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: const Text(
-              "Next reward at 3,000 points 🎉",
-              style: TextStyle(color: Colors.red, fontSize: 12),
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          // Progress bar
+          
           Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              LinearProgressIndicator(
-                value: 2350 / 3000,
-                color: Colors.red,
-                backgroundColor: Colors.grey.shade300,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    "Loyalty Card",
+                    style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w500),
+                  ),
+                  
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.9),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: const [
+                        Icon(Icons.stars, color: Colors.amber, size: 16),
+                        SizedBox(width: 4),
+                        Text("Gold", style: TextStyle(color: Color(0xFFB33229), fontWeight: FontWeight.bold, fontSize: 12)),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 5),
+
+              const SizedBox(height: 15),
+
               const Text(
-                "650 points to next reward",
-                style: TextStyle(color: Colors.grey),
+                "Current Points",
+                style: TextStyle(color: Colors.orangeAccent, fontSize: 16, fontWeight: FontWeight.w500),
+              ),
+              const Text(
+                "20,525",
+                style: TextStyle(color: Colors.orangeAccent, fontSize: 48, fontWeight: FontWeight.bold),
+              ),
+              const Text(
+                "4 points = 1 rupee",
+                style: TextStyle(color: Colors.white70, fontSize: 14),
+              ),
+              const Spacer(),
+              const Text(
+                "Expiry  06/22",
+                style: TextStyle(color: Colors.white, fontSize: 14),
               ),
             ],
           ),
+          
+          // Trophy Image
+          Positioned(
+            right: 0,
+            bottom: 20,
+            child: Column(
+              children: [
+                 Container(
+                   padding: const EdgeInsets.all(10),
+                   decoration: BoxDecoration(
+                     color: Colors.orangeAccent.withOpacity(0.2),
+                     shape: BoxShape.circle,
+                   ),
+                   child: const Icon(Icons.emoji_events, color: Colors.orangeAccent, size: 70),
+                 ),
+                 const SizedBox(height: 8),
+                 Container(
+                   height: 12,
+                   width: 80,
+                   decoration: BoxDecoration(
+                     color: Colors.grey.shade400,
+                     borderRadius: BorderRadius.circular(4),
+                   ),
+                 )
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 
   // -----------------------------------------
-  // BADGES ROW
+  // BEST BUY GRID
   // -----------------------------------------
-  Widget _badgesRow() {
-    return Row(
+  Widget _bestBuyGrid() {
+    return GridView.count(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 2,
+      childAspectRatio: 0.72,
+      crossAxisSpacing: 16,
+      mainAxisSpacing: 20,
       children: [
-        _badgeCard(
-          icon: "🩸",
-          title: "Life Saver",
-          subtitle: "Donated 1st time",
-          unlocked: "Unlocked Jan 2026",
-        ),
-        const SizedBox(width: 12),
-        _badgeCard(
-          icon: "💪",
-          title: "Hero Donor",
-          subtitle: "5 donations completed",
-          unlocked: "Unlocked Apr 2026",
-        ),
-        const SizedBox(width: 12),
-        _badgeCard(
-          icon: "🌍",
-          title: "Community",
-          subtitle: "Shared 10 referrals",
-          unlocked: "Unlocked May 2026",
-        ),
+        _productCard(
+            "Boat Airdopes 431 ...", "assets/images/rewards/boat_airdopes.png", 690),
+        _productCard(
+            "HAVELLS fabio 1250", "assets/images/rewards/havells_iron.png", 890),
+        _productCard(
+            "Boat Airdopes 431 ...", "assets/images/rewards/boat_airdopes.png", 690),
+        _productCard(
+            "HAVELLS fabio 1250", "assets/images/rewards/havells_iron.png", 890),
+        _productCard(
+            "HAVELLS fabio 1250", "assets/images/rewards/havells_iron.png", 890),
+        _productCard(
+            "Boat Airdopes 431 ...", "assets/images/rewards/boat_airdopes.png", 690),
+        _productCard(
+            "HAVELLS fabio 1250", "assets/images/rewards/havells_iron.png", 890),
+        _productCard(
+            "Boat Airdopes 431 ...", "assets/images/rewards/boat_airdopes.png", 690),
+        _productCard(
+            "HAVELLS fabio 1250", "assets/images/rewards/havells_iron.png", 890),
+        _productCard(
+            "Boat Airdopes 431 ...", "assets/images/rewards/boat_airdopes.png", 690),
       ],
     );
   }
 
-  Widget _badgeCard({
-    required String icon,
-    required String title,
-    required String subtitle,
-    required String unlocked,
-  }) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-        ),
-        child: Column(
-          children: [
-            Text(icon, style: const TextStyle(fontSize: 32)),
-            Text(
-              title,
-              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
-            ),
-            Text(subtitle, style: const TextStyle(color: Colors.grey, fontSize: 14)),
-            const SizedBox(height: 3),
-            Text(
-              unlocked,
-              style: const TextStyle(color: Colors.red, fontSize: 12),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // -----------------------------------------
-  // VOUCHER CARD
-  // -----------------------------------------
-  Widget _voucherCard(String title, String offer) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.card_giftcard, color: Colors.red.shade400, size: 30),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                  ),
+  Widget _productCard(String name, String imagePath, int points) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
                 ),
-                Text(offer, style: const TextStyle(color: Colors.grey)),
               ],
             ),
-          ),
-          const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
-        ],
-      ),
-    );
-  }
-
-  // -----------------------------------------
-  // SHARE BUTTON
-  // -----------------------------------------
-  Widget _shareButton() {
-    return Container(
-      color: Colors.white,
-      padding: const EdgeInsets.all(16),
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFFE0463A),
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Image.asset(
+                imagePath,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => 
+                  Center(child: Icon(Icons.image, size: 50, color: Colors.grey.shade300)),
+              ),
+            ),
           ),
         ),
-        onPressed: () {},
-        child: const Text(
-          "🔗  Share Your Impact",
-          style: TextStyle(fontSize: 16, color: Colors.white),
+        const SizedBox(height: 12),
+        Text(
+          name,
+          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
-      ),
+        const SizedBox(height: 8),
+        Container(
+          width: double.infinity,
+          height: 40,
+          decoration: BoxDecoration(
+            border: Border.all(color: const Color(0xFFE0463A).withOpacity(0.5)),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                "Buy ",
+                style: TextStyle(color: Color(0xFFE0463A), fontWeight: FontWeight.w600),
+              ),
+              const Icon(Icons.circle, color: Colors.amber, size: 16),
+              const SizedBox(width: 4),
+              Text(
+                "$points",
+                style: const TextStyle(color: Color(0xFFE0463A), fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
