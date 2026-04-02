@@ -383,6 +383,15 @@ public class UserServiceImpl implements UserService {
         if (donor.getEmail() != null && donor.getEmail().trim().isEmpty()) {
             donor.setEmail(null);
         }
+        
+        // Generate Referral ID for new users
+        if (donor.getReferralId() == null) {
+            donor.setReferralId("vita" + phoneNumber);
+        }
+        if (donor.getRewardsCoin() == null) {
+            donor.setRewardsCoin("0");
+        }
+
         Donor saved = donorRepository.save(donor);
         if (saved.getEmail() != null) {
             String subject = "Welcome to VitaFlow - Profile Completed!";
@@ -446,6 +455,15 @@ public class UserServiceImpl implements UserService {
         if (rider.getEmail() != null && rider.getEmail().trim().isEmpty()) {
             rider.setEmail(null);
         }
+        
+        // Generate Referral ID for new users
+        if (rider.getReferralId() == null) {
+            rider.setReferralId("vita" + phoneNumber);
+        }
+        if (rider.getRewardsCoin() == null) {
+            rider.setRewardsCoin("0");
+        }
+
         Rider saved = riderRepository.save(rider);
         if (saved.getEmail() != null) {
             String subject = "Welcome to VitaFlow - Profile Completed!";

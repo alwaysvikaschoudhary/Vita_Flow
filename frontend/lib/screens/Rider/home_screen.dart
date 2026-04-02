@@ -1,6 +1,7 @@
 import 'package:vita_flow/services/api_service.dart';
 import 'package:vita_flow/screens/Rider/pickup_screen.dart';
 import 'package:vita_flow/screens/Rider/history_screen.dart';
+import 'package:vita_flow/screens/Rider/reward_screen.dart';
 import 'package:flutter/material.dart';
 
 class RiderHomeScreen extends StatefulWidget {
@@ -96,39 +97,61 @@ class _RiderHomeScreenState extends State<RiderHomeScreen> {
                           ),
                           child: Column(
                             children: [
-                              const Icon(Icons.local_shipping, color: Colors.blue),
-                              const SizedBox(height: 10),
                               const Text(
                                 "Total Deliveries",
                                 style: TextStyle(fontWeight: FontWeight.w600),
                               ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(Icons.local_shipping, color: Colors.blue),
+                                  const SizedBox(width: 5),
+                                  Text(widget.currentUser['totalDeliveries']?.toString() ?? "0"),
+                                ],
+                              ),
                               const SizedBox(height: 4),
-                              Text(widget.currentUser['totalDeliveries']?.toString() ?? "0"),
                             ],
                           ),
                         ),
                       ),
                     ),
+
                     const SizedBox(width: 16),
+                    
                     Expanded(
-                      child: Container(
-                        margin: const EdgeInsets.only(left: 2, right: 4),
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Column(
-                          children: [
-                            const Icon(Icons.emoji_events, color: Colors.green),
-                            const SizedBox(height: 10),
-                            const Text(
-                              "Rewards",
-                              style: TextStyle(fontWeight: FontWeight.w600),
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => RewardsScreen(currentUser: widget.currentUser),
                             ),
-                            const SizedBox(height: 4),
-                            Text(((int.tryParse(widget.currentUser['totalDeliveries']?.toString() ?? '0') ?? 0) * 3).toString()),
-                          ],
+                          );
+                        },
+                        child: Container(
+                          margin: const EdgeInsets.only(left: 2, right: 4),
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Column(
+                            children: [
+                              const Text(
+                                "Rewards",
+                                style: TextStyle(fontWeight: FontWeight.w600),
+                              ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(Icons.emoji_events, color: Colors.green),
+                                  const SizedBox(width: 5),
+                                  Text(widget.currentUser['rewardsCoin']?.toString() ?? '0'),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                            ],
+                          ),
                         ),
                       ),
                     ),

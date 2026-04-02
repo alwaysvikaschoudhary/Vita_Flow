@@ -66,6 +66,10 @@ public class Donor {
 
     private String lastDonationDate;
 
+    private String referralId;
+
+    private String rewardsCoin;
+
     @Embedded
     @AttributeOverrides({
         @AttributeOverride(name = "latitude", column = @Column(name = "location_lat")),

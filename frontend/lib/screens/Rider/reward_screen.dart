@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:vita_flow/services/api_service.dart';
 
 class RewardsScreen extends StatefulWidget {
   final Map<String, dynamic>? currentUser;
@@ -10,9 +11,42 @@ class RewardsScreen extends StatefulWidget {
 
 class _RewardsScreenState extends State<RewardsScreen> {
   int _activeTab = 0; // 0: Buy, 1: Redeem, 2: Referral
+  Map<String, dynamic>? _userProfile;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserProfile();
+  }
+
+  Future<void> _loadUserProfile() async {
+    final userId = widget.currentUser?['userId'] ?? widget.currentUser?['id'];
+    if (userId == null) {
+      if (mounted) setState(() => _isLoading = false);
+      return;
+    }
+
+    try {
+      final profile = await ApiService.getRiderById(userId);
+      if (mounted) {
+        setState(() {
+          _userProfile = profile;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      print("Error loading rider profile: $e");
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FE),
       appBar: AppBar(
@@ -28,40 +62,44 @@ class _RewardsScreenState extends State<RewardsScreen> {
         ),
         centerTitle: false,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _loyaltyCard(),
-            const SizedBox(height: 25),
-            
-            // Tab Switcher
-            Container(
-              height: 50,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(15),
-                boxShadow: [
-                  BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)
-                ],
+      body: RefreshIndicator(
+        onRefresh: _loadUserProfile,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _loyaltyCard(),
+              const SizedBox(height: 25),
+              
+              // Tab Switcher
+              Container(
+                height: 50,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(15),
+                  boxShadow: [
+                    BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    _tabItem(0, "Buy"),
+                    _tabItem(1, "Redeem"),
+                    _tabItem(2, "Referral"),
+                  ],
+                ),
               ),
-              child: Row(
-                children: [
-                  _tabItem(0, "Buy"),
-                  _tabItem(1, "Redeem"),
-                  _tabItem(2, "Referral"),
-                ],
-              ),
-            ),
-            
-            const SizedBox(height: 25),
-            
-            // Content based on tab
-            _buildTabContent(),
-            
-            const SizedBox(height: 30),
-          ],
+              
+              const SizedBox(height: 25),
+              
+              // Content based on tab
+              _buildTabContent(),
+              
+              const SizedBox(height: 30),
+            ],
+          ),
         ),
       ),
     );
@@ -145,7 +183,7 @@ class _RewardsScreenState extends State<RewardsScreen> {
                 style: TextStyle(color: Colors.orangeAccent, fontSize: 16, fontWeight: FontWeight.w500),
               ),
               Text(
-                widget.currentUser?['rewardsCoin']?.toString() ?? "20,525",
+                _userProfile?['rewardsCoin']?.toString() ?? "0",
                 style: const TextStyle(color: Colors.orangeAccent, fontSize: 48, fontWeight: FontWeight.bold),
               ),
             ],
@@ -252,7 +290,7 @@ class _RewardsScreenState extends State<RewardsScreen> {
   // REFERRAL VIEW
   // -----------------------------------------
   Widget _buildReferralView() {
-    String refCode = widget.currentUser?['referralId'] ?? "VITA9021";
+    String refCode = _userProfile?['referralId'] ?? "Loading...";
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

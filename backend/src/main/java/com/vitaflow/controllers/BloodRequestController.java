@@ -278,11 +278,16 @@ public class BloodRequestController {
                             int count = donor.getNumberOfDonation() != null ? Integer.parseInt(donor.getNumberOfDonation()) : 0;
                             donor.setNumberOfDonation(String.valueOf(count + 1));
                             donor.setLastDonationDate(LocalDate.now().toString());
+                            
+                            // ADD REWARDS FOR DONOR (+50)
+                            int currentCoins = donor.getRewardsCoin() != null ? Integer.parseInt(donor.getRewardsCoin()) : 0;
+                            donor.setRewardsCoin(String.valueOf(currentCoins + 50));
+                            
                             donorRepository.save(donor);
                         } catch (NumberFormatException e) {
-                            // Handle case where it might not be a number
-                             donor.setNumberOfDonation("1");
-                             donorRepository.save(donor);
+                            donor.setNumberOfDonation("1");
+                            donor.setRewardsCoin("50");
+                            donorRepository.save(donor);
                         }
                     }
                 }
@@ -324,9 +329,15 @@ public class BloodRequestController {
                         try {
                             int count = rider.getTotalDeliveries() != null ? Integer.parseInt(rider.getTotalDeliveries()) : 0;
                             rider.setTotalDeliveries(String.valueOf(count + 1));
+                            
+                            // ADD REWARDS FOR RIDER (+50)
+                            int currentCoins = rider.getRewardsCoin() != null ? Integer.parseInt(rider.getRewardsCoin()) : 0;
+                            rider.setRewardsCoin(String.valueOf(currentCoins + 50));
+                            
                             userService.saveRider(rider);
                         } catch (NumberFormatException e) {
                             rider.setTotalDeliveries("1");
+                            rider.setRewardsCoin("50");
                             userService.saveRider(rider);
                         }
                     }
@@ -361,9 +372,15 @@ public class BloodRequestController {
                     try {
                         int count = rider.getTotalDeliveries() != null ? Integer.parseInt(rider.getTotalDeliveries()) : 0;
                         rider.setTotalDeliveries(String.valueOf(count + 1));
+                        
+                        // ADD REWARDS FOR RIDER (+50)
+                        int currentCoins = rider.getRewardsCoin() != null ? Integer.parseInt(rider.getRewardsCoin()) : 0;
+                        rider.setRewardsCoin(String.valueOf(currentCoins + 50));
+                        
                         userService.saveRider(rider);
                     } catch (NumberFormatException e) {
                         rider.setTotalDeliveries("1");
+                        rider.setRewardsCoin("50");
                         userService.saveRider(rider);
                     }
                 }
