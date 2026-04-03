@@ -48,6 +48,15 @@ public class Donor {
     public void prePersist() {
         if (emailVerified == null) emailVerified = false;
         if (role == null) role = Role.DONOR;
+        if (referralId == null && phoneNumber != null) {
+            referralId = "vita" + phoneNumber.trim();
+        }
+        if (rewardsCoin == null) {
+            rewardsCoin = "0";
+        }
+        if (referralCount == null) {
+            referralCount = 0;
+        }
     }
 
     private String address;
@@ -66,9 +75,15 @@ public class Donor {
 
     private String lastDonationDate;
 
+    @Column(unique = true)
     private String referralId;
 
     private String rewardsCoin;
+
+    private String referredBy;
+
+    @Builder.Default
+    private Integer referralCount = 0;
 
     @Embedded
     @AttributeOverrides({

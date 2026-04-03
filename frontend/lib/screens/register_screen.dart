@@ -29,6 +29,9 @@ class _RegisterState extends State<Register> {
   final hospitalNameController = TextEditingController();
   final bikeNumberController = TextEditingController();
   final dobController = TextEditingController();
+  final referralCodeController = TextEditingController();
+
+  bool _showReferralField = false;
 
   String? selectedBloodGroup;
   String? selectedSpecialization;
@@ -67,6 +70,8 @@ class _RegisterState extends State<Register> {
           "ordinate": {"latitude": _latitude, "longitude": _longitude},
         if (_pickedAddress != null)
           "address": _pickedAddress,
+        if (referralCodeController.text.isNotEmpty)
+          "referredBy": referralCodeController.text.trim(),
       });
 
       setState(() => isLoading = false);
@@ -282,6 +287,26 @@ class _RegisterState extends State<Register> {
                       decoration: _input("Bike Number (e.g. RJ-14-AB-1234)"),
                     ),
                     const SizedBox(height: 16),
+                  ],
+
+                  // REFERRAL SECTION
+                  if (widget.role == "DONOR" || widget.role == "RIDER") ...[
+                    if (!_showReferralField)
+                      TextButton(
+                        onPressed: () => setState(() => _showReferralField = true),
+                        child: const Text("Have a referral code?"),
+                      )
+                    else
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          TextFormField(
+                            controller: referralCodeController,
+                            decoration: _input("Referral Code (Optional)"),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                      ),
                   ],
 
                   // LOCATION

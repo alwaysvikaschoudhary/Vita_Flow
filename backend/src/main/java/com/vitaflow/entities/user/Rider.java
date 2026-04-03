@@ -47,6 +47,15 @@ public class Rider {
     public void prePersist() {
         if (emailVerified == null) emailVerified = false;
         if (role == null) role = Role.RIDER;
+        if (referralId == null && phoneNumber != null) {
+            referralId = "vita" + phoneNumber.trim();
+        }
+        if (rewardsCoin == null) {
+            rewardsCoin = "0";
+        }
+        if (referralCount == null) {
+            referralCount = 0;
+        }
     }
 
     private String gender;
@@ -61,9 +70,15 @@ public class Rider {
 
     private String vehicleType;
 
+    @Column(unique = true)
     private String referralId;
 
     private String rewardsCoin;
+
+    private String referredBy;
+
+    @Builder.Default
+    private Integer referralCount = 0;
 
     @Embedded
     @AttributeOverrides({

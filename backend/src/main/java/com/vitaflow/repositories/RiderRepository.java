@@ -10,4 +10,5 @@ import java.util.Optional;
 public interface RiderRepository extends JpaRepository<Rider, String> {
     Optional<Rider> findByPhoneNumber(String phoneNumber);
     Optional<Rider> findByEmail(String email);
+    Optional<Rider> findByReferralId(String referralId);
 }

@@ -384,6 +384,12 @@ public class UserServiceImpl implements UserService {
             donor.setEmail(null);
         }
         
+        // Store referral code if provided
+        if (donor.getReferredBy() != null) {
+            donor.setReferredBy(donor.getReferredBy());
+        }
+    
+        
         // Generate Referral ID for new users
         if (donor.getReferralId() == null) {
             donor.setReferralId("vita" + phoneNumber);
@@ -454,6 +460,11 @@ public class UserServiceImpl implements UserService {
         }
         if (rider.getEmail() != null && rider.getEmail().trim().isEmpty()) {
             rider.setEmail(null);
+        }
+
+        // Store referral code if provided
+        if (rider.getReferredBy() != null) {
+            rider.setReferredBy(rider.getReferredBy());
         }
         
         // Generate Referral ID for new users

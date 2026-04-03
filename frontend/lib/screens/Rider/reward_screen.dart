@@ -291,6 +291,7 @@ class _RewardsScreenState extends State<RewardsScreen> {
   // -----------------------------------------
   Widget _buildReferralView() {
     String refCode = _userProfile?['referralId'] ?? "Loading...";
+    int currentRefs = _userProfile?['referralCount'] ?? 0;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -309,15 +310,21 @@ class _RewardsScreenState extends State<RewardsScreen> {
               Text(refCode, style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, letterSpacing: 4, color: Color(0xFFE0463A))),
               const SizedBox(height: 10),
               const Text("Tap to copy code", style: TextStyle(color: Colors.grey)),
+              const SizedBox(height: 10),
+              const Text(
+                "You get 50 points when your friend completes their first status!",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 12, color: Colors.blueGrey, fontStyle: FontStyle.italic),
+              ),
             ],
           ),
         ),
         const SizedBox(height: 30),
         const Text("Referral Milestone Rewards", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         const SizedBox(height: 15),
-        _milestoneItem("1 Referral", "+50 Points", true),
-        _milestoneItem("3 Referrals", "+200 Points", false),
-        _milestoneItem("5 Referrals", "+500 Points", false),
+        _milestoneItem("1 Referral", "+50 Points", currentRefs >= 1),
+        _milestoneItem("3 Referrals", "+200 Points", currentRefs >= 3),
+        _milestoneItem("5 Referrals", "+500 Points", currentRefs >= 5),
       ],
     );
   }

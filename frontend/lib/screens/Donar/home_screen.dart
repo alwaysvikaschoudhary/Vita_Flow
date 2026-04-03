@@ -366,7 +366,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => RewardsScreen(),
+                              builder: (_) => RewardsScreen(currentUser: widget.currentUser),
                             ),
                           );
                         },
@@ -386,7 +386,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 style: TextStyle(fontWeight: FontWeight.w600),
                               ),
                               SizedBox(height: 4),
-                              Text(livesSaved.toString()),
+                              Text(widget.currentUser['rewardsCoin']?.toString() ?? "0"),
                             ],
                           ),
                         ),
