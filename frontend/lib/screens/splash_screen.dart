@@ -20,7 +20,7 @@ class SplashScreen extends StatelessWidget {
               child: IntrinsicHeight(
                 child: Column(
                   children: [
-                    const SizedBox(height: 80), // Reduced from 120 to save space
+                    const Spacer(),
 
                     Image.asset("assets/images/splash_logo.png", height: 350), // Reduced from 400
 

@@ -38,13 +38,13 @@ class _RoleSelectScreenState extends State<RoleSelectScreen> {
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-               const SizedBox(height: 40),
+               const SizedBox(height: 100),
                Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 28),
+                padding: const EdgeInsets.symmetric(horizontal: 18),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     const Text(
                       "Choose your role",
@@ -53,23 +53,25 @@ class _RoleSelectScreenState extends State<RoleSelectScreen> {
                         fontWeight: FontWeight.bold,
                         color: AppColors.black,
                       ),
+                      textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 1),
                     Text(
                       "Select how you want to contribute to VitaFlow",
                       style: TextStyle(
                         fontSize: 16,
                         color: AppColors.grey.withOpacity(0.8),
                       ),
+                      textAlign: TextAlign.center,
                     ),
                   ],
                 ),
               ),
 
               if (widget.phoneNumber == null) ...[
-                const SizedBox(height: 16),
+                const SizedBox(height: 10),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 28),
+                  padding: const EdgeInsets.symmetric(horizontal: 48),
                   child: TextFormField(
                     controller: _phoneController,
                     keyboardType: TextInputType.phone,
@@ -84,17 +86,17 @@ class _RoleSelectScreenState extends State<RoleSelectScreen> {
                 ),
               ],
 
-              const SizedBox(height: 30),
+              const SizedBox(height: 10),
 
               // Roles
               roleTile("Blood Donor", "DONOR", Icons.favorite),
               roleTile("Hospital / Doctor", "DOCTOR", Icons.local_hospital),
               roleTile("Rider / Volunteer", "RIDER", Icons.delivery_dining),
 
-              const SizedBox(height: 40),
+              const SizedBox(height: 10),
 
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 28),
+                padding: const EdgeInsets.symmetric(horizontal: 90),
                 child: SizedBox(
                   height: 56,
                   width: double.infinity,
@@ -159,7 +161,7 @@ class _RoleSelectScreenState extends State<RoleSelectScreen> {
                 ),
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 10),
               Center(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -191,7 +193,6 @@ class _RoleSelectScreenState extends State<RoleSelectScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
 
             ],
           ),
@@ -205,9 +206,9 @@ class _RoleSelectScreenState extends State<RoleSelectScreen> {
     return GestureDetector(
       onTap: () => setState(() => selectedRole = value),
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 28, vertical: 8),
+        margin: const EdgeInsets.symmetric(horizontal: 28, vertical: 5),
         padding: const EdgeInsets.symmetric(horizontal: 16),
-        height: 80,
+        height: 70,
         decoration: BoxDecoration(
           border: Border.all(
             color: isSelected ? AppColors.primary : AppColors.grey.withOpacity(0.3),
@@ -224,7 +225,7 @@ class _RoleSelectScreenState extends State<RoleSelectScreen> {
               backgroundColor: isSelected ? AppColors.primary : AppColors.grey.withOpacity(0.1),
               child: Icon(icon, color: isSelected ? Colors.white : Colors.grey),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 10),
             Expanded(
               child: Text(
                 text,

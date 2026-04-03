@@ -170,23 +170,14 @@ class _LoginState extends State<Login> {
       backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+          padding: const EdgeInsets.symmetric(horizontal: 34, vertical: 50),
           child: Form(
             key: _formKey,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Logo / Title
-                const SizedBox(height: 24),
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFFEEEE),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: const Icon(Icons.water_drop, color: Color(0xFFE0463A), size: 34),
-                ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 120),
 
                 Text(
                   _forgotStep != _ForgotStep.idle
@@ -197,8 +188,11 @@ class _LoginState extends State<Login> {
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF1A1A2E),
                   ),
+                  textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 6),
+
+                const SizedBox(height: 2),
+
                 Text(
                   _forgotStep == _ForgotStep.selectMethod
                       ? 'Choose how to receive OTP'
@@ -206,9 +200,10 @@ class _LoginState extends State<Login> {
                           ? 'Enter the OTP sent to your ${_forgotMethod == _ForgotMethod.phone ? 'phone' : 'email'}'
                           : 'Login with Phone & Password',
                   style: const TextStyle(color: Colors.grey, fontSize: 14),
+                  textAlign: TextAlign.center,
                 ),
 
-                const SizedBox(height: 32),
+                const SizedBox(height: 12),
 
                 // ─── FORGOT PASSWORD METHOD SELECTION ───────────
                 if (_forgotStep == _ForgotStep.selectMethod) ...[
@@ -219,7 +214,7 @@ class _LoginState extends State<Login> {
                     selected: _forgotMethod == _ForgotMethod.phone,
                     onTap: () => setState(() => _forgotMethod = _ForgotMethod.phone),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 10),
                   _buildMethodCard(
                     title: 'Email Address',
                     subtitle: 'Send OTP via Email',
@@ -227,7 +222,9 @@ class _LoginState extends State<Login> {
                     selected: _forgotMethod == _ForgotMethod.email,
                     onTap: () => setState(() => _forgotMethod = _ForgotMethod.email),
                   ),
-                  const SizedBox(height: 24),
+
+                  const SizedBox(height: 10),
+
                   if (_forgotMethod == _ForgotMethod.phone)
                     _buildField(
                       controller: _phoneCtrl,
@@ -259,7 +256,7 @@ class _LoginState extends State<Login> {
                     validator: (v) =>
                         (v == null || v.trim().isEmpty) ? 'OTP is required' : null,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 10),
                   _buildField(
                     controller: _newPassCtrl,
                     label: 'New Password',
@@ -267,11 +264,12 @@ class _LoginState extends State<Login> {
                     obscure: _obscureNewPass,
                     toggleObscure: () =>
                         setState(() => _obscureNewPass = !_obscureNewPass),
-                    validator: (v) => (v == null || v.length < 6)
-                        ? 'Min 6 characters'
+                    validator: (v) => (v == null || v.length < 8)
+                        ? 'Min 8 characters'
                         : null,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 10),
+
                   _buildField(
                     controller: _confirmPassCtrl,
                     label: 'Confirm Password',
@@ -295,7 +293,7 @@ class _LoginState extends State<Login> {
                     validator: (v) =>
                         (v == null || v.trim().isEmpty) ? 'Phone is required' : null,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 10),
                   _buildField(
                     controller: _passwordCtrl,
                     label: 'Password',
@@ -326,12 +324,12 @@ class _LoginState extends State<Login> {
                   ),
                 ],
 
-                const SizedBox(height: 32),
+                const SizedBox(height: 10),
 
                 // ── Main Action Button ──
                 SizedBox(
-                  width: double.infinity,
-                  height: 52,
+                  width: 300,
+                  height: 50,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFE0463A),
@@ -360,7 +358,7 @@ class _LoginState extends State<Login> {
                   ),
                 ),
 
-                const SizedBox(height: 18),
+                const SizedBox(height: 10),
 
                 // ── Mode switch / back links ──
                 if (_forgotStep != _ForgotStep.idle) ...[
@@ -377,9 +375,7 @@ class _LoginState extends State<Login> {
 
                 // ── Register link (only on main login screen) ──
                 if (_forgotStep == _ForgotStep.idle) ...[
-                  const SizedBox(height: 8),
-                  const Divider(thickness: 1),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 1),
                   Center(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,

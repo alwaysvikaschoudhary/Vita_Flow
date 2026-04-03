@@ -173,24 +173,24 @@ class _RegisterState extends State<Register> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                    Text(
-                    "You are joining as ${widget.role == 'DOCTOR' ? 'Doctor / Hospital' : widget.role}",
+                    "      You are joining as ${widget.role == 'DOCTOR' ? 'Doctor / Hospital' : widget.role}",
                     style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blue),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 10),
 
                   TextFormField(
                     initialValue: widget.phoneNumber,
                     readOnly: true,
                     decoration: _input("Phone Number"),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 10),
 
                   TextFormField(
                     controller: nameController,
                     validator: (v) => v!.isEmpty ? "Name is required" : null,
                     decoration: _input("Full Name"),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 10),
 
                   TextFormField(
                     controller: emailController,
@@ -204,12 +204,12 @@ class _RegisterState extends State<Register> {
                     decoration: _input("Email Address"),
                   ),
                   
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 10),
 
                   TextFormField(
                     controller: passwordController,
                     obscureText: _obscurePassword,
-                    validator: (v) => (v == null || v.length < 6) ? "Password must be at least 6 characters" : null,
+                    validator: (v) => (v == null || v.length < 8) ? "Password must be at least 8 characters" : null,
                     decoration: _input("Password").copyWith(
                       suffixIcon: IconButton(
                         icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
@@ -217,7 +217,7 @@ class _RegisterState extends State<Register> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 10),
 
                   TextFormField(
                     controller: confirmPasswordController,
@@ -230,7 +230,7 @@ class _RegisterState extends State<Register> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 10),
 
                   // ---------------------------
                   // ROLE SPECIFIC FIELDS
@@ -246,7 +246,7 @@ class _RegisterState extends State<Register> {
                       suffixIcon: const Icon(Icons.calendar_today),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 10),
 
                   // DONOR SPECIFIC
                   if (widget.role == "DONOR") ...[
@@ -257,7 +257,7 @@ class _RegisterState extends State<Register> {
                       validator: (v) => v == null ? "Select Blood Group" : null,
                       decoration: _input("Blood Group"),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 10),
                   ],
 
                   // DOCTOR SPECIFIC
@@ -267,7 +267,7 @@ class _RegisterState extends State<Register> {
                       validator: (v) => v!.isEmpty ? "Hospital Name is required" : null,
                       decoration: _input("Hospital Name"),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 10),
 
                     DropdownButtonFormField<String>(
                       value: selectedSpecialization,
@@ -276,7 +276,7 @@ class _RegisterState extends State<Register> {
                       validator: (v) => v == null ? "Select Specialization" : null,
                       decoration: _input("Specialization"),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 10),
                   ],
 
                   // RIDER SPECIFIC
@@ -286,7 +286,7 @@ class _RegisterState extends State<Register> {
                       validator: (v) => v!.isEmpty ? "Bike/Vehicle Number is required" : null,
                       decoration: _input("Bike Number (e.g. RJ-14-AB-1234)"),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 10),
                   ],
 
                   // REFERRAL SECTION
@@ -302,24 +302,24 @@ class _RegisterState extends State<Register> {
                         children: [
                           TextFormField(
                             controller: referralCodeController,
-                            decoration: _input("Referral Code (Optional)"),
+                            decoration: _input("Referral Code"),
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 10),
                         ],
                       ),
                   ],
 
                   // LOCATION
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 1),
                   const Text(
                     "Location",
                     style: TextStyle(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.w500),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height:1),
                   GestureDetector(
                     onTap: _pickLocation,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                       decoration: BoxDecoration(
                         border: Border.all(
                           color: _latitude != null ? Colors.green : Colors.grey.shade400,
@@ -338,8 +338,8 @@ class _RegisterState extends State<Register> {
                           Expanded(
                             child: _geocoding
                                 ? const SizedBox(
-                                    height: 16,
-                                    width: 16,
+                                    height: 10,
+                                    width: 10,
                                     child: CircularProgressIndicator(strokeWidth: 2),
                                   )
                                 : Text(
@@ -359,7 +359,7 @@ class _RegisterState extends State<Register> {
                     ),
                   ),
                 
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 10),
 
                   SizedBox(
                     width: double.infinity,
@@ -401,7 +401,7 @@ class _RegisterState extends State<Register> {
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
       ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
     );
   }
 }
