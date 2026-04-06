@@ -285,25 +285,41 @@ public class BloodRequestController {
                                 
                                 // Check if referrer is a Donor
                                 donorRepository.findByReferralId(referrerCode).ifPresent(referrer -> {
-                                    int refCoins = referrer.getRewardsCoin() != null ? Integer.parseInt(referrer.getRewardsCoin()) : 0;
-                                    referrer.setRewardsCoin(String.valueOf(refCoins + 50));
+                                    int coins = referrer.getRewardsCoin() != null ? Integer.parseInt(referrer.getRewardsCoin()) : 0;
                                     
                                     // Increment referral count
                                     int currentRef = referrer.getReferralCount() != null ? referrer.getReferralCount() : 0;
-                                    referrer.setReferralCount(currentRef + 1);
+                                    int newRefCount = currentRef + 1;
+                                    referrer.setReferralCount(newRefCount);
                                     
+                                    // MILESTONE BONUSES
+                                    if (newRefCount == 3) {
+                                        coins += 200; // Bonus for 3rd referral
+                                    } else if (newRefCount == 5) {
+                                        coins += 500; // Bonus for 5th referral
+                                    }
+                                    
+                                    referrer.setRewardsCoin(String.valueOf(coins + 50));
                                     donorRepository.save(referrer);
                                 });
                                 
                                 // Check if referrer is a Rider
                                 riderRepository.findByReferralId(referrerCode).ifPresent(referrer -> {
                                     int refCoins = referrer.getRewardsCoin() != null ? Integer.parseInt(referrer.getRewardsCoin()) : 0;
-                                    referrer.setRewardsCoin(String.valueOf(refCoins + 50));
                                     
                                     // Increment referral count
                                     int currentRef = referrer.getReferralCount() != null ? referrer.getReferralCount() : 0;
-                                    referrer.setReferralCount(currentRef + 1);
-                                    
+                                    int newRefCount = currentRef + 1;
+                                    referrer.setReferralCount(newRefCount);
+
+                                    // MILESTONE BONUSES
+                                    if (newRefCount == 3) {
+                                        refCoins += 200;
+                                    } else if (newRefCount == 5) {
+                                        refCoins += 500;
+                                    }
+
+                                    referrer.setRewardsCoin(String.valueOf(refCoins + 50));
                                     riderRepository.save(referrer);
                                 });
                             }
@@ -367,22 +383,38 @@ public class BloodRequestController {
                                 // Check referrers (Donor or Rider)
                                 donorRepository.findByReferralId(referrerCode).ifPresent(referrer -> {
                                     int rc = referrer.getRewardsCoin() != null ? Integer.parseInt(referrer.getRewardsCoin()) : 0;
-                                    referrer.setRewardsCoin(String.valueOf(rc + 50));
                                     
                                     // Increment referral count
                                     int currentRef = referrer.getReferralCount() != null ? referrer.getReferralCount() : 0;
-                                    referrer.setReferralCount(currentRef + 1);
-                                    
+                                    int newRefCount = currentRef + 1;
+                                    referrer.setReferralCount(newRefCount);
+
+                                    // MILESTONE BONUSES
+                                    if (newRefCount == 3) {
+                                        rc += 200;
+                                    } else if (newRefCount == 5) {
+                                        rc += 500;
+                                    }
+
+                                    referrer.setRewardsCoin(String.valueOf(rc + 50));
                                     donorRepository.save(referrer);
                                 });
                                 riderRepository.findByReferralId(referrerCode).ifPresent(referrer -> {
                                     int rc = referrer.getRewardsCoin() != null ? Integer.parseInt(referrer.getRewardsCoin()) : 0;
-                                    referrer.setRewardsCoin(String.valueOf(rc + 50));
                                     
                                     // Increment referral count
                                     int currentRef = referrer.getReferralCount() != null ? referrer.getReferralCount() : 0;
-                                    referrer.setReferralCount(currentRef + 1);
-                                    
+                                    int newRefCount = currentRef + 1;
+                                    referrer.setReferralCount(newRefCount);
+
+                                    // MILESTONE BONUSES
+                                    if (newRefCount == 3) {
+                                        rc += 200;
+                                    } else if (newRefCount == 5) {
+                                        rc += 500;
+                                    }
+
+                                    referrer.setRewardsCoin(String.valueOf(rc + 50));
                                     riderRepository.save(referrer);
                                 });
                             }
