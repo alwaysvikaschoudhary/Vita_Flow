@@ -1,92 +1,220 @@
-# Vita Flow 🩸
+# 🩸 VitaFlow — Smart Blood Donation & Delivery System
 
-Vita Flow is a modern blood donation platform designed to bridge the gap between donors, doctors/hospitals, and riders. It ensures timely delivery of life-saving blood by facilitating role-based coordination and real-time tracking.
+> A real-time, role-based platform that connects **Donors, Doctors, and Riders** to ensure fast and reliable blood delivery.
 
-## 🚀 Overview
+---
 
-The project consists of a high-performance **Flutter** mobile application and a robust **Spring Boot** backend. It handles different user roles (Donors, Doctors, Riders) with specialized workflows for each.
+## 🚨 Problem Statement
 
-## ✨ Key Features
+Traditional blood donation systems suffer from:
+- Lack of real-time coordination  
+- Delayed emergency response  
+- No proper tracking of delivery  
 
-- **Role-Based Access**: Specialized interfaces for Donors, Doctors, and Riders.
-- **Real-Time Location**: Integrated Google Maps for location picking and delivery tracking.
-- **Blood Request Management**: Doctors can create requests, Riders can accept and fulfill them.
-- **Secure Authentication**: Phone-based OTP authentication system.
-- **History Tracking**: View past donations and delivery history.
-- **Role-Specific Dashboards**: Clean and intuitive UIs for managing tasks.
+---
+
+## 💡 Solution
+
+VitaFlow provides:
+- Smart matching between donors and requests  
+- Rider-based delivery system  
+- Real-time tracking  
+- Secure OTP-based verification  
+
+---
+
+## 🧠 Core Idea
+
+This is not just a CRUD app. It combines:
+- Location-based matching  
+- Multi-role workflows  
+- Logistics tracking  
+- Real-world emergency handling  
+
+---
+
+## ⚙️ System Architecture
+
+```
+Flutter App (Frontend)
+        ↓
+ REST API (Spring Boot)
+        ↓
+ PostgreSQL Database
+```
+
+---
+
+## 👥 User Roles
+
+### 🧑‍⚕️ Doctor
+- Create blood requests  
+- Track delivery  
+- View history  
+
+### 🧑 Donor
+- View nearby requests  
+- Accept and donate  
+- Track contributions  
+
+### 🚴 Rider
+- Accept delivery tasks  
+- Pickup and deliver blood  
+- Verify delivery using OTP  
+
+---
+
+## ✨ Features
+
+- 🔐 OTP Authentication (SMS)  
+- 📍 Real-Time Location Tracking (Google Maps)  
+- 🔄 Smart Matching System  
+- 📦 Delivery Lifecycle Tracking  
+- 📊 Role-Based Dashboards  
+- 📜 History Tracking  
+
+---
+
+## 📸 Screenshots
+
+> ⚠️ Replace these with real images from your app
+
+### Login Screen
+![Login](assets/login.png)
+
+### Doctor Dashboard
+![Doctor](assets/doctor_dashboard.png)
+
+### Donor Requests
+![Donor](assets/donor_requests.png)
+
+### Rider Tracking
+![Rider](assets/rider_tracking.png)
+
+---
 
 ## 🛠 Tech Stack
 
 ### Frontend
-
-- **Framework**: [Flutter](https://flutter.dev/)
-- **State Management**: Provider / Local State
-- **Key Packages**: `google_maps_flutter`, `geolocator`, `fl_chart`, `http`, `intl`.
+- Flutter  
+- Google Maps SDK  
+- Geolocator  
+- HTTP  
 
 ### Backend
-
-- **Framework**: [Spring Boot 4.x](https://spring.io/projects/spring-boot)
-- **Language**: Java 21
-- **Database**: PostgreSQL
-- **Security**: Spring Security
-- **Data Access**: Spring Data JPA / Hibernate
+- Spring Boot (Java 21)  
+- Spring Security  
+- Spring Data JPA (Hibernate)  
+- PostgreSQL  
+- Twilio (OTP Service)  
 
 ---
 
 ## 📂 Project Structure
 
-```text
-Vita_Flow/
-├── frontend/               # Flutter Mobile Application
-│   ├── lib/
-│   │   ├── screens/        # UI Screens (Doctor, Donor, Rider)
-│   │   ├── services/       # API Integration
-│   │   └── main.dart       # Entry point
-│   └── pubspec.yaml        # Frontend dependencies
-└── backend/                # Spring Boot REST API
-    ├── src/main/java/      # Java Source Code
-    ├── src/main/resources/ # Configuration (application.properties)
-    └── pom.xml             # Backend dependencies
+```
+VitaFlow/
+├── frontend/
+│   └── lib/
+│       ├── screens/
+│       ├── services/
+│       └── main.dart
+│
+├── backend/
+│   ├── controllers/
+│   ├── services/
+│   ├── repositories/
+│   ├── entities/
+│   └── config/
 ```
 
 ---
 
-## ⚙️ Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
+- Flutter SDK  
+- Java 21  
+- Maven  
+- PostgreSQL  
 
-- [Flutter SDK](https://docs.flutter.dev/get-started/install)
-- [Java 21 JDK](https://www.oracle.com/java/technologies/downloads/)
-- [Maven](https://maven.apache.org/download.cgi)
-- [PostgreSQL](https://www.postgresql.org/download/)
+---
 
-### Backend Setup
+### Run Backend
 
-1. Navigate to the `backend` directory.
-2. Configure your database in `src/main/resources/application.properties`.
-3. Run the application:
-   ```bash
-   mvn spring-boot:run
-   ```
+```bash
+cd backend
+mvn spring-boot:run
+```
 
-### Frontend Setup
+Configure database in:
+```
+backend/src/main/resources/application.properties
+```
 
-1. Navigate to the `frontend` directory.
-2. Install dependencies:
-   ```bash
-   flutter pub get
-   ```
-3. Run the app:
-   ```bash
-   flutter run
-   ```
+---
+
+### Run Frontend
+
+```bash
+cd frontend
+flutter pub get
+flutter run
+```
+
+---
+
+## 🔐 Environment Setup
+
+Make sure to configure:
+- Twilio credentials  
+- Email service  
+- Google Maps API key  
+
+Without these, core features will not work.
+
+---
+
+## 🧪 Example Workflow
+
+1. Doctor creates a blood request  
+2. Nearby donors receive request  
+3. Donor accepts  
+4. Rider gets assigned  
+5. Rider picks up blood  
+6. OTP verification  
+7. Delivery completed  
+
+---
+
+## 🚧 Limitations
+
+- No production deployment yet  
+- Basic matching logic  
+- Limited security (can be improved)  
+- No push notifications  
+
+---
+
+## 📈 Future Improvements
+
+- AI-based donor matching  
+- Firebase notifications  
+- Admin dashboard  
+- Analytics system  
 
 ---
 
 ## 🤝 Contributing
 
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+```bash
+git checkout -b feature/your-feature
+git commit -m "Add feature"
+git push origin feature/your-feature
+```
+
+---
+
+## 📜 License
+
+Open-source for learning and improvement.
