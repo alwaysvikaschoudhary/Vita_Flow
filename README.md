@@ -108,68 +108,60 @@ Vita Flow uses a robust Flutter frontend and a Spring Boot backend.
 
 Here is the step-by-step flow of the application:
 
-### 1. Onboarding & Authentication
-Users are greeted with a splash screen, followed by onboarding and secure login.
+### 1. Onboarding, Authentication & Role Selection
+Users are greeted with a splash screen, followed by onboarding, secure login, and role selection.
 <p align="center">
-  <img src="images/01_splash.png" width="30%">
-  <img src="images/02_onboarding_1.png" width="30%">
-  <img src="images/04_login.png" width="30%">
+  <img src="images/home.jpg" width="80%">
 </p>
 
-### 2. Role Selection
-After OTP verification, users select their role to enter the appropriate dashboard.
+### 2. Registration & Role Selection
+New users register via OTP, select their role (Donor, Doctor, or Rider), and are routed to their dashboard.
 <p align="center">
-  <img src="images/05_otp_verify.png" width="30%">
-  <img src="images/06_role_selection.png" width="30%">
+  <img src="images/vitaflow.jpg" width="80%">
 </p>
 
-### 3. Donor Flow
-Donors can view their home dashboard, search for blood banks, check the map, and view their history.
+### 3. Doctor Flow
+Doctors can view their dashboard with request stats, create blood requests with blood type and urgency level, and manage their hospital profile.
 <p align="center">
-  <img src="images/07_donor_home.png" width="30%">
-  <img src="images/08_donor_search.png" width="30%">
-  <img src="images/09_donor_map.png" width="30%">
-</p>
-<p align="center">
-  <img src="images/10_donor_details.png" width="30%">
-  <img src="images/12_donor_history.png" width="30%">
-  <img src="images/13_donor_profile.png" width="30%">
+  <img src="images/doctor.jpg" width="80%">
 </p>
 
-### 4. Doctor Flow
-Doctors can create urgent blood requests, specify blood types, and track request statuses.
+### 4. Donor Flow
+Donors can view their home dashboard with active donations and urgent requests, browse blood requests, and check donation history with analytics.
 <p align="center">
-  <img src="images/14_doctor_home.png" width="30%">
-  <img src="images/15_doctor_create_request.png" width="30%">
-  <img src="images/16_doctor_select_blood.png" width="30%">
-</p>
-<p align="center">
-  <img src="images/17_doctor_urgent.png" width="30%">
-  <img src="images/18_doctor_request_status.png" width="30%">
-  <img src="images/19_doctor_history.png" width="30%">
+  <img src="images/donation.jpg" width="80%">
 </p>
 
 ### 5. Rider Flow
-Riders receive requests, accept them, use map navigation to deliver, and update the delivery status.
+Riders receive available tasks, view delivery history, and use map navigation with pickup verification for blood delivery.
 <p align="center">
-  <img src="images/21_rider_home.png" width="30%">
-  <img src="images/22_rider_available_requests.png" width="30%">
-  <img src="images/23_rider_accept.png" width="30%">
+  <img src="images/tracking.jpg" width="80%">
 </p>
+
+### 6. Request & Delivery Lifecycle
+The full lifecycle includes available tasks for riders, real-time donation progress tracking with OTP verification, and analytics reports.
 <p align="center">
-  <img src="images/24_rider_navigation.png" width="30%">
-  <img src="images/25_rider_delivery_status.png" width="30%">
-  <img src="images/26_rider_history.png" width="30%">
+  <img src="images/progess.jpg" width="80%">
+</p>
+
+### 7. Password Reset, Profile Editing & Request Creation
+Users can reset passwords via OTP, riders can edit their profile details, and doctors can create new blood requests specifying blood type and urgency.
+<p align="center">
+  <img src="images/request.jpg" width="80%">
 </p>
 
 ## Output
 
 The application successfully coordinates between the three user roles, allowing efficient tracking, secure verification, and timely blood deliveries. All past activities are stored in the user's history and profile sections.
 
+### Live Tracking, Rewards & Donation History
 <p align="center">
-  <img src="images/11_donor_request.png" width="30%">
-  <img src="images/20_doctor_profile.png" width="30%">
-  <img src="images/27_rider_profile.png" width="30%">
+  <img src="images/history.jpg" width="80%">
+</p>
+
+### Role-Based Profiles (Doctor, Rider & Donor)
+<p align="center">
+  <img src="images/profiles.jpg" width="80%">
 </p>
 
 ---
@@ -195,18 +187,129 @@ The application successfully coordinates between the three user roles, allowing 
 
 ```
 VitaFlow/
-├── frontend/
-│   └── lib/
-│       ├── screens/
-│       ├── services/
-│       └── main.dart
 │
-├── backend/
-│   ├── controllers/
-│   ├── services/
-│   ├── repositories/
-│   ├── entities/
-│   └── config/
+├── frontend/                          # Flutter Mobile Application
+│   ├── lib/
+│   │   ├── main.dart                  # App entry point
+│   │   ├── config.dart                # API base URL & app configuration
+│   │   │
+│   │   ├── constants/
+│   │   │   ├── app_colors.dart        # Color palette & theme constants
+│   │   │   └── app_constants.dart     # App-wide constant values
+│   │   │
+│   │   ├── screens/
+│   │   │   ├── splash_screen.dart     # Splash/loading screen
+│   │   │   ├── onboarding_screen.dart # First-time user onboarding
+│   │   │   ├── login_screen.dart      # Phone + password login
+│   │   │   ├── register_screen.dart   # New user registration
+│   │   │   ├── role_select.dart       # Role selection (Donor/Doctor/Rider)
+│   │   │   ├── userModel.dart         # User data model
+│   │   │   │
+│   │   │   ├── Donar/                 # 🧑 Donor Screens
+│   │   │   │   ├── home_screen.dart           # Donor dashboard
+│   │   │   │   ├── nearby_requests_screen.dart # Nearby blood requests
+│   │   │   │   ├── requests_screen.dart        # Available & my requests
+│   │   │   │   ├── donation_progress_screen.dart # Live donation tracking
+│   │   │   │   ├── donation_certificate_screen.dart # Donation certificate
+│   │   │   │   ├── history_screen.dart         # Donation history
+│   │   │   │   ├── profile_screen.dart         # Donor profile view
+│   │   │   │   ├── edit_donor_profile_screen.dart # Edit donor profile
+│   │   │   │   ├── reward_screen.dart          # Rewards & achievements
+│   │   │   │   └── donor_navbar.dart           # Donor bottom navigation
+│   │   │   │
+│   │   │   ├── Doctor/                # 🧑‍⚕️ Doctor Screens
+│   │   │   │   ├── home_screen.dart           # Doctor dashboard
+│   │   │   │   ├── create_request_screen.dart # Create blood request
+│   │   │   │   ├── Request_screen.dart        # View & manage requests
+│   │   │   │   ├── track_delivery_screen.dart # Track blood delivery
+│   │   │   │   ├── history_screen.dart        # Request history & analytics
+│   │   │   │   ├── profile_screen.dart        # Hospital profile view
+│   │   │   │   ├── edit_profile_screen.dart   # Edit hospital profile
+│   │   │   │   └── navbar.dart                # Doctor bottom navigation
+│   │   │   │
+│   │   │   ├── Rider/                 # 🚴 Rider Screens
+│   │   │   │   ├── home_screen.dart           # Rider dashboard
+│   │   │   │   ├── task_screen.dart           # Available delivery tasks
+│   │   │   │   ├── pickup_screen.dart         # Pickup verification & map
+│   │   │   │   ├── full_screen_map.dart       # Full-screen map navigation
+│   │   │   │   ├── history_screen.dart        # Delivery history
+│   │   │   │   ├── profile_screen.dart        # Rider profile view
+│   │   │   │   ├── edit_rider_profile_screen.dart # Edit rider profile
+│   │   │   │   ├── reward_screen.dart         # Rider rewards
+│   │   │   │   └── navbar.dart                # Rider bottom navigation
+│   │   │   │
+│   │   │   └── Location/              # 📍 Shared Location
+│   │   │       └── location_picker_screen.dart # Map-based location picker
+│   │   │
+│   │   └── services/
+│   │       ├── api_service.dart        # REST API client (auth, requests, users)
+│   │       ├── location_service.dart   # GPS & geolocation utilities
+│   │       └── directions_service.dart # Google Directions API integration
+│   │
+│   ├── assets/
+│   │   ├── images/                    # App icons & illustrations
+│   │   └── fonts/                     # Custom typography
+│   │
+│   ├── pubspec.yaml                   # Flutter dependencies & config
+│   └── analysis_options.yaml          # Dart lint rules
+│
+├── backend/                           # Spring Boot REST API
+│   ├── src/main/java/com/vitaflow/
+│   │   ├── VitaFlowApplication.java   # Spring Boot entry point
+│   │   │
+│   │   ├── controllers/
+│   │   │   ├── UserController.java          # Auth, OTP & user management
+│   │   │   ├── BloodRequestController.java  # CRUD for blood requests
+│   │   │   └── BloodStockController.java    # Blood inventory management
+│   │   │
+│   │   ├── services/
+│   │   │   ├── UserService.java             # User service interface
+│   │   │   ├── BloodRequestService.java     # Request service interface
+│   │   │   ├── BloodStockService.java       # Stock service interface
+│   │   │   ├── EmailService.java            # Email notification interface
+│   │   │   ├── OtpService.java              # OTP generation & verification
+│   │   │   ├── MatchingService.java         # Donor-request matching logic
+│   │   │   ├── GoogleDistanceService.java   # Distance calculation via API
+│   │   │   └── impl/
+│   │   │       ├── UserServiceImpl.java          # User service implementation
+│   │   │       ├── BloodRequestServiceImpl.java  # Request service implementation
+│   │   │       ├── BloodStockServiceImpl.java    # Stock service implementation
+│   │   │       └── EmailServiceImpl.java         # Email service implementation
+│   │   │
+│   │   ├── repositories/
+│   │   │   ├── DonorRepository.java         # Donor data access (JPA)
+│   │   │   ├── DoctorRepository.java        # Doctor data access (JPA)
+│   │   │   ├── RiderRepository.java         # Rider data access (JPA)
+│   │   │   ├── BloodRequestRepository.java  # Request data access (JPA)
+│   │   │   └── BloodStockRepository.java    # Stock data access (JPA)
+│   │   │
+│   │   ├── entities/
+│   │   │   ├── BloodRequest.java      # Blood request entity
+│   │   │   ├── BloodStock.java        # Blood inventory entity
+│   │   │   ├── Ordinate.java          # Lat/Lng coordinate entity
+│   │   │   ├── Role.java             # User role enum
+│   │   │   └── user/
+│   │   │       ├── Donor.java         # Donor entity
+│   │   │       ├── Doctor.java        # Doctor entity
+│   │   │       └── Rider.java         # Rider entity
+│   │   │
+│   │   ├── payload/
+│   │   │   └── LocationDTO.java       # Location data transfer object
+│   │   │
+│   │   ├── config/
+│   │   │   ├── SecurityConfig.java    # Spring Security configuration
+│   │   │   └── CorsConfig.java        # CORS policy configuration
+│   │   │
+│   │   └── util/
+│   │       └── SmsUtil.java           # Twilio SMS utility
+│   │
+│   ├── src/main/resources/
+│   │   └── application.properties     # DB, API keys & server config
+│   │
+│   ├── Dockerfile                     # Container build configuration
+│   └── pom.xml                        # Maven dependencies & build config
+│
+└── images/                            # README screenshots
 ```
 
 ---
