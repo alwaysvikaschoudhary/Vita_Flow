@@ -253,6 +253,8 @@ VitaFlow/
 │   ├── pubspec.yaml                   # Flutter dependencies & config
 │   └── analysis_options.yaml          # Dart lint rules
 │
+|
+|
 ├── backend/                           # Spring Boot REST API
 │   ├── src/main/java/com/vitaflow/
 │   │   ├── VitaFlowApplication.java   # Spring Boot entry point
@@ -309,6 +311,7 @@ VitaFlow/
 │   ├── Dockerfile                     # Container build configuration
 │   └── pom.xml                        # Maven dependencies & build config
 │
+|
 └── images/                            # README screenshots
 ```
 
